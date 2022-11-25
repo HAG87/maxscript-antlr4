@@ -1,2 +1,5 @@
 /examples
 /scrapbook.txt
+/.antlr
+/grammar/.antlr
+.vscode/bookmarks.json
