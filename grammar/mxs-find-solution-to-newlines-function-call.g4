@@ -5,7 +5,9 @@ options {
 }
 
 program
-    : (expr | expr EOL )* EOF
+    // : (expr | expr EOL )* EOF
+    : expr EOF
+    | (expr EOL)* EOF
     //: stat+ EOF
     ;
 
@@ -107,6 +109,8 @@ var_decl: DECLARATION decl (',' decl)* ;
 decl: var_name ('=' expr)? ;
 //ASSIGNMENT EXPRESSION
 assignment : destination (EQ | ASSIGN) expr ;
+// assignment : destination (EQ | ASSIGN) NL_OPT? expr ;
+
 destination
     : var_name
     | propertyOrIndex
@@ -139,13 +143,19 @@ math_expr
     | math_expr PROD math_expr
     | math_expr DIV math_expr
     | math_expr PLUS math_expr
+    // | math_expr PLUS NL? math_expr
     | math_expr MINUS math_expr
+    // | <assoc=right> math_expr POW NL_OPT? math_expr
+    // | math_expr PROD NL_OPT? math_expr
+    // | math_expr DIV NL_OPT? math_expr
+    // | math_expr PLUS EOL? math_expr
+    // | math_expr MINUS NL_OPT? math_expr
     ;
 math_operand
     : fn_call
     | operand
     ;
-//FUNCTION CALL --- HOW TO MANAGE PROHIBITED / OPTIONAL / MANDATORY linebreaks????
+//FUNCTION CALL
 fn_call
     : operand '(' ')'
     | operand operand+ //NL

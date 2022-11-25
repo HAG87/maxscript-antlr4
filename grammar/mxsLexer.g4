@@ -1,6 +1,12 @@
+// DELETE THIS CONTENT IF YOU PUT COMBINED GRAMMAR IN Parser TAB
 lexer grammar mxsLexer;
 
-//options { caseInsensitive = true; }
+//options {caseInsensitive = true;}
+
+channels {
+  WHITESPACE_CHANNEL,
+  COMMENTS_CHANNEL
+}
 
 //KEYWORDS
 AND:         'and';
@@ -10,17 +16,15 @@ BY:          'by';
 CASE:        'case';
 CATCH:       'catch';
 COLLECT:     'collect';
-CONTINUE:    'continue';
+//CONTINUE:    'continue';
 DO:          'do';
-DONTCOLLECT: 'dontcollect';
+//DONTCOLLECT: 'dontcollect';
 ELSE:        'else';
 EXIT:        'exit';
 FOR:         'for';
 FROM:        'from';
-GLOBAL:      'global';
 IF:          'if';
 IN:          'in';
-LOCAL:       'local';
 OF:          'of';
 ON:          'on';
 OR:          'or';
@@ -35,7 +39,8 @@ WHERE:       'where';
 WHILE:       'while';
 WITH:        'with';
 NOT :        'not' ;
-
+PUBLIC:      'public';
+PRIVATE:     'private';
 //CONTROLS
 RoloutControl
 	: 'angle'
@@ -81,7 +86,19 @@ BOOL
     | 'false'
     | 'off'
     ;
+TIME
+    : ((([0-9]*[.])?[0-9]+|[0-9]+[.])[msft])+
+    | [0-9]+[:][0-9]*[.][0-9]+
+    | [0-9]+[n]
+    ;
 
+DECLARATION
+    : 'local'
+    | 'persistent'? 'global'
+    ;
+
+GLOBAL_ID: '::' ;
+DOTDOT: '..' ;
 //OBJECTSET
 OBJECTSET
     : 'cameras'
@@ -96,8 +113,9 @@ OBJECTSET
     ;
 
 //OPERATORS
+EQ: '=';
 ASSIGN
-    : '='
+    : EQ
     | '-='
     | '+='
     | '*='
@@ -123,7 +141,9 @@ COMPARE
 SHARP: '#';
 COMMA : ',' ;
 SEMI : ';' ;
+DOUBLEDOT : ':';
 DOT: '.' ;
+AMP: '\'' ;
 LPAREN : '(' ;
 RPAREN : ')' ;
 LCURLY : '{' ;
@@ -131,26 +151,63 @@ RCURLY : '}' ;
 LBRACE: '[' ;
 RBRACE: ']' ;
 
+BITAND : '&';
 DOLLAR: '$' ;
-UNDERSCORE: '_' ;
-QUESTION: '?' ;
-BACKSLASH: '\\' ;
+UNDERSCORE : '_' ;
+QUESTION : '?' ;
+BACKSLASH : '\\' ;
 
 //BASE
 INT : [0-9]+ ;
-DEG: [0-9]*([.][0-9]+)(([ed][+-][0-9]+) | 'L' | 'P')? ;
+DEG : [0-9]*([.][0-9]+)(([ed][+-][0-9]+) | 'L' | 'P')? ;
 HEX: '0x'[0-9a-f]+ ;
-NAME: [#][a-z_][a-z_0-9]* ;
-ALPHANUM: [a-z_][a-z_0-9]* ;
 
+//Taken from https://github.com/antlr/grammars-v4/blob/master/csharp/CSharpLexer.g4
+STRING: String_regular | String_verbatim ;
+
+fragment String_regular:  '"'  (~["\\\r\n\u0085\u2028\u2029] | SimpleEscapeSequence)* '"';
+fragment String_verbatim: '@"' (~'"' | '""')* '"';
+fragment SimpleEscapeSequence
+	: '\\\''
+	| '\\"'
+	| '\\\\'
+	| '\\0'
+	| '\\a'
+	| '\\b'
+	| '\\f'
+	| '\\n'
+	| '\\r'
+	| '\\t'
+	| '\\v'
+	;
+
+REF
+    : BITAND ALPHANUM
+    | BITAND SINGLEQUOT
+    ;
+DEREF
+    : '*' ALPHANUM
+    | '*' SINGLEQUOT
+    ;
+NAME
+    : '#' ALPHANUM
+    | '#' SINGLEQUOT
+    ;
+
+SINGLEQUOT: '\'' (~'\'' | '\'\'')* '\'' ;
+ALPHANUM: [a-z_][a-z_0-9]* ;
 EOL
-    :   (';'+ WS? [\r\n]
-        | '\n'
-        ) //-> channel(HIDDEN)
+    : (
+      SEMI [ \t\n\r\u000C]*
+      | [ \t\n\r\u000C]* [\r\n]+
+      ) //-> skip
     ;
 
 //DISCARDED
-//WS: [ \t\n\r\f]+ -> skip ;
-WS: [ \t\r\n\u000C]+ -> skip;
-COMMENT : '/*' .*? '*/' -> skip ;
-LINE_COMMENT: '--' ~[\r\n]* -> skip ;
+//WS: [ \t\n\r\u000C]+ -> skip ;
+//NL: [\r\n]+ -> skip;
+NL: [\r\n]+ ;
+// WS: [ \r\n\t\u000C]+ -> skip;
+WS: [ \t\u000C]+ -> skip;
+COMMENT : '/*' .*? '*/' -> channel(COMMENTS_CHANNEL) ;
+LINE_COMMENT: '--' ~[\r\n]*  -> channel(COMMENTS_CHANNEL) ;
