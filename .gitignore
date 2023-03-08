@@ -1,5 +1,7 @@
 /examples
 /scrapbook.txt
 /.antlr
-/grammar/.antlr
 .vscode/bookmarks.json
+node_modules
+/grammar/.antlr
+/input.ms
