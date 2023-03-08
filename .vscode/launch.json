@@ -7,7 +7,7 @@
             "request": "launch",
             "input": ".\\input.ms",
             "grammar": ".\\grammar\\mxsParser.g4",
-            "actionFile": ".\\actions.js",
+            "actionFile": ".\\grammar\\actions.js",
             "startRule": "program",
             "printParseTree": true,
             "visualParseTree": true

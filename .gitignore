@@ -3,5 +3,5 @@
 /.antlr
 .vscode/bookmarks.json
 node_modules
-/grammar/.antlr
-/input.ms
+/grammar/.antlr/
+input.ms
