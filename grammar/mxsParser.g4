@@ -1,12 +1,13 @@
 parser grammar mxsParser;
 options {
     tokenVocab = mxsLexer;
+    superClass=mxsParserBase;
     //output = AST;
 }
 
 /*GRAMMAR RULES*/
 program
-    : expr (EOL expr)* EOF
+    : expr* EOF
     ;
 
 expr
@@ -26,8 +27,8 @@ expr
     ;
 
 simple_expr
-    : operand
-    | fn_call
+    : fn_call
+    | operand
     | math_expr
     | compare_expr
     | logic_expr
@@ -58,7 +59,7 @@ event_args
 
 //FUNCTION DEF
 fn_def
-    : FN var_name EOL?
+    : MAPPED? FN var_name EOL?
         (args)*
         ((param_name | param))*
         EQ expr
@@ -91,7 +92,7 @@ case_expr
     LPAREN
         (case_item EOL)+
     RPAREN;
-case_item : factor DOUBLEDOT expr ;
+case_item : factor ':' expr ;
 //IF-EXPR
 if_expr
     : IF expr THEN  expr (ELSE expr)?
@@ -99,8 +100,8 @@ if_expr
     ;
 
 //DECLARATIONS
-var_decl: DECLARATION decl (COMMA decl)* ;
-decl: var_name WS? (EQ WS? expr)? ;
+var_decl: (LOCAL | PERSISTENT? GLOBAL)? decl (COMMA decl)* ;
+decl: var_name (EQ expr)? ;
 
 //ASSIGNMENT EXPRESSION
 assignment: destination (ASSIGN | EQ) expr ;
@@ -114,7 +115,7 @@ destination
  // LOGIC EXPRESSION
 logic_expr
     : NOT logical_operand
-    | logic_expr WS? ( AND | OR ) WS? logic_expr
+    | logic_expr ( AND | OR ) logic_expr
     | logical_operand
     ;
 logical_operand
@@ -124,7 +125,7 @@ logical_operand
     ;
 //COMPARE EXPRESSION
 compare_expr
-    : compare_expr WS? COMPARE WS? compare_expr
+    : compare_expr COMPARE compare_expr
     | math_expr
     ;
 compare_operand
@@ -135,10 +136,10 @@ compare_operand
     ;
 //MATH EXPRESSIONS
 math_expr
-    : <assoc=right> math_expr WS? POW math_expr #Exponent
-    | math_expr WS? (DIV | PROD) math_expr      #Product
-    | math_expr WS? (PLUS | MINUS) math_expr    #Addition
-    | operand                                   #MathOperand
+    : <assoc=right> math_expr POW math_expr #Exponent
+    | math_expr (DIV | PROD) math_expr      #Product
+    | math_expr (PLUS | MINUS) math_expr    #Addition
+    | operand                               #MathOperand
     ;
 math_operand
     : fn_call
@@ -146,11 +147,11 @@ math_operand
     ;
 //FUNCTION CALL --- HOW TO MANAGE PROHIBITED / OPTIONAL / MANDATORY linebreaks????
 fn_call
-    :  caller 
-        (WS? /*{_input.LA(-1).getType() != EOL}?*/ operand)+
-        (WS? /*{_input.LA(-1).getType() != EOL}?*/ param)*
-    | caller
-        (WS? /*{_input.LA(-1).getType() != EOL}?*/ param)+
+    :  id=caller 
+        (operand)+
+        (/*{_input.LA(-1).getType() != EOL}?*/ param)*
+    | id=caller
+        (/*{_input.LA(-1).getType() != EOL}?*/ param)+
     ;
 caller
     : var_name
@@ -160,7 +161,7 @@ caller
     ;
 //PARAMETER
 param :  param_name operand ;
-param_name : ALPHANUM DOUBLEDOT ;
+param_name : ID ':' ;
 //------------------------------------------------------------------------//
 operand
     : factor
@@ -223,27 +224,21 @@ array : SHARP LPAREN elementList? RPAREN ;
 elementList : expr ( COMMA expr)+ ;
 
 //IDENTIFIERS
-var_name : ALPHANUM | SINGLEQUOT ;
+var_name : ID | SINGLEQUOT ;
 by_ref: REF | DEREF ;
 name_value: NAME ;
 
 //Path names
-path
-    : DOLLAR path_name
-    | DOLLAR
-    ;
-path_name : (OBJECTSET '/')? levels ;
-
+path: DOLLAR levels?;
 levels
     : level_name ('/' level_name)*
     ;
 level_name
-    : ALPHANUM | '_' | '*' | '?' | '\\'
+    : ID | '*' | '?' | '\\'
     | SINGLEQUOT
     ;
 bool
     : BOOL
-    | ON
     ;
 time: TIME ;
 number: INT | DEG | HEX ;
