@@ -8,7 +8,6 @@ channels {
 	COMMENTS_CHANNEL
 }
 //Multi-meaning keywords
-ON_KW: 'on';
 //KEYWORDS
 AND    : 'and';
 AS     : 'as';
@@ -25,7 +24,7 @@ FROM   : 'from';
 IF     : 'if';
 IN     : 'in';
 OF     : 'of';
-ON     : ON_KW;
+ON     : 'on';
 OR     : 'or';
 RETURN : 'return';
 SET    : 'set';
@@ -38,8 +37,8 @@ WHERE  : 'where';
 WHILE  : 'while';
 WITH   : 'with';
 NOT    : 'not';
-PUBLIC : 'public' WS;
-PRIVATE: 'private' WS;
+PUBLIC : 'public';
+PRIVATE: 'private';
 //CONTROLS
 RoloutControl:
 	'angle'
@@ -69,17 +68,17 @@ RoloutControl:
 ROLLOUT: 'rollout';
 //DEFINTITIONS
 MAPPED: 'mapped';
-FN: MAPPED? WS ('function' | 'fn');
-STRUCT: 'struct' WS;
+FN: MAPPED? ('function' | 'fn');
+STRUCT: 'struct';
 
 //VALUES
 VOID: 'undefined' | 'unsupplied' | 'ok' | 'silentvalue';
-BOOL: 'true' | 'false' | 'off' | ON_KW;
+BOOL: 'true' | 'false' | 'off' | ON;
 TIME: ((([0-9]* [.])? [0-9]+ | [0-9]+ [.]) [msft])+
 	| [0-9]+ [:][0-9]* [.][0-9]+
 	| [0-9]+ [n];
 
-DECLARATION: ('local' | 'persistent'? 'global') WS;
+DECLARATION: ('local' | 'persistent'? 'global');
 
 SIMPLECALL: ALPHANUM EMPTYPARENS;
 
