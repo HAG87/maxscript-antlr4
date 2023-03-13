@@ -7,93 +7,89 @@ channels {
 }
 
 //KEYWORDS
-AND: A N D;
-AS: A S;
-AT: A T;
-BY: B Y;
-CASE: C A S E;
-CATCH: C A T C H;
-COLLECT: C O L L E C T;
-DO: D O;
-ELSE: E L S E;
-EXIT: E X I T;
-FOR: F O R;
-FROM: F R O M;
-IF: I F;
-IN: I N;
-OF: O F;
-ON: O N;
-OR: O R;
-RETURN: R E T U R N;
-SET: S E T;
-THEN: T H E N;
-THROW: T H R O W;
-TO: T O;
-TRY: T R Y;
-WHEN: W H E N;
-WHERE: W H E R E;
-WHILE: W H I L E;
-WITH: W I T H;
-NOT: N O T;
-PUBLIC: P U B L I C;
-PRIVATE: P R I V A T E;
+AND:     [aA] [nN] [dD];
+AS:      [aA] [sS];
+AT:      [aA] [tT];
+BY:      [bB] [yY];
+CASE:    [cC] [aA] [sS] [eE];
+CATCH:   [cC] [aA] [tT] [cC] [hH];
+COLLECT: [cC] [oO] [lL] [lL] [eE] [cC] [tT];
+DO:      [dD] [oO];
+ELSE:    [eE] [lL] [sS] [eE];
+EXIT:    [eE] [xX] [iI] [tT];
+FOR:     [fF] [oO] [rR];
+FROM:    [fF] [rR] [oO] [mM];
+IF:      [iI] [fF];
+IN:      [iI] [nN];
+OF:      [oO] [fF];
+ON:      [oO] [nN];
+OR:      [oO] [rR];
+RETURN:  [rR] [eE] [tT] [uU] [rR] [nN];
+SET:     [sS] [eE] [tT];
+THEN:    [tT] [hH] [eE] [nN];
+THROW:   [tT] [hH] [rR] [oO] [wW];
+TO:      [tT] [oO];
+TRY:     [tT] [rR] [yY];
+WHEN:    [wW] [hH] [eE] [nN];
+WHERE:   [wW] [hH] [eE] [rR] [eE];
+WHILE:   [wW] [hH] [iI] [lL] [eE];
+WITH:    [wW] [iI] [tT] [hH];
+NOT:     [nN] [oO] [tT];
+PUBLIC:  [pP] [uU] [bB] [lL] [iI] [cC];
+PRIVATE: [pP] [rR] [iI] [vV] [aA] [tT] [eE];
 
 //BLOCKS
-ROLLOUT: R O L L O U T;
+ROLLOUT: [rR] [oO] [lL] [lL] [oO] [uU] [tT];
 
 //CONTROLS
 RoloutControl
-	: A N G L E
-	| C H E C K B O X
-	| C H E C K B U T T O N
-	| C O L O R P I C K E R
-	| C O M B O B O X
-	| C U R V E C O N T R O L
-	| D O T N E T C O N T R O L
-	| D R O P D O W N L I S T
-	| E D I T T E X T
-	| G R O U P B O X
-	| H Y P E R L I N K
-	| I M G T A G
-	| L A B E L
-	| L I S T B O X
-	| M A P B U T T O N
-	| M A T E R I A L B U T T O N
-	| M U L T I L I S T B O X
-	| P I C K B U T T O N
-	| P R O G R E S S B A R
-	| R A D I O B U T T O N S
-	| S E P A R A T O R
-	| S L I D E R
-	| S P I N N E R
-	| T I M E R
+	: [aA] [nN] [gG] [lL] [eE]
+	| [cC] [hH] [eE] [cC] [kK] [bB] [oO] [xX]
+	| [cC] [hH] [eE] [cC] [kK] [bB] [uU] [tT] [tT] [oO] [nN]
+	| [cC] [oO] [lL] [oO] [rR] [pP] [iI] [cC] [kK] [eE] [rR]
+	| [cC] [oO] [mM] [bB] [oO] [bB] [oO] [xX]
+	| [cC] [uU] [rR] [vV] [eE] [cC] [oO] [nN] [tT] [rR] [oO] [lL]
+	| [dD] [oO] [tT] [nN] [eE] [tT] [cC] [oO] [nN] [tT] [rR] [oO] [lL]
+	| [dD] [rR] [oO] [pP] [dD] [oO] [wW] [nN] [lL] [iI] [sS] [tT]
+	| [eE] [dD] [iI] [tT] [tT] [eE] [xX] [tT]
+	| [gG] [rR] [oO] [uU] [pP] [bB] [oO] [xX]
+	| [hH] [yY] [pP] [eE] [rR] [lL] [iI] [nN] [kK]
+	| [iI] [mM] [gG] [tT] [aA] [gG]
+	| [lL] [aA] [bB] [eE] [lL]
+	| [lL] [iI] [sS] [tT] [bB] [oO] [xX]
+	| [mM] [aA] [pP] [bB] [uU] [tT] [tT] [oO] [nN]
+	| [mM] [aA] [tT] [eE] [rR] [iI] [aA] [lL] [bB] [uU] [tT] [tT] [oO] [nN]
+	| [mM] [uU] [lL] [tT] [iI] [lL] [iI] [sS] [tT] [bB] [oO] [xX]
+	| [pP] [iI] [cC] [kK] [bB] [uU] [tT] [tT] [oO] [nN]
+	| [pP] [rR] [oO] [gG] [rR] [eE] [sS] [sS] [bB] [aA] [rR]
+	| [rR] [aA] [dD] [iI] [oO] [bB] [uU] [tT] [tT] [oO] [nN] [sS]
+	| [sS] [eE] [pP] [aA] [rR] [aA] [tT] [oO] [rR]
+	| [sS] [lL] [iI] [dD] [eE] [rR]
+	| [sS] [pP] [iI] [nN] [nN] [eE] [rR]
+	| [tT] [iI] [mM] [eE] [rR]
 	;
 
 //DEFINTITIONS
-MAPPED: M A P P E D;
-FN: F U N C T I O N | F N;
-STRUCT: S T R U C T;
+MAPPED: [mM] [aA] [pP] [pP] [eE] [dD];
+FN: [fF] [uU] [nN] [cC] [tT] [iI] [oO] [nN] | [fF] [nN];
+STRUCT: [sS] [tT] [rR] [uU] [cC] [tT];
 //DECLARATIONS
-LOCAL: L O C A L;
-GLOBAL: G L O B A L;
-PERSISTENT: P E R S I S T E N T;
+DECL
+	: [lL] [oO] [cC] [aA] [lL]
+	| ([pP] [eE] [rR] [sS] [iI] [sS] [tT] [eE] [nN] [tT] WS)? [gG] [lL] [oO] [bB] [aA] [lL]
+	;
 
 //VALUES
 VOID
-	: U N D E F I N E D
-	| U N S U P P L I E D
-	| S I L E N T V A L U E
-	| O K
+	: [uU] [nN] [dD] [eE] [fF] [iI] [nN] [eE] [dD]
+	| [uU] [nN] [sS] [uU] [pP] [pP] [lL] [iI] [eE] [dD]
+	| [sS] [iI] [lL] [eE] [nN] [tT] [vV] [aA] [lL] [uU] [eE]
+	| [oO] [kK]
 	;
-BOOL: T R U E | F A L S E | O F F | ON;
-TIME
-	: ((([0-9]* [.])? [0-9]+ | [0-9]+ [.]) (M | F | S | T))+
-	| [0-9]+ [:][0-9]* [.][0-9]+
-	| [0-9]+ N
-	;
+BOOL: [tT] [rR] [uU] [eE] | [fF] [aA] [lL] [sS] [eE] | [oO] [fF] [fF] | ON;
 
 //OPERATORS
-GLOBAL_ID: '::';
+GLOB: '::';
 DOTDOT: '..';
 
 COMPARE: '==' | '<' | '>' | '<=' | '>=' | '!=';
@@ -125,9 +121,17 @@ UNDERSCORE: '_';
 QUESTION: '?';
 BACKSLASH: '\\';
 
-INT: [0-9]+;
-DEG: INT? [.] INT (((E | D) [+-] INT) | L | P)?;
-HEX: '0' X ([0-9] | A | F)+;
+fragment INT: DIG+;
+fragment DEG: INT? [.] INT ([eEdD] [+-] INT | [lLpP])?;
+fragment HEX: '0' [xX] (DIG | [aAfF])+;
+NUMBER: INT | DEG | HEX;
+
+TIME
+	: (((INT? [.])? INT | INT [.]) [mfstMFST])+
+	| INT [:] INT? [.] INT
+	| INT [nN]
+	;
+fragment DIG: [0-9];
 
 REF: BITAND (ID | SINGLEQUOT);
 DEREF: '*' (ID | SINGLEQUOT);
@@ -138,35 +142,8 @@ fragment String_regular: '"' (~["\r\n] | '\\"')* '"';
 fragment String_verbatim: '@"' (~'"' | '""')* '"';
 
 //Identifiers
-SINGLEQUOT: '\'' (~'\'' | '\'\'')* '\'';
-ID: [a-z_][a-zA-Z_0-9]*;
-
-fragment A: [aA];
-fragment B: [bB];
-fragment C: [cC];
-fragment D: [dD];
-fragment E: [eE];
-fragment F: [fF];
-fragment G: [gG];
-fragment H: [hH];
-fragment I: [iI];
-fragment J: [jJ];
-fragment K: [kK];
-fragment L: [lL];
-fragment M: [mM];
-fragment N: [nN];
-fragment O: [oO];
-fragment P: [pP];
-fragment Q: [qQ];
-fragment R: [rR];
-fragment S: [sS];
-fragment T: [tT];
-fragment U: [uU];
-fragment V: [vV];
-fragment W: [wW];
-fragment X: [xX];
-fragment Y: [yY];
-fragment Z: [zZ];
+SINGLEQUOT: GLOB? '\'' (~'\'' | '\'\'')* '\'';
+ID: GLOB? [a-zA-Z_][a-zA-Z_0-9]*;
 
 //COMMENTS
 COMMENT: '/*' .*? '*/' -> channel(COMMENTS_CHANNEL);

@@ -1,7 +1,7 @@
 parser grammar mxsParser;
 options {
     tokenVocab = mxsLexer;
-    superClass=mxsParserBase;
+    superClass = mxsParserBase;
     //output = AST;
 }
 
@@ -11,33 +11,33 @@ program
     ;
 
 expr
-    : simple_expr
-    | var_decl
-    | assignment
-    | if_expr
-    | while_loop
-    | do_loop
-    | for_loop
-    | loop_exit
-    | case_expr
-    | try_expr
-    | fn_def
-    | fn_return
-    | struct_def
+    : simple_expr #SimpleExpr
+    | var_decl    #VarDecl
+    | assignment  #Assign
+    | if_expr     #IfExpr
+    | while_loop  #WhileExpr
+    | do_loop     #DoExpr
+    | for_loop    #ForExpr
+    | loop_exit   #ExitExpr
+    | case_expr   #CaseExpr
+    | try_expr    #TryExpr
+    | fn_def      #FnDef
+    | fn_return   #FnRet
+    | struct_def  #StructDef
     ;
 
 simple_expr
     : fn_call
     | operand
     | math_expr
-    | compare_expr
     | logic_expr
+    | compare_expr
     ;
 //CONTEXT
 //PARAMETER DEF
 //STRUCT DEF
 struct_def
-    : STRUCT var_name
+    : STRUCT {noNewLines()}? var_name
     LPAREN
         struct_member (COMMA struct_member)*
     RPAREN ;
@@ -60,8 +60,8 @@ event_args
 //FUNCTION DEF
 fn_def
     : MAPPED? FN var_name EOL?
-        (args)*
-        ((param_name | param))*
+        args*
+        (param_name | param)*
         EQ expr
     ;
 args
@@ -90,32 +90,30 @@ loop_exit: EXIT (WITH expr)? ;
 case_expr
 : CASE expr? OF
     LPAREN
-        (case_item EOL)+
+        case_item+
     RPAREN;
-case_item : factor ':' expr ;
+case_item : factor {noSpaces()}? ':' expr ;
 //IF-EXPR
 if_expr
-    : IF expr THEN  expr (ELSE expr)?
+    : IF expr THEN expr (ELSE expr)?
     | IF expr DO expr
     ;
 
 //DECLARATIONS
-var_decl: (LOCAL | PERSISTENT? GLOBAL)? decl (COMMA decl)* ;
-decl: var_name (EQ expr)? ;
+var_decl: DECL? decl (COMMA decl)* ;
+decl: var_name ({noNewLines()}? EQ expr)? ;
 
 //ASSIGNMENT EXPRESSION
-assignment: destination (ASSIGN | EQ) expr ;
+assignment: destination {noNewLines()}? (ASSIGN | EQ) expr ;
 destination
     : var_name
     | propertyOrIndex
-    //| propertyExpr
-    //| indexExpr
     ;
  //-----------------------------------------------------------------------------//
  // LOGIC EXPRESSION
 logic_expr
     : NOT logical_operand
-    | logic_expr ( AND | OR ) logic_expr
+    | logic_expr {noNewLines()}? ( AND | OR ) logic_expr
     | logical_operand
     ;
 logical_operand
@@ -125,7 +123,7 @@ logical_operand
     ;
 //COMPARE EXPRESSION
 compare_expr
-    : compare_expr COMPARE compare_expr
+    : compare_expr {noNewLines()}? COMPARE compare_expr
     | math_expr
     ;
 compare_operand
@@ -136,9 +134,9 @@ compare_operand
     ;
 //MATH EXPRESSIONS
 math_expr
-    : <assoc=right> math_expr POW math_expr #Exponent
-    | math_expr (DIV | PROD) math_expr      #Product
-    | math_expr (PLUS | MINUS) math_expr    #Addition
+    : <assoc=right> math_expr {noNewLines()}? POW math_expr #Exponent
+    | math_expr {noNewLines()}? (DIV | PROD) math_expr      #Product
+    | math_expr {noNewLines()}? (PLUS | MINUS) math_expr    #Addition
     | operand                               #MathOperand
     ;
 math_operand
@@ -148,10 +146,10 @@ math_operand
 //FUNCTION CALL --- HOW TO MANAGE PROHIBITED / OPTIONAL / MANDATORY linebreaks????
 fn_call
     :  id=caller 
-        (operand)+
-        (/*{_input.LA(-1).getType() != EOL}?*/ param)*
+        ({noNewLines()}? arg+=operand)+
+        ({noNewLines()}? params+=param)*
     | id=caller
-        (/*{_input.LA(-1).getType() != EOL}?*/ param)+
+        ({noNewLines()}? param)+
     ;
 caller
     : var_name
@@ -161,7 +159,7 @@ caller
     ;
 //PARAMETER
 param :  param_name operand ;
-param_name : ID ':' ;
+param_name : ID {noSpaces()}? ':' ;
 //------------------------------------------------------------------------//
 operand
     : factor
@@ -174,20 +172,19 @@ propertyOrIndex
     | factor index                           #IndexExpr
     ;
 //Property accessor
-property : DOT var_name ;
+property : DOT {noSpaces()}? var_name ;
 //Index accessor
 index : LBRACE expr RBRACE ; 
 //FACTORS
 factor
     : var_name
-    | name_value
+    | NAME
     | path
     | by_ref
-    | number
-    | string
-    | time
-    | bool
-    //| special
+    | NUMBER
+    | STRING
+    | TIME
+    | BOOL
     | array
     | bitArray
     | point3
@@ -200,9 +197,7 @@ factor
 unary_minus : MINUS expr ;
 expr_seq
     : LPAREN
-        (
-            expr (EOL expr)*
-        )?
+        expr*
       RPAREN
     ;
 //------------------------------------------------------------------------//
@@ -211,7 +206,7 @@ box2:   LBRACE expr COMMA expr COMMA expr COMMA expr RBRACE;
 point3: LBRACE expr COMMA expr COMMA expr RBRACE;
 point2: LBRACE expr COMMA expr RBRACE;
 //BitArray
-bitArray : SHARP LCURLY bitList? RCURLY ;
+bitArray : SHARP {noNewLines()}? LCURLY bitList? RCURLY ;
 
 bitList : bitexpr ( COMMA bitexpr)* ;
 bitexpr
@@ -220,26 +215,19 @@ bitexpr
     ;
 
 //Array
-array : SHARP LPAREN elementList? RPAREN ;
+array : SHARP {noNewLines()}? LPAREN elementList? RPAREN ;
 elementList : expr ( COMMA expr)+ ;
 
 //IDENTIFIERS
 var_name : ID | SINGLEQUOT ;
-by_ref: REF | DEREF ;
-name_value: NAME ;
+by_ref
+    : REF #Ref
+    | DEREF #DeRef;
 
 //Path names
-path: DOLLAR levels?;
-levels
-    : level_name ('/' level_name)*
-    ;
+path: DOLLAR {noSpaces()}? levels?;
+levels : level_name ( {noSpaces()}? '/' {noSpaces()}? level_name)* ;
 level_name
     : ID | '*' | '?' | '\\'
     | SINGLEQUOT
     ;
-bool
-    : BOOL
-    ;
-time: TIME ;
-number: INT | DEG | HEX ;
-string: STRING ;
