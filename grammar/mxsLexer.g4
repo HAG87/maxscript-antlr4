@@ -5,7 +5,8 @@ channels {
 	WHITESPACE_CHANNEL,
 	COMMENTS_CHANNEL
 }
-
+//(\w)
+//[\U$1$1] 
 //KEYWORDS
 AND:     [aA] [nN] [dD];
 AS:      [aA] [sS];
@@ -44,7 +45,24 @@ DEFAULTACTION : [Dd][Ee] [Ff] [Aa] [Uu] [Ll] [Tt] [Aa] [Cc] [Tt] [Ii] [Oo] [Nn];
 LEVEL: [lL] [eE] [vV] [e] [lL];
 TIME:  [tT] [iI] [mM] [e];
 UNDO:  [Uu]  [Nn]  [Dd]  [Oo];
-
+CHANGE: [Cc] [Hh] [Aa] [Nn] [Gg] [Ee] [Ss]?; 
+DELETED: [Dd] [Ee] [Ll] [Ee] [Tt] [Ee] [Dd];
+CONTEXT
+	: ANIMATE
+	| DONTREPEATMESSAGES
+	| MACRORECORDEREMITTERENABLED
+	| MXSCALLSTACKCAPTUREENABLED
+	| PRINTALLELEMENTS
+	| QUIET
+	| REDRAW
+	;
+fragment ANIMATE:                     [Aa] [Nn] [Ii] [Mm] [Aa] [Tt] [Ee];
+fragment DONTREPEATMESSAGES:          [Dd] [Oo] [Nn] [Tt] [Rr] [Ee] [Pp] [Ee] [Aa] [Tt] [Mm] [Ee] [Ss] [Ss] [Aa] [Gg] [Ee] [Ss];
+fragment MACRORECORDEREMITTERENABLED: [Mm] [Aa] [Cc] [Rr] [Oo] [Rr] [Ee] [Cc] [Oo] [Rr] [Dd] [Ee] [Rr] [Ee] [Mm] [Ii] [Tt] [Tt] [Ee] [Rr] [Ee] [Nn] [Aa] [Bb] [Ll] [Ee] [Dd];
+fragment MXSCALLSTACKCAPTUREENABLED:  [Mm] [Xx] [Ss] [Cc] [Aa] [Ll] [Ll] [Ss] [Tt] [Aa] [Cc] [Kk] [Cc] [Aa] [Pp] [Tt] [Uu] [Rr] [Ee] [Ee] [Nn] [Aa] [Bb] [Ll] [Ee] [Dd];
+fragment PRINTALLELEMENTS:            [Pp] [Rr] [Ii] [Nn] [Tt] [Aa] [Ll] [Ll] [Ee] [Ll] [Ee] [Mm] [Ee] [Nn] [Tt] [Ss];
+fragment QUIET:                       [Qq] [Uu] [Ii] [Ee] [Tt];
+fragment REDRAW:                      [Rr] [Ee] [Dd] [Rr] [Aa] [Ww];
 //BLOCKS
 GROUP:       [gG] [rR] [oO] [uU] [pP];
 MACROSCRIPT: [mM] [aA] [cC] [rR] [oO] [sS] [cC] [rR] [iI] [pP] [tT];
@@ -85,16 +103,42 @@ RolloutControl
 SEPARATOR: [sS] [eE] [pP] [aA] [rR] [aA] [tT] [oO] [rR];
 MENUITEM:  [mM] [eE] [nN] [uU] [iI] [tT] [eE] [mM];
 SUBMENU:   [sS] [uU] [bB] [mM] [eE] [nN] [uU];
+// OVERRIDABLE KEYWORDS
+KW_RESERVED
+	: RolloutControl
+	| GROUP
+	| LEVEL
+	| MENUITEM
+	| SEPARATOR
+	| SUBMENU
+	| TIME
+	| SET
+	| CHANGE
+	| DELETED
+	;
+KW_OVERIDE
+	: ATTRIBUTES
+	| PARAMETERS
+	| ROLLOUT
+	| PLUGIN
+	| RCMENU
+	| TOOL
+	| TO
+	| RETURN
+	| THROW
+	;
 //DEFINTITIONS
 MAPPED: [mM] [aA] [pP] [pP] [eE] [dD];
 FN:     [fF] [uU] [nN] [cC] [tT] [iI] [oO] [nN] | [fF] [nN];
 STRUCT: [sS] [tT] [rR] [uU] [cC] [tT];
 //DECLARATIONS
-DECL
-	: [lL] [oO] [cC] [aA] [lL]
-	| ([pP] [eE] [rR] [sS] [iI] [sS] [tT] [eE] [nN] [tT] WS)? [gG] [lL] [oO] [bB] [aA] [lL]
+DECL: LOCAL
+	| GLOBAL
+	| PERSISTENT WS GLOBAL
 	;
-
+LOCAL:      [lL] [oO] [cC] [aA] [lL];
+GLOBAL:     [gG] [lL] [oO] [bB] [aA] [lL];
+PERSISTENT: [pP] [eE] [rR] [sS] [iI] [sS] [tT] [eE] [nN] [tT];
 //VALUES
 VOID
 	: [uU] [nN] [dD] [eE] [fF] [iI] [nN] [eE] [dD]
@@ -102,12 +146,16 @@ VOID
 	| [sS] [iI] [lL] [eE] [nN] [tT] [vV] [aA] [lL] [uU] [eE]
 	| [oO] [kK]
 	;
-BOOL: [tT] [rR] [uU] [eE] | [fF] [aA] [lL] [sS] [eE] | [oO] [fF] [fF] | ON;
-
+BOOL
+	: [tT] [rR] [uU] [eE]
+	| [fF] [aA] [lL] [sS] [eE]
+	| [oO] [fF] [fF]
+	| ON
+	;
 //OPERATORS
 GLOB: '::';
 DOTDOT: '..';
-
+//SIMPLE-EXPRESSION
 COMPARE: '==' | '<' | '>' | '<=' | '>=' | '!=';
 EQ: '=';
 ASSIGN: '-=' | '+=' | '*=' | '/=';
@@ -116,7 +164,6 @@ PLUS: '+';
 PROD: '*';
 DIV: '/';
 POW: '^';
-
 //SYMBOLS
 SHARP: '#';
 COMMA: ',';
@@ -137,42 +184,45 @@ UNDERSCORE: '_';
 QUESTION: '?';
 BACKSLASH: '\\';
 TILDE: '~';
-
-fragment INT: DIG+;
-fragment DEG: INT? [.] INT ([eEdD] [+-] INT | [lLpP])?;
-fragment HEX: '0' [xX] (DIG | [aAfF])+;
+//BASIC VALUES
 NUMBER: INT | DEG | HEX;
 TIMEVAL
 	: (((INT? [.])? INT | INT [.]) [mfstMFST])+
 	| INT [:] INT? [.] INT
 	| INT [nN]
 	;
-fragment DIG: [0-9];
-
+fragment INT: DIG+;
+fragment DEG: INT? [.] INT ([eEdD] [+-] INT | [lLpP])?;
+fragment HEX: '0' [xX] (DIG | [aAfF])+;
+//REFERENCING
 REF: BITAND ID;
 DEREF: '*'  ID;
 NAME: '#'   ID;
-
-STRING: String_regular | String_verbatim;
-
+//STRING
+STRING
+	: String_regular
+	| String_verbatim
+	;
 fragment String_regular: '"' (~["\r\n] | '\\"')* '"';
 fragment String_verbatim: '@"' (~'"' | '""')* '"';
-
-//Identifiers
+//IDENTIFIERS
+// ID: GLOB? [a-zA-Z_][a-zA-Z_0-9]*;
+ID
+	: GLOB? ALPHANUM
+	| GLOB? SINGLEQUOT
+	| GLOB? KW_RESERVED
+	;
 SINGLEQUOT: GLOB? '\'' (~'\'' | '\'\'')* '\'';
 RESOURCE: TILDE [a-zA-Z_0-9]+ TILDE;
-ID: GLOB? [a-zA-Z_][a-zA-Z_0-9]*;
-
+fragment DIG: [0-9];
+fragment ALPHANUM: [a-zA-Z_][a-zA-Z_0-9]*;
 //COMMENTS
 COMMENT: '/*' .*? '*/' -> channel(COMMENTS_CHANNEL);
 LINE_COMMENT: '--' ~[\r\n]* -> channel(COMMENTS_CHANNEL);
-
 //WHITESPACE
 EOL: (WS? NLCHAR WS?)+ -> channel(HIDDEN);
-WS: (WSCHAR+ (BACKSLASH EOL)+? | (BACKSLASH EOL)+) -> channel(HIDDEN);
-
+WS:  (WSCHAR (BACKSLASH+ EOL)* | (BACKSLASH EOL)+) -> channel(HIDDEN);
 fragment WSCHAR: [ \t]+;
 fragment NLCHAR: [;\r\n]+;
-
 // INVALID TOKENS
 ANY: .+? -> skip;
