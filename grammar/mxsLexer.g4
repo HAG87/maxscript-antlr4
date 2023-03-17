@@ -37,12 +37,26 @@ WITH:    [wW] [iI] [tT] [hH];
 NOT:     [nN] [oO] [tT];
 PUBLIC:  [pP] [uU] [bB] [lL] [iI] [cC];
 PRIVATE: [pP] [rR] [iI] [vV] [aA] [tT] [eE];
+//RESERVED KEYWORDS
+ABOUT:    [aA] [bB] [oO] [u] [tT];
+COORDSYS: [cC] [oO] [oO] [r] [dD] [sS] [yY] [sS];
+DEFAULTACTION : [Dd][Ee] [Ff] [Aa] [Uu] [Ll] [Tt] [Aa] [Cc] [Tt] [Ii] [Oo] [Nn];
+LEVEL: [lL] [eE] [vV] [e] [lL];
+TIME:  [tT] [iI] [mM] [e];
+UNDO:  [Uu]  [Nn]  [Dd]  [Oo];
 
 //BLOCKS
-ROLLOUT: [rR] [oO] [lL] [lL] [oO] [uU] [tT];
-
+GROUP:       [gG] [rR] [oO] [uU] [pP];
+MACROSCRIPT: [mM] [aA] [cC] [rR] [oO] [sS] [cC] [rR] [iI] [pP] [tT];
+ROLLOUT:     [rR] [oO] [lL] [lL] [oO] [uU] [tT];
+TOOL:        [tT] [oO] [oO] [lL];
+UTILITY:     [uU] [tT] [iI] [lL] [iI] [tT] [yY];
+RCMENU:      [rR] [cC] [mM] [eE] [nN] [uU];
+PARAMETERS:  [Pp] [Aa] [Rr] [Aa] [Mm] [Ee] [Tt] [Ee] [Rr] [Ss];
+PLUGIN:      [Pp] [Ll] [Uu] [Gg] [Ii] [Nn];
+ATTRIBUTES:  [Aa] [Tt] [Tt] [Rr] [Ii] [Bb] [Uu] [Tt] [Ee] [Ss];
 //CONTROLS
-RoloutControl
+RolloutControl
 	: [aA] [nN] [gG] [lL] [eE]
 	| [cC] [hH] [eE] [cC] [kK] [bB] [oO] [xX]
 	| [cC] [hH] [eE] [cC] [kK] [bB] [uU] [tT] [tT] [oO] [nN]
@@ -68,10 +82,12 @@ RoloutControl
 	| [sS] [pP] [iI] [nN] [nN] [eE] [rR]
 	| [tT] [iI] [mM] [eE] [rR]
 	;
-
+SEPARATOR: [sS] [eE] [pP] [aA] [rR] [aA] [tT] [oO] [rR];
+MENUITEM:  [mM] [eE] [nN] [uU] [iI] [tT] [eE] [mM];
+SUBMENU:   [sS] [uU] [bB] [mM] [eE] [nN] [uU];
 //DEFINTITIONS
 MAPPED: [mM] [aA] [pP] [pP] [eE] [dD];
-FN: [fF] [uU] [nN] [cC] [tT] [iI] [oO] [nN] | [fF] [nN];
+FN:     [fF] [uU] [nN] [cC] [tT] [iI] [oO] [nN] | [fF] [nN];
 STRUCT: [sS] [tT] [rR] [uU] [cC] [tT];
 //DECLARATIONS
 DECL
@@ -120,29 +136,31 @@ DOLLAR: '$';
 UNDERSCORE: '_';
 QUESTION: '?';
 BACKSLASH: '\\';
+TILDE: '~';
 
 fragment INT: DIG+;
 fragment DEG: INT? [.] INT ([eEdD] [+-] INT | [lLpP])?;
 fragment HEX: '0' [xX] (DIG | [aAfF])+;
 NUMBER: INT | DEG | HEX;
-
-TIME
+TIMEVAL
 	: (((INT? [.])? INT | INT [.]) [mfstMFST])+
 	| INT [:] INT? [.] INT
 	| INT [nN]
 	;
 fragment DIG: [0-9];
 
-REF: BITAND (ID | SINGLEQUOT);
-DEREF: '*' (ID | SINGLEQUOT);
-NAME: '#' (ID | SINGLEQUOT);
+REF: BITAND ID;
+DEREF: '*'  ID;
+NAME: '#'   ID;
 
 STRING: String_regular | String_verbatim;
+
 fragment String_regular: '"' (~["\r\n] | '\\"')* '"';
 fragment String_verbatim: '@"' (~'"' | '""')* '"';
 
 //Identifiers
 SINGLEQUOT: GLOB? '\'' (~'\'' | '\'\'')* '\'';
+RESOURCE: TILDE [a-zA-Z_0-9]+ TILDE;
 ID: GLOB? [a-zA-Z_][a-zA-Z_0-9]*;
 
 //COMMENTS

@@ -68,6 +68,7 @@ args
     : var_name
     | by_ref
     ;
+//FN_RETURN
 fn_return: RETURN expr;
 //TRY EXPR
 try_expr
@@ -174,7 +175,7 @@ propertyOrIndex
 //Property accessor
 property : DOT {noSpaces()}? var_name ;
 //Index accessor
-index : LBRACE expr RBRACE ; 
+index : LBRACE expr RBRACE;
 //FACTORS
 factor
     : var_name
@@ -183,7 +184,7 @@ factor
     | by_ref
     | NUMBER
     | STRING
-    | TIME
+    | TIMEVAL
     | BOOL
     | array
     | bitArray
@@ -195,6 +196,7 @@ factor
     | QUESTION
     ;
 unary_minus : MINUS expr ;
+
 expr_seq
     : LPAREN
         expr*
@@ -216,7 +218,7 @@ bitexpr
 
 //Array
 array : SHARP {noNewLines()}? LPAREN elementList? RPAREN ;
-elementList : expr ( COMMA expr)+ ;
+elementList : expr ( COMMA expr)* ;
 
 //IDENTIFIERS
 var_name : ID | SINGLEQUOT ;
