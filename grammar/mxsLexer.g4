@@ -28,7 +28,7 @@ OR:      [oO] [rR];
 RETURN:  [rR] [eE] [tT] [uU] [rR] [nN];
 SET:     [sS] [eE] [tT];
 THEN:    [tT] [hH] [eE] [nN];
-THROW:   [tT] [hH] [rR] [oO] [wW];
+// THROW:   [tT] [hH] [rR] [oO] [wW];
 TO:      [tT] [oO];
 TRY:     [tT] [rR] [yY];
 WHEN:    [wW] [hH] [eE] [nN];
@@ -125,7 +125,7 @@ KW_OVERIDE
 	| TOOL
 	| TO
 	| RETURN
-	| THROW
+	// | THROW
 	;
 //DEFINTITIONS
 MAPPED: [mM] [aA] [pP] [pP] [eE] [dD];
@@ -170,15 +170,14 @@ COMMA: ',';
 COL: ':';
 SEMI: ';';
 DOT: '.';
-AMP: '\'';
-EMPTYPARENS: '()';
+SINGLEQUOT: '\'';
 LPAREN: '(';
 RPAREN: ')';
 LCURLY: '{';
 RCURLY: '}';
 LBRACE: '[';
 RBRACE: ']';
-BITAND: '&';
+AMP: '&';
 DOLLAR: '$';
 UNDERSCORE: '_';
 QUESTION: '?';
@@ -195,7 +194,7 @@ fragment INT: DIG+;
 fragment DEG: INT? [.] INT ([eEdD] [+-] INT | [lLpP])?;
 fragment HEX: '0' [xX] (DIG | [aAfF])+;
 //REFERENCING
-REF: BITAND ID;
+REF: AMP ID;
 DEREF: '*'  ID;
 NAME: '#'   ID;
 //STRING
@@ -209,10 +208,10 @@ fragment String_verbatim: '@"' (~'"' | '""')* '"';
 // ID: GLOB? [a-zA-Z_][a-zA-Z_0-9]*;
 ID
 	: GLOB? ALPHANUM
-	| GLOB? SINGLEQUOT
+	| GLOB? QUOTED
 	| GLOB? KW_RESERVED
 	;
-SINGLEQUOT: GLOB? '\'' (~'\'' | '\'\'')* '\'';
+QUOTED: GLOB? '\'' (~'\'' | '\'\'')* '\'';
 RESOURCE: TILDE [a-zA-Z_0-9]+ TILDE;
 fragment DIG: [0-9];
 fragment ALPHANUM: [a-zA-Z_][a-zA-Z_0-9]*;

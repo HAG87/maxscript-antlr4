@@ -316,6 +316,7 @@ math_operand
     : operand
     | fn_call
     ;
+
 //FUNCTION CALL --- HOW TO MANAGE PROHIBITED / OPTIONAL / MANDATORY linebreaks????
 // Until an EOL or lower precedence rule...
 fn_call
@@ -324,7 +325,7 @@ fn_call
         ({noNewLines()}? params+=param)*
     | id=caller
         ({noNewLines()}? param)+
-    | caller {noSpaces()}? EMPTYPARENS
+    | caller {noSpaces()}? '(' ')'
     ;
 // /*
 caller
@@ -334,6 +335,7 @@ caller
     | expr_seq
     ;
 // */
+
 //PARAMETER
 param :  param_name operand ;
 param_name : (ID | KW_OVERIDE) {noSpaces()}? ':' ;
