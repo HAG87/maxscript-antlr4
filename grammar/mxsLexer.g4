@@ -39,11 +39,11 @@ NOT:     [nN] [oO] [tT];
 PUBLIC:  [pP] [uU] [bB] [lL] [iI] [cC];
 PRIVATE: [pP] [rR] [iI] [vV] [aA] [tT] [eE];
 //RESERVED KEYWORDS
-ABOUT:    [aA] [bB] [oO] [u] [tT];
-COORDSYS: [cC] [oO] [oO] [r] [dD] [sS] [yY] [sS];
+ABOUT:    [aA] [bB] [oO] [uU] [tT];
+COORDSYS: [cC] [oO] [oO] [rR] [dD] [sS] [yY] [sS];
 DEFAULTACTION : [Dd][Ee] [Ff] [Aa] [Uu] [Ll] [Tt] [Aa] [Cc] [Tt] [Ii] [Oo] [Nn];
-LEVEL: [lL] [eE] [vV] [e] [lL];
-TIME:  [tT] [iI] [mM] [e];
+LEVEL: [lL] [eE] [vV] [eE] [lL];
+TIME:  [tT] [iI] [mM] [eE];
 UNDO:  [Uu]  [Nn]  [Dd]  [Oo];
 CHANGE: [Cc] [Hh] [Aa] [Nn] [Gg] [Ee] [Ss]?; 
 DELETED: [Dd] [Ee] [Ll] [Ee] [Tt] [Ee] [Dd];
