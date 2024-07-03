@@ -1,9 +1,30 @@
 parser grammar mxsParser;
+
+@header {
+import { mxsParserBase } from "./mxsParserBase"
+}
+
 options {
     tokenVocab = mxsLexer;
     superClass = mxsParserBase;
+    //language = TypeScript;
     //output = AST;
 }
+
+/*
+@members {
+
+    noNewLines():boolean {
+        return this._input.LA(1) != mxsParser.EOL;
+        // return this._input.LA(-1) != mxsParser.EOL || this._input.LA(1) != mxsParser.EOL;
+    }  
+
+    noSpaces(): boolean {
+        return this._input.LA(1) != mxsParser.WS;
+    }
+}
+// */
+
 /*GRAMMAR RULES*/
 program
     : expr* EOF
@@ -145,7 +166,7 @@ plugin_clause
 // when <attribute> <objects> change[s] [ id:<name> ] [handleAt:#redrawViews|#timeChange] [ <object_parameter> ] do <expr>
 // when             <objects> deleted   [ id:<name> ] [handleAt:#redrawViews|#timeChange] [ <object_parameter> ] do <expr> 
 change_handler
-    : WHEN var_name (var_name | KW_OVERIDE | path | expr_seq) (CHANGE | DELETED) param* operand? DO expr;
+    : WHEN var_name (var_name | KW_OVERRIDE | path | expr_seq) (CHANGE | DELETED) param* operand? DO expr;
 
 //CONTEXT_EXPR
 context_expr
@@ -188,7 +209,7 @@ attributes_clause
 //------------------------------------------------------------------------//
 //STRUCT DEF
 struct_def
-    : STRUCT {noNewLines()}? var_name
+    : STRUCT {this.noNewLines()}? var_name
     LPAREN
         struct_member (COMMA struct_member)*
     RPAREN ;
@@ -258,7 +279,7 @@ case_expr
     LPAREN
         case_item+
     RPAREN;
-case_item : factor {noSpaces()}? ':' expr ;
+case_item : factor {this.noSpaces()}? ':' expr ;
 
 //IF-EXPR
 if_expr
@@ -268,10 +289,10 @@ if_expr
 
 //DECLARATIONS
 var_decl: DECL? decl (COMMA decl)* ;
-decl: var_name ({noNewLines()}? EQ expr)? ;
+decl: var_name ({this.noNewLines()}? EQ expr)? ;
 
 //ASSIGNMENT EXPRESSION
-assignment: destination {noNewLines()}? (ASSIGN | EQ) expr ;
+assignment: destination {this.noNewLines()}? (ASSIGN | EQ) expr ;
 destination
     : var_name
     | accessor
@@ -281,7 +302,7 @@ destination
 // LOGIC EXPRESSION
 logic_expr
     : NOT logical_operand
-    | logic_expr {noNewLines()}? ( AND | OR ) logic_expr
+    | logic_expr {this.noNewLines()}? ( AND | OR ) logic_expr
     | logical_operand
     ;
 logical_operand
@@ -292,7 +313,7 @@ logical_operand
 
 //COMPARE EXPRESSION
 compare_expr
-    : compare_expr {noNewLines()}? COMPARE compare_expr
+    : compare_expr {this.noNewLines()}? COMPARE compare_expr
     | math_expr
     ;
 compare_operand
@@ -304,10 +325,10 @@ compare_operand
 
 //MATH EXPRESSIONS
 math_expr
-    : <assoc=right> math_expr {noNewLines()}? AS math_expr  #Typecast
-    | <assoc=right> math_expr {noNewLines()}? POW math_expr #Exponent
-    | math_expr {noNewLines()}? (DIV | PROD) math_expr      #Product
-    | math_expr {noNewLines()}? (PLUS | MINUS) math_expr    #Addition
+    : <assoc=right> math_expr {this.noNewLines()}? AS math_expr  #Typecast
+    | <assoc=right> math_expr {this.noNewLines()}? POW math_expr #Exponent
+    | math_expr {this.noNewLines()}? (DIV | PROD) math_expr      #Product
+    | math_expr {this.noNewLines()}? (PLUS | MINUS) math_expr    #Addition
     | operand                               #MathOperand
     | fn_call                               #FnCall
     ;
@@ -321,11 +342,11 @@ math_operand
 // Until an EOL or lower precedence rule...
 fn_call
     :  id=caller 
-        ({noNewLines()}? arg+=operand)+
-        ({noNewLines()}? params+=param)*
+        ({this.noNewLines()}? arg+=operand)+
+        ({this.noNewLines()}? params+=param)*
     | id=caller
-        ({noNewLines()}? param)+
-    | caller {noSpaces()}? '(' ')'
+        ({this.noNewLines()}? param)+
+    | caller {this.noSpaces()}? '(' ')'
     ;
 // /*
 caller
@@ -338,7 +359,7 @@ caller
 
 //PARAMETER
 param :  param_name operand ;
-param_name : (ID | KW_OVERIDE) {noSpaces()}? ':' ;
+param_name : (ID | KW_OVERRIDE) {this.noSpaces()}? ':' ;
 
 //------------------------------------------------------------------------//
 
@@ -355,7 +376,8 @@ accessor
     ;
 
 //Property accessor
-property : DOT {noSpaces()}? (var_name | KW_OVERIDE) ;
+property : DOT {this.noSpaces()}? (var_name | KW_OVERRIDE) ;
+// property : DOT {this.noSpaces()}? PROPERTY_ID ;
 
 //Index accessor
 index : '[' expr ']' ;
@@ -397,7 +419,7 @@ point3: '[' expr COMMA expr COMMA expr ']' ;
 point2: '[' expr COMMA expr ']' ;
 
 //BitArray
-bitArray : SHARP {noNewLines()}? '{' bitList? '}' ;
+bitArray : SHARP {this.noNewLines()}? '{' bitList? '}' ;
 bitList : bitexpr ( COMMA bitexpr)* ;
 bitexpr
     : expr DOTDOT expr
@@ -405,7 +427,7 @@ bitexpr
     ;
 
 //Array
-array : SHARP {noNewLines()}? LPAREN elementList? RPAREN ;
+array : SHARP {this.noNewLines()}? LPAREN elementList? RPAREN ;
 elementList : expr ( COMMA expr)* ;
 
 //IDENTIFIERS
@@ -416,8 +438,8 @@ by_ref
     ;
 
 //Path names
-path: DOLLAR {noSpaces()}? levels?;
-levels : level_name ( {noSpaces()}? '/' {noSpaces()}? level_name)* ;
+path: DOLLAR {this.noSpaces()}? levels?;
+levels : level_name ( {this.noSpaces()}? '/' {this.noSpaces()}? level_name)* ;
 level_name
     : ID | '*' | '?' | '\\'
     | SINGLEQUOT
