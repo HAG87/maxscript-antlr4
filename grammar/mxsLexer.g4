@@ -1,15 +1,14 @@
 /*$antlr-format alignColons hanging, alignSemicolons hanging, alignFirstTokens true */
 lexer grammar mxsLexer;
-
+/*
+options {
+	caseInsensitive = true;
+}
+//*/
 channels {
 	WHITESPACE_CHANNEL,
 	COMMENTS_CHANNEL
 }
-/*
-@members {
-	DOTMODE
-}
-*/
 
 //(\w)
 //[\U$1$1] 
