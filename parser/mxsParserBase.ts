@@ -1,5 +1,5 @@
-import { TokenStream } from 'antlr4ts/TokenStream';
-import { Parser } from "antlr4ts/Parser";
+import { TokenStream } from 'antlr4ng';
+import { Parser } from "antlr4ng";
 import {mxsParser} from './mxsParser';
 
 export abstract class mxsParserBase extends Parser {
@@ -17,12 +17,12 @@ export abstract class mxsParserBase extends Parser {
         return (ahead.channel == Lexer.HIDDEN) && (ahead.type == type);
         */
 
-        return this._input.LA(1) != mxsParser.EOL;
+        return this.inputStream.LA(1) != mxsParser.EOL;
         // return this._input.LA(-1) != mxsParser.EOL || this._input.LA(1) != mxsParser.EOL;
         //return false; }
     }
     protected noSpaces(): boolean {
-        return this._input.LA(1) != mxsParser.WS;
+        return this.inputStream.LA(1) != mxsParser.WS;
     }
 
 }
