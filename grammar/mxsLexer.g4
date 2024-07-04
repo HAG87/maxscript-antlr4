@@ -5,13 +5,12 @@ options {
 	caseInsensitive = true;
 }
 //*/
+
 channels {
 	WHITESPACE_CHANNEL,
 	COMMENTS_CHANNEL
 }
 
-//(\w)
-//[\U$1$1] 
 //KEYWORDS
 AND:    A N D;
 AS:     A S;
@@ -43,15 +42,16 @@ WITH:    W I T H;
 NOT:     N O T;
 PUBLIC:  P U B L I C;
 PRIVATE: P R I V A T E;
+
 //RESERVED KEYWORDS
 ABOUT:    A B O U T;
 COORDSYS: C O O R D S Y S;
+LEVEL:    L E V E L;
+TIME:     T I M E;
+UNDO:     U N D O;
+CHANGE:   C H A N G E S?; 
+DELETED:  D E L E T E D;
 DEFAULTACTION : D E F A U L T A C T I O N;
-LEVEL: L E V E L;
-TIME:  T I M E;
-UNDO:  U  N  D  O;
-CHANGE: C H A N G E S?; 
-DELETED: D E L E T E D;
 CONTEXT
 	: ANIMATE
 	| DONTREPEATMESSAGES
@@ -61,6 +61,7 @@ CONTEXT
 	| QUIET
 	| REDRAW
 	;
+
 fragment ANIMATE:                     A N I M A T E;
 fragment DONTREPEATMESSAGES:          D O N T R E P E A T M E S S A G E S;
 fragment MACRORECORDEREMITTERENABLED: M A C R O R E C O R D E R E M I T T E R E N A B L E D;
@@ -68,6 +69,7 @@ fragment MXSCALLSTACKCAPTUREENABLED:  M X S C A L L S T A C K C A P T U R E E N 
 fragment PRINTALLELEMENTS:            P R I N T A L L E L E M E N T S;
 fragment QUIET:                       Q U I E T;
 fragment REDRAW:                      R E D R A W;
+
 //BLOCKS
 GROUP:       G R O U P;
 MACROSCRIPT: M A C R O S C R I P T;
@@ -78,6 +80,7 @@ RCMENU:      R C M E N U;
 PARAMETERS:  P A R A M E T E R S;
 PLUGIN:      P L U G I N;
 ATTRIBUTES:  A T T R I B U T E S;
+
 //CONTROLS
 RolloutControl
 	: A N G L E
@@ -108,7 +111,9 @@ RolloutControl
 SEPARATOR: S E P A R A T O R;
 MENUITEM:  M E N U I T E M;
 SUBMENU:   S U B M E N U;
+
 // OVERRIDABLE KEYWORDS
+// CONTEXTUAL KEYWORDS...can be used as identifiers outside the context...
 KW_RESERVED
 	: RolloutControl
 	| GROUP
@@ -121,29 +126,34 @@ KW_RESERVED
 	| CHANGE
 	| DELETED
 	;
+
 KW_OVERRIDE
 	: ATTRIBUTES
 	| PARAMETERS
 	| ROLLOUT
 	| PLUGIN
 	| RCMENU
-	| TOOL
+	// | TOOL
 	| TO
 	| RETURN
 	// | THROW
 	;
+
 //DEFINTITIONS
 MAPPED: M A P P E D;
 FN:     F U N C T I O N | F N;
 STRUCT: S T R U C T;
+
 //DECLARATIONS
 DECL: LOCAL
 	| GLOBAL
 	| PERSISTENT WS GLOBAL
 	;
+
 LOCAL:      L O C A L;
 GLOBAL:     G L O B A L;
 PERSISTENT: P E R S I S T E N T;
+
 //VALUES
 VOID
 	: U N D E F I N E D
@@ -151,84 +161,148 @@ VOID
 	| S I L E N T V A L U E
 	| O K
 	;
+
 BOOL
 	: T R U E
 	| F A L S E
 	| O F F
 	| ON
 	;
-//OPERATORS
-GLOB: '::';
-DOTDOT: '..';
-//SIMPLE-EXPRESSION
-COMPARE: '==' | '<' | '>' | '<=' | '>=' | '!=';
-EQ: '=';
-ASSIGN: '-=' | '+=' | '*=' | '/=';
-MINUS: '-';
-PLUS: '+';
-PROD: '*';
-DIV: '/';
-POW: '^';
-//SYMBOLS
-SHARP: '#';
-COMMA: ',';
-COL: ':';
-SEMI: ';';
 
-DOT: '.' ;
+//OPERATORS
+COMPARE
+	: '=='
+	| '<'
+	| '>'
+	| '<='
+	| '>='
+	| '!='
+	;
+
+EQ: '=';
+
+ASSIGN
+	: '+='
+	| '-='
+	| '*='
+	| '/='
+	;
+
+MINUS : '-';
+PLUS  : '+';
+PROD  : '*';
+DIV   : '/';
+POW   : '^';
+
+//SYMBOLS
+SHARP    : '#';
+COMMA    : ',';
+COLON    : ':';
+SEMI     : ';';
+DOT      : '.';
+GLOB     : '::';
+DOTDOT   : '..';
+AMP      : '&';
+DOLLAR   : '$';
+QUESTION : '?';
+BACKSLASH : Backslash;
+//SINGLEQUOT: '\'';
 
 /*
 DOT: '.' -> PushMode(DOTMODE);
 
 mode DOTMODE;
-	PROPERTY_ID: ALPHANUM -> popMode;
+	PROPERTY_ID: Alphanum -> popMode;
 */
 
-SINGLEQUOT: '\'';
+// CODE STRUCTURE
 LPAREN: '(';
 RPAREN: ')';
-LCURLY: '{';
-RCURLY: '}';
-LBRACE: '[';
-RBRACE: ']';
-AMP: '&';
-DOLLAR: '$';
-UNDERSCORE: '_';
-QUESTION: '?';
-BACKSLASH: '\\';
-TILDE: '~';
+
+LBRACE: '{';
+RBRACE: '}';
+
+LBRACK: '[';
+RBRACK: ']';
+
 //BASIC VALUES
-NUMBER: INT | DEG | HEX;
+NUMBER
+	: INT
+	| DEG
+	| HEX
+	;
+
 TIMEVAL
-	: (((INT? [.])? INT | INT [.]) [mfstMFST])+
+	: ( ( (INT? [.])? INT | INT [.] ) [mfstMFST] )+
 	| INT [:] INT? [.] INT
 	| INT [nN]
 	;
-fragment INT: DIG+;
+
 fragment DEG: INT? [.] INT ([eEdD] [+-] INT | [lLpP])?;
-fragment HEX: '0' [xX] (DIG | [aAfF])+;
+fragment HEX: '0' [xX] (Num | [aAfF])+;
+fragment INT: Num+;
+
 //REFERENCING
-REF: AMP ID;
-DEREF: '*'  ID;
-NAME: '#'   ID;
+REF:   '&' ID;
+DEREF: '*' ID;
+NAME:  '#' ID;
+
 //STRING
 STRING
 	: String_regular
 	| String_verbatim
 	;
-fragment String_regular: '"' (~["\r\n] | '\\"')* '"';
-fragment String_verbatim: '@"' (~'"' | '""')* '"';
-//IDENTIFIERS
-// ID: GLOB? [a-zA-Z_][a-zA-Z_0-9]*;
-ID
-	: GLOB? ALPHANUM
-	| GLOB? QUOTED
-	| GLOB? KW_RESERVED
+
+String_regular
+	: '"' (~["\r\n] | '\\"')* '"'
 	;
-QUOTED: GLOB? '\'' (~'\'' | '\'\'')* '\'';
-RESOURCE: TILDE [a-zA-Z_0-9]+ TILDE;
-fragment DIG: [0-9];
-//letters
+String_verbatim
+	: '@"' ~["]* '"'
+	;
+
+//IDENTIFIERS
+ID
+	: Alpha ( Alpha | Num )*
+	;
+
+QUOTED
+	: '\'' (~['] | [\]['])* '\''
+	;
+
+RESOURCE
+	: '~' [a-zA-Z_0-9]+ '~'
+	;
+
+//COMMENTS
+BLOCK_COMMENT
+	: '/*' .*? ('*/' | EOF) -> channel(COMMENTS_CHANNEL)
+	;
+
+LINE_COMMENT
+	: '--' ~[\r\n]* -> channel(COMMENTS_CHANNEL)
+	;
+
+//WHITESPACE
+EOL
+	: (WS? NLchar WS?)+ -> channel(HIDDEN)
+	;
+
+WS
+	: (
+		WSchar (Backslash+ EOL)*
+		| (Backslash EOL)+
+	) -> channel(HIDDEN)
+	;
+
+fragment WSchar: [ \t]+;
+fragment NLchar: [;\r\n]+;
+
+// BASIC FRAGMENTS
+fragment Num: [0-9];
+fragment Alpha: [a-zA-Z\u0080-\u00FF_];
+fragment Alphanum: [a-zA-Z_][a-zA-Z_0-9]*;
+
+//LETTERS
 fragment A: [aA];
 fragment B: [bB];
 fragment C: [cC];
@@ -256,14 +330,42 @@ fragment X: [xX];
 fragment Y: [yY];
 fragment Z: [zZ];
 
-fragment ALPHANUM: [a-zA-Z_][a-zA-Z_0-9]*;
-//COMMENTS
-COMMENT: '/*' .*? '*/' -> channel(COMMENTS_CHANNEL);
-LINE_COMMENT: '--' ~[\r\n]* -> channel(COMMENTS_CHANNEL);
-//WHITESPACE
-EOL: (WS? NLCHAR WS?)+ -> channel(HIDDEN);
-WS:  (WSCHAR (BACKSLASH+ EOL)* | (BACKSLASH EOL)+) -> channel(HIDDEN);
-fragment WSCHAR: [ \t]+;
-fragment NLCHAR: [;\r\n]+;
-// INVALID TOKENS
-ANY: .+? -> skip;
+fragment Backslash  : '\\';
+/*
+fragment Excl       : '!';
+fragment Slash      : '/';
+fragment Colon      : ':';
+fragment DColon     : '::';
+fragment SQuote     : '\'';
+fragment DQuote     : '"';
+fragment LParen     : '(';
+fragment RParen     : ')';
+fragment LBrace     : '{';
+fragment RBrace     : '}';
+fragment LBrack     : '[';
+fragment RBrack     : ']';
+fragment RArrow     : '->';
+fragment Lt         : '<';
+fragment Gt         : '>';
+fragment Equal      : '=';
+fragment Compare    : '==';
+fragment Question   : '?';
+fragment Prod       : '*';
+fragment Plus       : '+';
+fragment Minus      : '-';
+fragment Pipe       : '|';
+fragment Dollar     : '$';
+fragment Comma      : ',';
+fragment Semi       : ';';
+fragment Dot        : '.';
+fragment Range      : '..';
+fragment At         : '@';
+fragment Amp        : '&';
+fragment Sharp      : '#';
+fragment Tilde      : '~';
+fragment Pow        : '^';
+*/
+// Comment this rule out to allow the error to be propagated to the parser
+ERRCHAR
+    : . -> channel (HIDDEN)
+    ;

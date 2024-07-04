@@ -73,7 +73,7 @@ macroscript_def
         LPAREN
             (expr | event_handler)*
         RPAREN
-        ;
+    ;
 
 //UTILITY_DEF
 utility_def
@@ -81,7 +81,7 @@ utility_def
         LPAREN
             rollout_clause*
         RPAREN
-        ;
+    ;
 
 //ROLLOUT_DEF
 rollout_def
@@ -89,7 +89,7 @@ rollout_def
         LPAREN
             rollout_clause*
         RPAREN
-        ;
+    ;
 
 //ROLLOUT CLAUSE
 rollout_clause
@@ -103,9 +103,11 @@ rollout_clause
     | rollout_def
     ;
 rollout_group
-    : GROUP STRING? LPAREN rollout_control* RPAREN #RolloutGroup;
+    : GROUP STRING? LPAREN rollout_control* RPAREN #RolloutGroup
+    ;
 rollout_control
-    : RolloutControl var_name STRING? param* #RolloutControl;
+    : RolloutControl var_name STRING? param* #RolloutControl
+    ;
 
 //TOOL_DEF
 tool_def
@@ -151,7 +153,8 @@ plugin_def
         LPAREN
             plugin_clause+
         RPAREN
-        ;
+    ;
+
 plugin_clause
     : var_decl
     | fn_def
@@ -166,11 +169,13 @@ plugin_clause
 // when <attribute> <objects> change[s] [ id:<name> ] [handleAt:#redrawViews|#timeChange] [ <object_parameter> ] do <expr>
 // when             <objects> deleted   [ id:<name> ] [handleAt:#redrawViews|#timeChange] [ <object_parameter> ] do <expr> 
 change_handler
-    : WHEN var_name (var_name | KW_OVERRIDE | path | expr_seq) (CHANGE | DELETED) param* operand? DO expr;
+    : WHEN var_name (var_name | KW_OVERRIDE | path | expr_seq) (CHANGE | DELETED) param* operand? DO expr
+    ;
 
 //CONTEXT_EXPR
 context_expr
-    : ctx_predicate (COMMA ctx_predicate)* expr;
+    : ctx_predicate (COMMA ctx_predicate)* expr
+    ;
 
 ctx_predicate
     : (SET | AT) (LEVEL | TIME) operand
@@ -214,7 +219,7 @@ struct_def
         struct_member (COMMA struct_member)*
     RPAREN ;
 struct_member
-    : struct_scope? decl
+    : struct_scope? (decl | var_name)
     | struct_scope? fn_def
     | struct_scope? event_handler
     //| struct_scope struct_member
@@ -246,29 +251,43 @@ args
 fn_return: RETURN expr;
 
 //TRY EXPR
-try_expr
-    : TRY expr CATCH expr ;
+try_expr:
+    TRY expr
+    CATCH expr
+    ;
 
 //LOOPS
 //while loop
-while_loop: WHILE expr DO expr ;
+while_loop:
+    WHILE expr
+    DO expr
+    ;
 
 //do loop
-do_loop: DO expr WHILE expr ;
+do_loop:
+    DO expr
+    WHILE expr
+    ;
 
 //for loop
 //for <var_name> [, <index_name>[, <filtered_index_name>]] ( in | = )<sequence> ( do | collect ) <expr>
 for_loop
-    : FOR var_name (COMMA var_name (COMMA var_name)?)? (IN | EQ) for_sequence (DO | COLLECT) expr ;
+    : FOR var_name (COMMA var_name (COMMA var_name)?)?
+    (IN | EQ) for_sequence
+    (DO | COLLECT) expr
+    ;
+
 // for-sequence
 //<expr> to <expr> [ by <expr> ] [while <expr>] [where <expr> ]
 //<expr> to <expr> [ by <expr> ] [where <expr> ]
 //<expr> [while <expr>] [ where<expr> ]
 //<expr> [where <expr>]
+
 for_sequence
     : expr for_while? for_where?
     | expr TO expr (BY expr)? for_while? for_where?
     ;
+
 for_while: WHILE expr ;
 for_where: WHERE expr ;
 loop_exit: EXIT (WITH expr)? ;
@@ -278,21 +297,34 @@ case_expr
 : CASE expr? OF
     LPAREN
         case_item+
-    RPAREN;
-case_item : factor {this.noSpaces()}? ':' expr ;
+    RPAREN
+    ;
+
+case_item : factor {this.noSpaces()}? COLON expr ;
 
 //IF-EXPR
 if_expr
-    : IF expr THEN expr (ELSE expr)?
-    | IF expr DO expr
+    : IF expr
+        THEN expr
+        (ELSE expr)?
+    | IF expr
+        DO expr
     ;
 
 //DECLARATIONS
-var_decl: DECL? decl (COMMA decl)* ;
-decl: var_name ({this.noNewLines()}? EQ expr)? ;
+var_decl
+    : DECL? (decl | var_name) ( COMMA (decl | var_name) )*
+    ;
+
+decl
+    : var_name {this.noNewLines()}? EQ expr
+    ;
 
 //ASSIGNMENT EXPRESSION
-assignment: destination {this.noNewLines()}? (ASSIGN | EQ) expr ;
+assignment
+    : destination {this.noNewLines()}? (ASSIGN | EQ) expr
+    ;
+
 destination
     : var_name
     | accessor
@@ -301,10 +333,12 @@ destination
 
 // LOGIC EXPRESSION
 logic_expr
-    : NOT logical_operand
-    | logic_expr {this.noNewLines()}? ( AND | OR ) logic_expr
-    | logical_operand
+    : NOT logical_operand #LogicNOT
+    | logic_expr {this.noNewLines()}? OR logic_expr #LogicOR
+    | logic_expr {this.noNewLines()}? AND logic_expr #LogicAND
+    | logical_operand #LogicOperand
     ;
+
 logical_operand
     : operand
     | compare_expr
@@ -313,16 +347,17 @@ logical_operand
 
 //COMPARE EXPRESSION
 compare_expr
-    : compare_expr {this.noNewLines()}? COMPARE compare_expr
-    | math_expr
+    : compare_expr {this.noNewLines()}? COMPARE compare_expr #Comparison
+    | math_expr #MathExpr
     ;
+/*
 compare_operand
     : math_expr
     | fn_call
-    /*| operand
-    | math_expr*/
+    // | operand
+    // | math_expr
     ;
-
+*/
 //MATH EXPRESSIONS
 math_expr
     : <assoc=right> math_expr {this.noNewLines()}? AS math_expr  #Typecast
@@ -341,13 +376,14 @@ math_operand
 //FUNCTION CALL --- HOW TO MANAGE PROHIBITED / OPTIONAL / MANDATORY linebreaks????
 // Until an EOL or lower precedence rule...
 fn_call
-    :  id=caller 
+    : id = caller 
         ({this.noNewLines()}? arg+=operand)+
         ({this.noNewLines()}? params+=param)*
-    | id=caller
+    | id = caller
         ({this.noNewLines()}? param)+
-    | caller {this.noSpaces()}? '(' ')'
+    | caller {this.noSpaces()}? LPAREN RPAREN
     ;
+
 // /*
 caller
     : var_name
@@ -358,8 +394,12 @@ caller
 // */
 
 //PARAMETER
-param :  param_name operand ;
-param_name : (ID | KW_OVERRIDE) {this.noSpaces()}? ':' ;
+param
+    :  param_name operand
+    ;
+param_name
+    : (ID | KW_OVERRIDE) {this.noSpaces()}? COLON
+    ;
 
 //------------------------------------------------------------------------//
 
@@ -376,11 +416,14 @@ accessor
     ;
 
 //Property accessor
-property : DOT {this.noSpaces()}? (var_name | KW_OVERRIDE) ;
-// property : DOT {this.noSpaces()}? PROPERTY_ID ;
+property
+    : DOT {this.noSpaces()}? (var_name | KW_OVERRIDE)
+    ;
 
 //Index accessor
-index : '[' expr ']' ;
+index
+    : LBRACK expr RBRACK
+    ;
 
 //FACTORS
 factor
@@ -403,9 +446,9 @@ factor
     ;
 
 unary_minus 
-: MINUS operand
+    : MINUS operand
 // | MINUS expr_seq
-;
+    ;
 
 expr_seq
     : LPAREN
@@ -414,33 +457,77 @@ expr_seq
     ;
 //------------------------------------------------------------------------//
 //TYPES
-box2:   '[' expr COMMA expr COMMA expr COMMA expr ']' ;
-point3: '[' expr COMMA expr COMMA expr ']' ;
-point2: '[' expr COMMA expr ']' ;
+box2:
+    LBRACK
+        expr COMMA
+        expr COMMA
+        expr COMMA
+        expr
+    RBRACK
+    ;
+
+point3:
+    LBRACK
+        expr COMMA
+        expr COMMA
+        expr
+    RBRACK
+    ;
+
+point2:
+    LBRACK
+        expr COMMA
+        expr
+    RBRACK
+    ;
 
 //BitArray
-bitArray : SHARP {this.noNewLines()}? '{' bitList? '}' ;
-bitList : bitexpr ( COMMA bitexpr)* ;
+bitArray :
+    SHARP {this.noNewLines()}? LBRACE
+        bitList?
+    LBRACE
+    ;
+
+bitList
+    : bitexpr ( COMMA bitexpr)*
+    ;
 bitexpr
     : expr DOTDOT expr
     | expr
     ;
 
 //Array
-array : SHARP {this.noNewLines()}? LPAREN elementList? RPAREN ;
-elementList : expr ( COMMA expr)* ;
+array :
+    SHARP {this.noNewLines()}? LPAREN
+        elementList?
+    RPAREN
+    ;
+
+elementList : expr ( COMMA expr )* ;
 
 //IDENTIFIERS
-var_name : ID | SINGLEQUOT ;
+var_name
+    : GLOB? ID            #Id
+    | GLOB? QUOTED        #QuotedId
+    | GLOB? KW_RESERVED   #KeywordOverwrite
+    ;
+
 by_ref
-    : REF #Ref
+    : REF   #Ref
     | DEREF #DeRef
     ;
 
 //Path names
-path: DOLLAR {this.noSpaces()}? levels?;
-levels : level_name ( {this.noSpaces()}? '/' {this.noSpaces()}? level_name)* ;
+
+path
+    : DOLLAR {this.noSpaces()}? levels?
+    ;
+
+levels
+    : level_name ( {this.noSpaces()}? '/' {this.noSpaces()}? level_name)*
+    ;
+
 level_name
-    : ID | '*' | '?' | '\\'
-    | SINGLEQUOT
+    : ( ID | PROD | QUESTION | BACKSLASH)
+    | QUOTED
     ;
