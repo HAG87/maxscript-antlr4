@@ -11,61 +11,41 @@ options {
     //output = AST;
 }
 
-/*
-@members {
-
-    noNewLines():boolean {
-        return this._input.LA(1) != mxsParser.EOL;
-        // return this._input.LA(-1) != mxsParser.EOL || this._input.LA(1) != mxsParser.EOL;
-    }  
-
-    noSpaces(): boolean {
-        return this._input.LA(1) != mxsParser.WS;
-    }
-}
-// */
-
 /*GRAMMAR RULES*/
 program
-    : expr* EOF
+    // : expr* EOF
+    : expr (eos expr)* EOF
     ;
 // THE ORDER OF FUNCTION CALLS IS BROKEN, IT NEEDS TO PRECEEDE OPERAND. MAYBE THIS WILL FIX WITH THE WS MANAGMENT???
+
+//expr_iter: (expr EOL);
+
 expr
-    : simple_expr #SimpleExpr
-    | var_decl    #VarDecl
-    | assignment  #Assign
-    | if_expr     #IfExpr
-    | while_loop  #WhileExpr
-    | do_loop     #DoExpr
-    | for_loop    #ForExpr
-    | loop_exit   #ExitExpr
-    | case_expr   #CaseExpr
-    | struct_def  #StructDef
-    | try_expr    #TryExpr
-    | fn_def      #FnDef
-    | fn_return   #FnRet
-    | context_expr #ContextExpr
-    // | max_command
-    | attributes_def  #AttributesDef
-    | utility_def     #UtilityDef
+    : simple_expr      #SimpleExpr
+    | var_decl         #VarDecl
+    | assignment       #Assign
+    | assignment_expr  #AssignOp
+    | if_expr          #IfExpr
+    | while_loop       #WhileExpr
+    | do_loop          #DoExpr
+    | for_loop         #ForExpr
+    | loop_exit        #ExitExpr
+    | case_expr        #CaseExpr
+    | struct_def       #StructDef
+    | try_expr         #TryExpr
+    | fn_def           #FnDef
+    | fn_return        #FnRet
+    // | context_expr #ContextExpr
+    // | attributes_def  #AttributesDef
+    // | utility_def     #UtilityDef
     | rollout_def     #RolloutDef
-    | tool_def        #ToolDef
-    | rcmenu_def      #RcmenuDef
-    | macroscript_def #MacroscriptDef
-    | plugin_def      #PluginDef
-    | change_handler  #ChangeHandler
+    // | tool_def        #ToolDef
+    // | rcmenu_def      #RcmenuDef
+    // | macroscript_def #MacroscriptDef
+    // | plugin_def      #PluginDef
+    // | change_handler  #ChangeHandler
     ;
 
-simple_expr
-    : fn_call
-    // : operand
-    | operand
-    | math_expr
-    | compare_expr
-    | logic_expr
-    // | fn_call
-    // | expr_seq
-    ;
 //------------------------------------------------------------------------//
 //MACROSCRIPT_DEF
 macroscript_def
@@ -102,9 +82,11 @@ rollout_clause
     | tool_def
     | rollout_def
     ;
+
 rollout_group
     : GROUP STRING? LPAREN rollout_control* RPAREN #RolloutGroup
     ;
+
 rollout_control
     : RolloutControl var_name STRING? param* #RolloutControl
     ;
@@ -182,8 +164,8 @@ ctx_predicate
     | SET? IN operand
     | SET? ABOUT (COORDSYS | operand)
     | (SET | IN)? COORDSYS (LOCAL | operand)
-    | (SET | WITH)? CONTEXT (logic_expr | BOOL)
-    | (SET | WITH)? UNDO (STRING | param | var_name) (logic_expr | BOOL)
+    | (SET | WITH)? CONTEXT (simple_expr | BOOL)
+    | (SET | WITH)? UNDO (STRING | param | var_name) (simple_expr | BOOL)
     | WITH? DEFAULTACTION NAME
     ;
 
@@ -214,12 +196,13 @@ attributes_clause
 //------------------------------------------------------------------------//
 //STRUCT DEF
 struct_def
-    : STRUCT {this.noNewLines()}? var_name
+    : STRUCT str_name= var_name
     LPAREN
-        struct_member (COMMA struct_member)*
+        struct_members
     RPAREN ;
+struct_members: struct_member (COMMA struct_member)* ;
 struct_member
-    : struct_scope? (decl | var_name)
+    : struct_scope? (assignment | var_name)
     | struct_scope? fn_def
     | struct_scope? event_handler
     //| struct_scope struct_member
@@ -228,24 +211,23 @@ struct_scope: PUBLIC | PRIVATE ;
 
 //EVENT HANDLER
 event_handler
-    : ON event_args (DO | RETURN) expr ;
+    : ON en_args= event_args (DO | RETURN) ev_body= expr ;
 event_args
-    : var_name                     #Event_type
-    | var_name var_name            #Event_target_type
-    | var_name var_name var_name+  #Event_target_type_args
+    : ev_type= var_name
+    | var_name ev_target_type= var_name
+    | var_name var_name ev_target_type_args= var_name+
     ;
 
 //FUNCTION DEF
 fn_def
-    : MAPPED? FN var_name EOL?
-        args*
-        (param_name | param)*
-        EQ expr
+    : fn_mod= MAPPED? fn_decl= FN fn_name= var_name
+        fn_args*
+        fn_params*
+        EQ fn_body= expr
     ;
-args
-    : var_name
-    | by_ref
-    ;
+
+fn_args: var_name | by_ref ;
+fn_params: param_name | param;
 
 //FN_RETURN
 fn_return: RETURN expr;
@@ -272,9 +254,9 @@ do_loop:
 //for loop
 //for <var_name> [, <index_name>[, <filtered_index_name>]] ( in | = )<sequence> ( do | collect ) <expr>
 for_loop
-    : FOR var_name (COMMA var_name (COMMA var_name)?)?
-    (IN | EQ) for_sequence
-    (DO | COLLECT) expr
+    : FOR var=var_name (COMMA index_name=var_name (COMMA filtered_index_name=var_name)?)?
+    for_operator=(IN | EQ) for_sequence
+    for_action=(DO | COLLECT) expr
     ;
 
 // for-sequence
@@ -284,10 +266,12 @@ for_loop
 //<expr> [where <expr>]
 
 for_sequence
-    : expr for_while? for_where?
-    | expr TO expr (BY expr)? for_while? for_where?
+    : expr for_to for_by? for_while? for_where?
+    | expr for_while? for_where?
     ;
 
+for_by: BY expr ;
+for_to: TO expr ;
 for_while: WHILE expr ;
 for_where: WHERE expr ;
 loop_exit: EXIT (WITH expr)? ;
@@ -296,7 +280,7 @@ loop_exit: EXIT (WITH expr)? ;
 case_expr
 : CASE expr? OF
     LPAREN
-        case_item+
+        case_item (eos case_item)*
     RPAREN
     ;
 
@@ -313,18 +297,29 @@ if_expr
 
 //DECLARATIONS
 var_decl
-    : DECL? (decl | var_name) ( COMMA (decl | var_name) )*
+    // : decl_scope? declaration (COMMA declaration)*
+    : decl_scope declaration (COMMA declaration)*
     ;
-
-decl
-    : var_name {this.noNewLines()}? EQ expr
+// /*
+declaration
+    : assignment
+    | var_name
     ;
-
+//  */
+// /*
+decl_scope
+    : LOCAL
+    | GLOBAL
+    | PERSISTENT
+    ;
+// */
 //ASSIGNMENT EXPRESSION
 assignment
-    : destination {this.noNewLines()}? (ASSIGN | EQ) expr
+    : assign_target=destination {this.noNewLines()}? EQ assign_expr=expr  #AssigmentExpression
     ;
-
+assignment_expr
+    : assign_target=destination {this.noNewLines()}? ASSIGN assign_expr=expr #AssigmentOperationExpression
+    ;
 destination
     : var_name
     | accessor
@@ -332,63 +327,47 @@ destination
 //-----------------------------------------------------------------------------//
 
 // LOGIC EXPRESSION
-logic_expr
-    : NOT logical_operand #LogicNOT
-    | logic_expr {this.noNewLines()}? OR logic_expr #LogicOR
-    | logic_expr {this.noNewLines()}? AND logic_expr #LogicAND
-    | logical_operand #LogicOperand
-    ;
-
-logical_operand
-    : operand
-    | compare_expr
-    | fn_call
-    ;
-
 //COMPARE EXPRESSION
-compare_expr
-    : compare_expr {this.noNewLines()}? COMPARE compare_expr #Comparison
-    | math_expr #MathExpr
-    ;
-/*
-compare_operand
-    : math_expr
-    | fn_call
-    // | operand
-    // | math_expr
-    ;
-*/
 //MATH EXPRESSIONS
-math_expr
-    : <assoc=right> math_expr {this.noNewLines()}? AS math_expr  #Typecast
-    | <assoc=right> math_expr {this.noNewLines()}? POW math_expr #Exponent
-    | math_expr {this.noNewLines()}? (DIV | PROD) math_expr      #Product
-    | math_expr {this.noNewLines()}? (PLUS | MINUS) math_expr    #Addition
-    | operand                               #MathOperand
-    | fn_call                               #FnCall
-    ;
 
-math_operand
-    : operand
-    | fn_call
+simple_expr
+    : NOT right=simple_expr #LogicNOTExpression
+    | left=simple_expr {this.noNewLines()}? OR  right=simple_expr #LogicORExpression
+    | left=simple_expr {this.noNewLines()}? AND right=simple_expr #LogicANDExpression
+
+    | right=simple_expr {this.noNewLines()}? COMPARE left=simple_expr #ComparisonExpression
+
+    | <assoc=right> left=simple_expr {this.noNewLines()}? AS  right=simple_expr #TypecastExpression
+    | <assoc=right> left=simple_expr {this.noNewLines()}? POW right=simple_expr #ExponentExpression
+
+    | left=simple_expr {this.noNewLines()}? (DIV | PROD)      right=simple_expr #ProductExpression
+    | left=simple_expr {this.noNewLines()}? (PLUS | MINUS)    right=simple_expr #AdditionExpression
+    
+    // | <assoc=right> left=simple_expr {this.noNewLines()}? ASSIGN right=simple_expr #AssigmentOperationExpression
+    // | <assoc=right> left=simple_expr {this.noNewLines()}? EQ     right=simple_expr #AssigmentExpression
+
+    | operand    #OperandExpression   //passthrough
+    | fn_call    #FnCallExpression    //passthrough
     ;
 
 //FUNCTION CALL --- HOW TO MANAGE PROHIBITED / OPTIONAL / MANDATORY linebreaks????
-// Until an EOL or lower precedence rule...
+// Until an EOL or lower precedence rule...????
 fn_call
-    : id = caller 
-        ({this.noNewLines()}? arg+=operand)+
-        ({this.noNewLines()}? params+=param)*
-    | id = caller
-        ({this.noNewLines()}? param)+
-    | caller {this.noSpaces()}? LPAREN RPAREN
+    : caller = operand 
+        ({this.noNewLines()}? args+=operand)+ //eos //{this.SimpleExprAhead()}?
+    | caller = operand 
+        ({this.noNewLines()}? args+=operand)+
+        ({this.noNewLines()}? params+=param)+
+    | caller = operand
+        ({this.noNewLines()}? params+=param)+
+    | caller = operand {this.noNewLines()}? LPAREN {this.noSpaces()}? RPAREN
     ;
 
-// /*
+/*
 caller
     : var_name
     | accessor
-    | path
+    // | path
     | expr_seq
     ;
 // */
@@ -409,15 +388,15 @@ operand
     ;
 
 accessor
-    : <assoc=right> accessor property #AccProperty
-    | <assoc=right> accessor index    #AccIndex
-    | factor property                 #AccProperty
-    | factor index                    #AccIndex
+    : <assoc=right> accessor {this.noNewLines()}? property #AccProperty
+    | <assoc=right> accessor {this.noNewLines()}? index    #AccIndex
+    | factor {this.noNewLines()}? property                 #AccProperty
+    | factor {this.noNewLines()}? index                    #AccIndex
     ;
 
 //Property accessor
 property
-    : DOT {this.noSpaces()}? (var_name | KW_OVERRIDE)
+    : DOT (var_name | KW_OVERRIDE)
     ;
 
 //Index accessor
@@ -430,6 +409,7 @@ factor
     : var_name
     | NAME
     | path
+    // | PATH
     | by_ref
     | NUMBER
     | STRING
@@ -450,9 +430,11 @@ unary_minus
 // | MINUS expr_seq
     ;
 
+//  <expr_seq> ::= ( <expr> { ( ; | <eol>) <expr> } )
 expr_seq
     : LPAREN
-        expr*
+        // expr (expr)*
+        expr (eos expr)*
       RPAREN
     ;
 //------------------------------------------------------------------------//
@@ -518,16 +500,21 @@ by_ref
     ;
 
 //Path names
-
+path: PATH ;
+/*
 path
     : DOLLAR {this.noSpaces()}? levels?
     ;
-
 levels
     : level_name ( {this.noSpaces()}? '/' {this.noSpaces()}? level_name)*
     ;
-
 level_name
     : ( ID | PROD | QUESTION | BACKSLASH)
     | QUOTED
+    ;
+*/
+
+eos
+    : {this.lineTerminatorAhead()}?
+    // | EOF
     ;

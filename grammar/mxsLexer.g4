@@ -5,12 +5,17 @@ options {
 	caseInsensitive = true;
 }
 //*/
-
+/*
 channels {
 	WHITESPACE_CHANNEL,
 	COMMENTS_CHANNEL
 }
-
+*/
+/*
+tokens {
+	STRING
+}
+*/
 //KEYWORDS
 AND:    A N D;
 AS:     A S;
@@ -83,30 +88,32 @@ ATTRIBUTES:  A T T R I B U T E S;
 
 //CONTROLS
 RolloutControl
-	: A N G L E
+	: A N G L E 
+	| B I T M A P 
+	| B U T T O N 
 	| C H E C K B O X
 	| C H E C K B U T T O N
 	| C O L O R P I C K E R
 	| C O M B O B O X
 	| C U R V E C O N T R O L
-	| D O T N E T C O N T R O L
 	| D R O P D O W N L I S T
 	| E D I T T E X T
 	| G R O U P B O X
 	| H Y P E R L I N K
-	| I M G T A G
-	| L A B E L
+	| I M G T A G 
+	| L A B E L 
 	| L I S T B O X
 	| M A P B U T T O N
 	| M A T E R I A L B U T T O N
 	| M U L T I L I S T B O X
 	| P I C K B U T T O N
+	| P O P U P M E N U
 	| P R O G R E S S B A R
 	| R A D I O B U T T O N S
-	| S E P A R A T O R
-	| S L I D E R
+	| S L I D E R 
 	| S P I N N E R
-	| T I M E R
+	| S U B R O L L O U T
+	| T I M E R 
 	;
 SEPARATOR: S E P A R A T O R;
 MENUITEM:  M E N U I T E M;
@@ -145,14 +152,10 @@ FN:     F U N C T I O N | F N;
 STRUCT: S T R U C T;
 
 //DECLARATIONS
-DECL: LOCAL
-	| GLOBAL
-	| PERSISTENT WS GLOBAL
-	;
 
 LOCAL:      L O C A L;
 GLOBAL:     G L O B A L;
-PERSISTENT: P E R S I S T E N T;
+PERSISTENT: P E R S I S T E N T  WS GLOBAL;
 
 //VALUES
 VOID
@@ -198,22 +201,14 @@ POW   : '^';
 SHARP    : '#';
 COMMA    : ',';
 COLON    : ':';
-SEMI     : ';';
 DOT      : '.';
 GLOB     : '::';
 DOTDOT   : '..';
 AMP      : '&';
-DOLLAR   : '$';
-QUESTION : '?';
-BACKSLASH : Backslash;
-//SINGLEQUOT: '\'';
 
-/*
-DOT: '.' -> PushMode(DOTMODE);
-
-mode DOTMODE;
-	PROPERTY_ID: Alphanum -> popMode;
-*/
+QUESTION : Question;
+// BACKSLASH : Backslash;
+// DOLLAR: Dollar;
 
 // CODE STRUCTURE
 LPAREN: '(';
@@ -253,54 +248,75 @@ STRING
 	| String_verbatim
 	;
 
-String_regular
-	: '"' (~["\r\n] | '\\"')* '"'
+fragment String_regular
+	: '"' (~["\r\n] | '\\"')* '"' //-> type(STRING)
 	;
-String_verbatim
-	: '@"' ~["]* '"'
+fragment String_verbatim
+	: '@"' ~["]* '"' //-> type(STRING)
 	;
+
+
+PATH: Dollar (Alphanum | [*?\\] | Quoted | '/')* ;
+
+/*
+PATH: Dollar Level | Dollar Level ('/' Level)+;
+	fragment Level: Level_name | Quoted;
+	fragment Level_name: (Alphanum | [*?\\])* ;
+*/
+/*
+PATH: Dollar ->more, mode(PATH_NAME) ;
+
+mode PATH_NAME;
+	Levels
+		: Level_name ( '/' Level_name)* ->more	 
+		;
+	
+	Level_name : (Alphanum | [*?/\\])*  ->more;
+	
+	Level_exit: (WSchar | NLchar) -> skip, PopMode;
+*/
 
 //IDENTIFIERS
 ID
-	: Alpha ( Alpha | Num )*
+	: Alphanum
 	;
 
 QUOTED
-	: '\'' (~['] | [\]['])* '\''
+	: Quoted
 	;
 
+fragment Quoted: '\'' (~['] | [\]['])* '\'' ;
+
 RESOURCE
-	: '~' [a-zA-Z_0-9]+ '~'
+	: '~' Alphanum '~'
 	;
 
 //COMMENTS
 BLOCK_COMMENT
-	: '/*' .*? ('*/' | EOF) -> channel(COMMENTS_CHANNEL)
+	: '/*' .*? ('*/' | EOF) -> channel(HIDDEN)
 	;
 
 LINE_COMMENT
-	: '--' ~[\r\n]* -> channel(COMMENTS_CHANNEL)
+	: '--' ~[\r\n]* -> channel(HIDDEN)
 	;
 
 //WHITESPACE
 EOL
-	: (WS? NLchar WS?)+ -> channel(HIDDEN)
+	: NLchar+ -> channel(HIDDEN)
 	;
 
 WS
-	: (
-		WSchar (Backslash+ EOL)*
-		| (Backslash EOL)+
-	) -> channel(HIDDEN)
+	: ( WSchar | Backslash EOL )+ -> channel(HIDDEN)
 	;
 
-fragment WSchar: [ \t]+;
-fragment NLchar: [;\r\n]+;
+fragment WSchar: [ \t];
+fragment NLchar: [\r\n] | Semicolon;
 
 // BASIC FRAGMENTS
 fragment Num: [0-9];
-fragment Alpha: [a-zA-Z\u0080-\u00FF_];
-fragment Alphanum: [a-zA-Z_][a-zA-Z_0-9]*;
+fragment Alpha: [_\p{L}];
+
+fragment Alphanum: Alpha (Alpha | Num)*;
 
 //LETTERS
 fragment A: [aA];
@@ -330,10 +346,41 @@ fragment X: [xX];
 fragment Y: [yY];
 fragment Z: [zZ];
 
-fragment Backslash  : '\\';
+// Character ranges
 /*
-fragment Excl       : '!';
+fragment NameChar:
+    NameStartChar
+    | '0' .. '9'
+    | '_'
+    | '\u00B7'
+    | '\u0300' .. '\u036F'
+    | '\u203F' .. '\u2040'
+;
+
+fragment NameStartChar:
+    'A' .. 'Z'
+    | 'a' .. 'z'
+    | '\u00C0' .. '\u00D6'
+    | '\u00D8' .. '\u00F6'
+    | '\u00F8' .. '\u02FF'
+    | '\u0370' .. '\u037D'
+    | '\u037F' .. '\u1FFF'
+    | '\u200C' .. '\u200D'
+    | '\u2070' .. '\u218F'
+    | '\u2C00' .. '\u2FEF'
+    | '\u3001' .. '\uD7FF'
+    | '\uF900' .. '\uFDCF'
+    | '\uFDF0' .. '\uFFFD'
+    // ignores | ['\u10000-'\uEFFFF]
+;
+*/
+fragment Backslash : '\\';
+fragment Semicolon : ';' ;
+fragment Dollar    : '$' ;
+fragment Question   : '?';
+/*
 fragment Slash      : '/';
+fragment Excl       : '!';
 fragment Colon      : ':';
 fragment DColon     : '::';
 fragment SQuote     : '\'';
@@ -349,14 +396,12 @@ fragment Lt         : '<';
 fragment Gt         : '>';
 fragment Equal      : '=';
 fragment Compare    : '==';
-fragment Question   : '?';
-fragment Prod       : '*';
+
+fragment Astr       : '*';
 fragment Plus       : '+';
 fragment Minus      : '-';
 fragment Pipe       : '|';
-fragment Dollar     : '$';
 fragment Comma      : ',';
-fragment Semi       : ';';
 fragment Dot        : '.';
 fragment Range      : '..';
 fragment At         : '@';
