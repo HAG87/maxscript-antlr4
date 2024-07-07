@@ -13,38 +13,61 @@ options {
 
 /*GRAMMAR RULES*/
 program
-    : expr* EOF
-    // : expr (eos expr)* EOF
+    // : expr* EOF
+    : expr (eos expr)* EOF
     ;
 // THE ORDER OF FUNCTION CALLS IS BROKEN, IT NEEDS TO PRECEEDE OPERAND. MAYBE THIS WILL FIX WITH THE WS MANAGMENT???
 
 //expr_iter: (expr EOL);
-
+/*
+<program> ::= { <expr> }+
+<expr> ::= <simple_expr>
+<variable_decls>
+<assignment>
+<if_expr>
+<while_loop>
+<do_loop>
+<for_loop>
+<loop_exit>
+<case_expr>
+<struct_def>
+<try_expr>
+<variable_decls>
+<function_def>
+<function_return>
+<context_expr>
+<max_command>
+<utility_def>
+<rollout_def>
+<tool_def>
+<rcmenu_def>
+<macroscript_def>
+<plugin_def>
+ */
 expr
-    // : var_decl         #VarDecl
     : simple_expr     #SimpleExpr
-    | var_decl        #VarDecl
-    | assignment      #Assign
-    | assignment_expr #AssignOp
-    | if_expr         #IfExpr
-    | while_loop      #WhileExpr
-    | do_loop         #DoExpr
-    | for_loop        #ForExpr
-    | loop_exit       #ExitExpr
+    // | var_decl        #VarDecl
+    // | assignment      #Assign
+    // | assignment_expr #AssignOp
+    // | if_expr         #IfExpr
+    // | while_loop      #WhileExpr
+    // | do_loop         #DoExpr
+    // | for_loop        #ForExpr
+    // | loop_exit       #ExitExpr
     | case_expr       #CaseExpr
-    | struct_def      #StructDef
-    | try_expr        #TryExpr
-    | fn_def          #FnDef
-    | fn_return       #FnRet
-    | context_expr    #ContextExpr
-    | attributes_def  #AttributesDef
-    | utility_def     #UtilityDef
-    | rollout_def     #RolloutDef
-    | tool_def        #ToolDef
-    | rcmenu_def      #RcmenuDef
-    | macroscript_def #MacroscriptDef
-    | plugin_def      #PluginDef
-    | change_handler  #ChangeHandler
+    // | struct_def      #StructDef
+    // | try_expr        #TryExpr    
+    // | fn_def          #FnDef
+    // | fn_return       #FnRet
+    // | context_expr    #ContextExpr    
+    // | attributes_def  #AttributesDef
+    // | change_handler  #ChangeHandler
+    // | utility_def     #UtilityDef
+    // | rollout_def     #RolloutDef
+    // | tool_def        #ToolDef
+    // | rcmenu_def      #RcmenuDef
+    // | macroscript_def #MacroscriptDef
+    // | plugin_def      #PluginDef
     ;
 
 //------------------------------------------------------------------------//
@@ -281,11 +304,15 @@ loop_exit: EXIT (WITH expr)? ;
 case_expr
 : CASE expr? OF
     LPAREN
-        case_item (eos case_item)*
+        case_item
     RPAREN
     ;
 
-case_item : factor {this.noSpaces()}? COLON expr ;
+case_item :  case_option expr eos;
+
+case_option
+    : factor /* {this.noSpaces()}? */ COLON
+    ;
 
 //IF-EXPR
 if_expr
@@ -332,47 +359,58 @@ destination
 //MATH EXPRESSIONS
 
 simple_expr
-    : <assoc=right> left=simple_expr {this.noNewLines()}? AS  right=simple_expr #TypecastExpression
-    | <assoc=right> left=simple_expr {this.noNewLines()}? POW right=simple_expr #ExponentExpression
+    // : <assoc=right> left=simple_expr {this.noNewLines()}? AS  right=simple_expr #TypecastExpression
+    // | <assoc=right> left=simple_expr {this.noNewLines()}? POW right=simple_expr #ExponentExpression
 
-    | left=simple_expr {this.noNewLines()}? (DIV | PROD)      right=simple_expr #ProductExpression
-    | left=simple_expr {this.noNewLines()}? (PLUS | MINUS)    right=simple_expr #AdditionExpression
-    | NOT right=simple_expr #LogicNOTExpression
-    | left=simple_expr {this.noNewLines()}? OR  right=simple_expr #LogicORExpression
-    | left=simple_expr {this.noNewLines()}? AND right=simple_expr #LogicANDExpression
+    // | left=simple_expr {this.noNewLines()}? (DIV | PROD)      right=simple_expr #ProductExpression
+    // | left=simple_expr {this.noNewLines()}? (PLUS | MINUS)    right=simple_expr #AdditionExpression
+    // | NOT right=simple_expr #LogicNOTExpression
+    // | left=simple_expr {this.noNewLines()}? OR  right=simple_expr #LogicORExpression
+    // | left=simple_expr {this.noNewLines()}? AND right=simple_expr #LogicANDExpression
 
-    | right=simple_expr {this.noNewLines()}? COMPARE left=simple_expr #ComparisonExpression
+    // | right=simple_expr {this.noNewLines()}? COMPARE left=simple_expr #ComparisonExpression
 
     // | <assoc=right> left=simple_expr {this.noNewLines()}? ASSIGN right=simple_expr #AssigmentOperationExpression
     // | <assoc=right> left=simple_expr {this.noNewLines()}? EQ     right=simple_expr #AssigmentExpression
 
-    | fn_call    #FnCallExpression    //passthrough
+    // : operand #OperandExpression
+    : fn_call    #FnCallExpression    //passthrough
     | operand    #OperandExpression   //passthrough
+    
+    // | fn_call    #FnCallExpression    //passthrough
     ;
 
 //FUNCTION CALL --- HOW TO MANAGE PROHIBITED / OPTIONAL / MANDATORY linebreaks????
 // Until an EOL or lower precedence rule...????
 fn_call
-    // : operand operand+
-    : caller = operand ({this.noNewLines()}? args+=operand)* ({this.noNewLines()}? params+=param)+
-    | caller = operand ({this.noNewLines()}? args+=operand)+ //eos //{this.SimpleExprAhead()}?
-    // | caller = operand ({this.noNewLines()}? params+=param)+
-    | caller = operand {this.noNewLines()}? LPAREN {this.noSpaces()}? RPAREN
+    : caller=fn_caller (args+=call_args | params+=call_params)+
+    // | caller=fn_caller params+=call_params+
+    // | caller=fn_caller args+=call_args+
+    | caller=fn_caller LPAREN {this.noSpaces()}? RPAREN
+    ;
+
+call_args: ({this.noNewLines()}? operand);
+call_params: ({this.noNewLines()}? param);
+
+fn_caller
+    : var_name
+    | accessor
     ;
 
 //PARAMETER
 param
     :  param_name operand
     ;
+
 param_name
-    : (ID | KW_OVERRIDE) {this.noSpaces()}? COLON
+    : (var_name | KW_OVERRIDE) {this.noSpaces()}? COLON
     ;
 
 //------------------------------------------------------------------------//
 
 operand
     : factor   
-    // | accessor
+    | accessor
     ;
 
 accessor
@@ -501,8 +539,9 @@ level_name
     | QUOTED
     ;
 */
+noNLhere : {this.noNewLines()} ;
 
 eos
-    : {this.lineTerminatorAhead()}?
+    : {this.lineTerminatorAhead()}? {console.log('eos called');}
     // | EOF
     ;
