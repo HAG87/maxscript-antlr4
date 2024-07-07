@@ -13,37 +13,38 @@ options {
 
 /*GRAMMAR RULES*/
 program
-    // : expr* EOF
-    : expr (eos expr)* EOF
+    : expr* EOF
+    // : expr (eos expr)* EOF
     ;
 // THE ORDER OF FUNCTION CALLS IS BROKEN, IT NEEDS TO PRECEEDE OPERAND. MAYBE THIS WILL FIX WITH THE WS MANAGMENT???
 
 //expr_iter: (expr EOL);
 
 expr
-    : simple_expr      #SimpleExpr
-    | var_decl         #VarDecl
-    | assignment       #Assign
-    | assignment_expr  #AssignOp
-    | if_expr          #IfExpr
-    | while_loop       #WhileExpr
-    | do_loop          #DoExpr
-    | for_loop         #ForExpr
-    | loop_exit        #ExitExpr
-    | case_expr        #CaseExpr
-    | struct_def       #StructDef
-    | try_expr         #TryExpr
-    | fn_def           #FnDef
-    | fn_return        #FnRet
-    // | context_expr #ContextExpr
-    // | attributes_def  #AttributesDef
-    // | utility_def     #UtilityDef
+    // : var_decl         #VarDecl
+    : simple_expr     #SimpleExpr
+    | var_decl        #VarDecl
+    | assignment      #Assign
+    | assignment_expr #AssignOp
+    | if_expr         #IfExpr
+    | while_loop      #WhileExpr
+    | do_loop         #DoExpr
+    | for_loop        #ForExpr
+    | loop_exit       #ExitExpr
+    | case_expr       #CaseExpr
+    | struct_def      #StructDef
+    | try_expr        #TryExpr
+    | fn_def          #FnDef
+    | fn_return       #FnRet
+    | context_expr    #ContextExpr
+    | attributes_def  #AttributesDef
+    | utility_def     #UtilityDef
     | rollout_def     #RolloutDef
-    // | tool_def        #ToolDef
-    // | rcmenu_def      #RcmenuDef
-    // | macroscript_def #MacroscriptDef
-    // | plugin_def      #PluginDef
-    // | change_handler  #ChangeHandler
+    | tool_def        #ToolDef
+    | rcmenu_def      #RcmenuDef
+    | macroscript_def #MacroscriptDef
+    | plugin_def      #PluginDef
+    | change_handler  #ChangeHandler
     ;
 
 //------------------------------------------------------------------------//
@@ -331,46 +332,33 @@ destination
 //MATH EXPRESSIONS
 
 simple_expr
-    : NOT right=simple_expr #LogicNOTExpression
+    : <assoc=right> left=simple_expr {this.noNewLines()}? AS  right=simple_expr #TypecastExpression
+    | <assoc=right> left=simple_expr {this.noNewLines()}? POW right=simple_expr #ExponentExpression
+
+    | left=simple_expr {this.noNewLines()}? (DIV | PROD)      right=simple_expr #ProductExpression
+    | left=simple_expr {this.noNewLines()}? (PLUS | MINUS)    right=simple_expr #AdditionExpression
+    | NOT right=simple_expr #LogicNOTExpression
     | left=simple_expr {this.noNewLines()}? OR  right=simple_expr #LogicORExpression
     | left=simple_expr {this.noNewLines()}? AND right=simple_expr #LogicANDExpression
 
     | right=simple_expr {this.noNewLines()}? COMPARE left=simple_expr #ComparisonExpression
 
-    | <assoc=right> left=simple_expr {this.noNewLines()}? AS  right=simple_expr #TypecastExpression
-    | <assoc=right> left=simple_expr {this.noNewLines()}? POW right=simple_expr #ExponentExpression
-
-    | left=simple_expr {this.noNewLines()}? (DIV | PROD)      right=simple_expr #ProductExpression
-    | left=simple_expr {this.noNewLines()}? (PLUS | MINUS)    right=simple_expr #AdditionExpression
-    
     // | <assoc=right> left=simple_expr {this.noNewLines()}? ASSIGN right=simple_expr #AssigmentOperationExpression
     // | <assoc=right> left=simple_expr {this.noNewLines()}? EQ     right=simple_expr #AssigmentExpression
 
-    | operand    #OperandExpression   //passthrough
     | fn_call    #FnCallExpression    //passthrough
+    | operand    #OperandExpression   //passthrough
     ;
 
 //FUNCTION CALL --- HOW TO MANAGE PROHIBITED / OPTIONAL / MANDATORY linebreaks????
 // Until an EOL or lower precedence rule...????
 fn_call
-    : caller = operand 
-        ({this.noNewLines()}? args+=operand)+ //eos //{this.SimpleExprAhead()}?
-    | caller = operand 
-        ({this.noNewLines()}? args+=operand)+
-        ({this.noNewLines()}? params+=param)+
-    | caller = operand
-        ({this.noNewLines()}? params+=param)+
+    // : operand operand+
+    : caller = operand ({this.noNewLines()}? args+=operand)* ({this.noNewLines()}? params+=param)+
+    | caller = operand ({this.noNewLines()}? args+=operand)+ //eos //{this.SimpleExprAhead()}?
+    // | caller = operand ({this.noNewLines()}? params+=param)+
     | caller = operand {this.noNewLines()}? LPAREN {this.noSpaces()}? RPAREN
     ;
-
-/*
-caller
-    : var_name
-    | accessor
-    // | path
-    | expr_seq
-    ;
-// */
 
 //PARAMETER
 param
@@ -384,7 +372,7 @@ param_name
 
 operand
     : factor   
-    | accessor
+    // | accessor
     ;
 
 accessor
@@ -407,14 +395,14 @@ index
 //FACTORS
 factor
     : var_name
-    | NAME
-    | path
     // | PATH
+    | path
     | by_ref
-    | NUMBER
-    | STRING
-    | TIMEVAL
     | BOOL
+    | STRING
+    | NAME
+    | NUMBER
+    | TIMEVAL
     | array
     | bitArray
     | point3

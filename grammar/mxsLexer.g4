@@ -255,7 +255,16 @@ fragment String_verbatim
 	: '@"' ~["]* '"' //-> type(STRING)
 	;
 
+//COMMENTS
+BLOCK_COMMENT
+	: '/*' .*? ('*/' | EOF) -> channel(HIDDEN)
+	;
 
+LINE_COMMENT
+	: '--' ~[\r\n]* -> channel(HIDDEN)
+	;
+
+//IDENTIFIERS
 PATH: Dollar (Alphanum | [*?\\] | Quoted | '/')* ;
 
 /*
@@ -276,7 +285,6 @@ mode PATH_NAME;
 	Level_exit: (WSchar | NLchar) -> skip, PopMode;
 */
 
-//IDENTIFIERS
 ID
 	: Alphanum
 	;
@@ -289,15 +297,6 @@ fragment Quoted: '\'' (~['] | [\]['])* '\'' ;
 
 RESOURCE
 	: '~' Alphanum '~'
-	;
-
-//COMMENTS
-BLOCK_COMMENT
-	: '/*' .*? ('*/' | EOF) -> channel(HIDDEN)
-	;
-
-LINE_COMMENT
-	: '--' ~[\r\n]* -> channel(HIDDEN)
 	;
 
 //WHITESPACE
