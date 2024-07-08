@@ -14,3 +14,4 @@ parser/mxsLexer.tokens
 parser/mxsLexer.interp
 parser/mxsParserVisitor.ts
 parser/mxsParserListener.ts
+test/samples/input.ms

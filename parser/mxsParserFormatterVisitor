@@ -1,0 +1,163 @@
+import {
+  SimpleExprContext, ProgramContext, VarDeclContext, AssignContext, IfExprContext,
+  WhileExprContext, DoExprContext, ForExprContext, ExitExprContext, CaseExprContext,
+  StructDefContext, TryExprContext, FnDefContext, FnRetContext, ContextExprContext,
+  AttributesDefContext, UtilityDefContext, RolloutDefContext, ToolDefContext, RcmenuDefContext,
+  MacroscriptDefContext, PluginDefContext, ChangeHandlerContext, Simple_exprContext, Macroscript_defContext,
+  Utility_defContext, Rollout_defContext, Rollout_clauseContext, RolloutGroupContext, RolloutControlContext,
+  Tool_defContext, Rcmenu_defContext, Rc_submenuContext, Rc_separatorContext, Rc_menuitemContext, Rc_clauseContext,
+  Plugin_defContext, Plugin_clauseContext, Change_handlerContext, Context_exprContext, Ctx_predicateContext,
+  Param_exprContext, Param_defContext, Attributes_defContext, Attributes_clauseContext, Struct_defContext,
+  Struct_memberContext, Struct_scopeContext, Event_handlerContext, Event_typeContext, Event_target_typeContext,
+  Event_target_type_argsContext, Fn_defContext, ArgsContext, Fn_returnContext, Try_exprContext, While_loopContext,
+  Do_loopContext, For_loopContext, For_sequenceContext, For_whileContext, For_whereContext, Loop_exitContext,
+  Case_exprContext, Case_itemContext, If_exprContext, Var_declContext, DeclContext, AssignmentContext, DestinationContext,
+  LogicNOTContext, LogicORContext, LogicOperandContext, LogicANDContext, Logical_operandContext, ComparisonContext, MathExprContext,
+  AdditionContext, ExponentContext, FnCallContext, MathOperandContext, TypecastContext, ProductContext, Math_operandContext, Fn_callContext,
+  CallerContext, ParamContext, Param_nameContext, OperandContext, AccPropertyContext, AccIndexContext, PropertyContext, IndexContext, FactorContext,
+  Unary_minusContext, Expr_seqContext, Box2Context, Point3Context, Point2Context, BitArrayContext, BitListContext, BitexprContext, ArrayContext,
+  ElementListContext, IdContext, QuotedIdContext, KeywordOverwriteContext, RefContext, DeRefContext, PathContext, LevelsContext, Level_nameContext
+} from "./mxsParser.js";
+
+import { mxsParserVisitor } from "./mxsParserVisitor";
+/*
+import { ParserRuleContext } from 'antlr4';
+import MyGrammarVisitor from './MyGrammarVisitor';
+
+class CustomVisitor extends MyGrammarVisitor {
+
+  visitChildren(ctx: ParserRuleContext) {
+    if (!ctx) {
+      return;
+    }
+    if (ctx.children) {
+      return ctx.children.map(child => {
+        if (child.children && child.children.length != 0) {
+          return child.accept(this);
+        } else {
+          return child.getText();
+        }
+      });
+    }
+  }
+}
+
+tree.accept(new CustomVisitor());
+*/
+export class mxsParserFormatterVisitor<Result> extends mxsParserVisitor<Result>
+{
+  /*
+  visitProgram = (ctx: ProgramContext):Result => {};
+  visitSimpleExpr = (ctx: SimpleExprContext):Result => {};
+  visitVarDecl = (ctx: VarDeclContext):Result => {};
+  visitAssign = (ctx: AssignContext):Result => {};
+  visitIfExpr = (ctx: IfExprContext):Result => {};
+  visitWhileExpr = (ctx: WhileExprContext):Result => {};
+  visitDoExpr = (ctx: DoExprContext):Result => {};
+  visitForExpr = (ctx: ForExprContext):Result => {};
+  visitExitExpr = (ctx: ExitExprContext):Result => {};
+  visitCaseExpr = (ctx: CaseExprContext):Result => {};
+  visitStructDef = (ctx: StructDefContext):Result => {};
+  visitTryExpr = (ctx: TryExprContext):Result => {};
+  visitFnDef = (ctx: FnDefContext):Result => {};
+  visitFnRet = (ctx: FnRetContext):Result => {};
+  visitContextExpr = (ctx: ContextExprContext):Result => {};
+  visitAttributesDef = (ctx: AttributesDefContext):Result => {};
+  visitUtilityDef = (ctx: UtilityDefContext):Result => {};
+  visitRolloutDef = (ctx: RolloutDefContext):Result => {};
+  visitToolDef = (ctx: ToolDefContext):Result => {};
+  visitRcmenuDef = (ctx: RcmenuDefContext):Result => {};
+  visitMacroscriptDef = (ctx: MacroscriptDefContext):Result => {};
+  visitPluginDef = (ctx: PluginDefContext):Result => {};
+  visitChangeHandler = (ctx: ChangeHandlerContext):Result => {};
+  visitSimple_expr = (ctx: Simple_exprContext):Result => {};
+  visitMacroscript_def = (ctx: Macroscript_defContext):Result => {};
+  visitUtility_def = (ctx: Utility_defContext):Result => {};
+  visitRollout_def = (ctx: Rollout_defContext):Result => {};
+  visitRollout_clause = (ctx: Rollout_clauseContext):Result => {};
+  visitRolloutGroup = (ctx: RolloutGroupContext):Result => {};
+  visitRolloutControl = (ctx: RolloutControlContext):Result => {};
+  visitTool_def = (ctx: Tool_defContext):Result => {};
+  visitRcmenu_def = (ctx: Rcmenu_defContext):Result => {};
+  visitRc_submenu = (ctx: Rc_submenuContext):Result => {};
+  visitRc_separator = (ctx: Rc_separatorContext):Result => {};
+  visitRc_menuitem = (ctx: Rc_menuitemContext):Result => {};
+  visitRc_clause = (ctx: Rc_clauseContext):Result => {};
+  visitPlugin_def = (ctx: Plugin_defContext):Result => {};
+  visitPlugin_clause = (ctx: Plugin_clauseContext):Result => {};
+  visitChange_handler = (ctx: Change_handlerContext):Result => {};
+  visitContext_expr = (ctx: Context_exprContext):Result => {};
+  visitCtx_predicate = (ctx: Ctx_predicateContext):Result => {};
+  visitParam_expr = (ctx: Param_exprContext):Result => {};
+  visitParam_def = (ctx: Param_defContext):Result => {};
+  visitAttributes_def = (ctx: Attributes_defContext):Result => {};
+  visitAttributes_clause = (ctx: Attributes_clauseContext):Result => {};
+  visitStruct_def = (ctx: Struct_defContext):Result => {};
+  visitStruct_member = (ctx: Struct_memberContext):Result => {};
+  visitStruct_scope = (ctx: Struct_scopeContext):Result => {};
+  visitEvent_handler = (ctx: Event_handlerContext):Result => {};
+  visitEvent_type = (ctx: Event_typeContext):Result => {};
+  visitEvent_target_type = (ctx: Event_target_typeContext):Result => {};
+  visitEvent_target_type_args = (ctx: Event_target_type_argsContext):Result => {};
+  visitFn_def = (ctx: Fn_defContext):Result => {};
+  visitArgs = (ctx: ArgsContext):Result => {};
+  visitFn_return = (ctx: Fn_returnContext):Result => {};
+  visitTry_expr = (ctx: Try_exprContext):Result => {};
+  visitWhile_loop = (ctx: While_loopContext):Result => {};
+  visitDo_loop = (ctx: Do_loopContext):Result => {};
+  visitFor_loop = (ctx: For_loopContext):Result => {};
+  visitFor_sequence = (ctx: For_sequenceContext):Result => {};
+  visitFor_while = (ctx: For_whileContext):Result => {};
+  visitFor_where = (ctx: For_whereContext):Result => {};
+  visitLoop_exit = (ctx: Loop_exitContext):Result => {};
+  visitCase_expr = (ctx: Case_exprContext):Result => {};
+  visitCase_item = (ctx: Case_itemContext):Result => {};
+  visitIf_expr = (ctx: If_exprContext):Result => {};
+  visitVar_decl = (ctx: Var_declContext):Result => {};
+  visitDecl = (ctx: DeclContext):Result => {};
+  visitAssignment = (ctx: AssignmentContext):Result => {};
+  visitDestination = (ctx: DestinationContext):Result => {};
+  visitLogicNOT = (ctx: LogicNOTContext):Result => {};
+  visitLogicOR = (ctx: LogicORContext):Result => {};
+  visitLogicOperand = (ctx: LogicOperandContext):Result => {};
+  visitLogicAND = (ctx: LogicANDContext):Result => {};
+  visitLogical_operand = (ctx: Logical_operandContext):Result => {};
+  visitComparison = (ctx: ComparisonContext):Result => {};
+  visitMathExpr = (ctx: MathExprContext):Result => {};
+  visitAddition = (ctx: AdditionContext):Result => {};
+  visitExponent = (ctx: ExponentContext):Result => {};
+  visitFnCall = (ctx: FnCallContext):Result => {};
+  visitMathOperand = (ctx: MathOperandContext):Result => {};
+  visitTypecast = (ctx: TypecastContext):Result => {};
+  visitProduct = (ctx: ProductContext):Result => {};
+  visitMath_operand = (ctx: Math_operandContext):Result => {};
+  visitFn_call = (ctx: Fn_callContext):Result => {};
+  visitCaller = (ctx: CallerContext):Result => {};
+  visitParam = (ctx: ParamContext):Result => {};
+  visitParam_name = (ctx: Param_nameContext):Result => {};
+  visitOperand = (ctx: OperandContext):Result => {};
+  visitAccProperty = (ctx: AccPropertyContext):Result => {};
+  visitAccIndex = (ctx: AccIndexContext):Result => {};
+  visitProperty = (ctx: PropertyContext):Result => {};
+  visitIndex = (ctx: IndexContext):Result => {};
+  visitFactor = (ctx: FactorContext):Result => {};
+  visitUnary_minus = (ctx: Unary_minusContext):Result => {};
+  visitExpr_seq = (ctx: Expr_seqContext):Result => {};
+  visitBox2 = (ctx: Box2Context):Result => {};
+  visitPoint3 = (ctx: Point3Context):Result => {};
+  visitPoint2 = (ctx: Point2Context):Result => {};
+  visitBitArray = (ctx: BitArrayContext):Result => {};
+  visitBitList = (ctx: BitListContext):Result => {};
+  visitBitexpr = (ctx: BitexprContext):Result => {};
+  visitArray = (ctx: ArrayContext):Result => {};
+  visitElementList = (ctx: ElementListContext):Result => {};
+  visitId = (ctx: IdContext):Result => {};
+  visitQuotedId = (ctx: QuotedIdContext):Result => {};
+  visitKeywordOverwrite = (ctx: KeywordOverwriteContext):Result => {};
+  visitRef = (ctx: RefContext):Result => {};
+  visitDeRef = (ctx: DeRefContext):Result => {};
+  visitPath = (ctx: PathContext):Result => {};
+  visitLevels = (ctx: LevelsContext):Result => {};
+  visitLevel_name = (ctx: Level_nameContext):Result => {};
+  */
+}
