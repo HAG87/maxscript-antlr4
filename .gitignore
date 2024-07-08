@@ -4,4 +4,14 @@
 .vscode/bookmarks.json
 node_modules
 /grammar/.antlr/
-input.ms
+/tests
+scrap-file.txt
+parser/mxsParser.ts
+parser/mxsParser.tokens
+parser/mxsParser.interp
+parser/mxsLexer.ts
+parser/mxsLexer.tokens
+parser/mxsLexer.interp
+parser/mxsParserVisitor.ts
+parser/mxsParserListener.ts
+test/samples/input.ms
