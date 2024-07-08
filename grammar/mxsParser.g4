@@ -2,6 +2,7 @@ parser grammar mxsParser;
 
 @header {
 import { mxsParserBase } from "./mxsParserBase"
+import { mxsLexer } from "./mxsLexer"
 }
 
 options {
@@ -13,8 +14,8 @@ options {
 
 /*GRAMMAR RULES*/
 program
-    // : expr* EOF
-    : expr (eos expr)* EOF
+    : expr ({this.lineTerminatorAhead()}? expr)* EOF
+    // : expr (NL expr)* EOF
     ;
 // THE ORDER OF FUNCTION CALLS IS BROKEN, IT NEEDS TO PRECEEDE OPERAND. MAYBE THIS WILL FIX WITH THE WS MANAGMENT???
 
@@ -305,13 +306,18 @@ case_expr
 : CASE expr? OF
     LPAREN
         case_item
+       
+        // case_item*
+        (nl case_item)+
     RPAREN
     ;
 
-case_item :  case_option expr eos;
+// case_it : /*   {this.enable(mxsLexer.NEWLINE_CHANNEL);} NL */ case_item ;
+
+case_item : case_option expr;
 
 case_option
-    : factor /* {this.noSpaces()}? */ COLON
+    : factor {this.noSpaces()}? COLON
     ;
 
 //IF-EXPR
@@ -343,10 +349,10 @@ decl_scope
 // */
 //ASSIGNMENT EXPRESSION
 assignment
-    : assign_target=destination {this.noNewLines()}? EQ assign_expr=expr  #AssigmentExpression
+    : assign_target=destination EQ NL? assign_expr=expr  #AssigmentExpression
     ;
 assignment_expr
-    : assign_target=destination {this.noNewLines()}? ASSIGN assign_expr=expr #AssigmentOperationExpression
+    : assign_target=destination ASSIGN NL? assign_expr=expr #AssigmentOperationExpression
     ;
 destination
     : var_name
@@ -357,40 +363,52 @@ destination
 // LOGIC EXPRESSION
 //COMPARE EXPRESSION
 //MATH EXPRESSIONS
-
+/*
+<simple_expr> ::= <operand>
+<math_expr>
+<compare_expr>
+<logical_expr>
+<function_call>
+<expr_seq>
+ */
 simple_expr
-    // : <assoc=right> left=simple_expr {this.noNewLines()}? AS  right=simple_expr #TypecastExpression
-    // | <assoc=right> left=simple_expr {this.noNewLines()}? POW right=simple_expr #ExponentExpression
+    : <assoc=right> left=simple_expr {this.noNewLines()}? AS  right=simple_expr #TypecastExpression
+    | <assoc=right> left=simple_expr {this.noNewLines()}? POW right=simple_expr #ExponentExpression
 
-    // | left=simple_expr {this.noNewLines()}? (DIV | PROD)      right=simple_expr #ProductExpression
-    // | left=simple_expr {this.noNewLines()}? (PLUS | MINUS)    right=simple_expr #AdditionExpression
-    // | NOT right=simple_expr #LogicNOTExpression
-    // | left=simple_expr {this.noNewLines()}? OR  right=simple_expr #LogicORExpression
-    // | left=simple_expr {this.noNewLines()}? AND right=simple_expr #LogicANDExpression
+    | left=simple_expr {this.noNewLines()}? (DIV | PROD)   right=simple_expr #ProductExpression
+    | left=simple_expr {this.noNewLines()}? (PLUS | MINUS) right=simple_expr #AdditionExpression
 
-    // | right=simple_expr {this.noNewLines()}? COMPARE left=simple_expr #ComparisonExpression
+    | left=simple_expr {this.noNewLines()}? (OR | AND)  right=simple_expr #LogicExpression
+    | NOT right=simple_expr #LogicNOTExpression
 
-    // | <assoc=right> left=simple_expr {this.noNewLines()}? ASSIGN right=simple_expr #AssigmentOperationExpression
-    // | <assoc=right> left=simple_expr {this.noNewLines()}? EQ     right=simple_expr #AssigmentExpression
+    | right=simple_expr {this.noNewLines()}? COMPARE left=simple_expr #ComparisonExpression
+
+    // | <assoc=right> left=simple_expr ASSIGN right=simple_expr #AssigmentOperationExpression
+    // | <assoc=right> left=simple_expr EQ     right=simple_expr #AssigmentExpression
 
     // : operand #OperandExpression
-    : fn_call    #FnCallExpression    //passthrough
-    | operand    #OperandExpression   //passthrough
+    | fn_call    #FnCallExpression    //passthrough
     
     // | fn_call    #FnCallExpression    //passthrough
+    | operand    #OperandExpression   //passthrough
     ;
+
 
 //FUNCTION CALL --- HOW TO MANAGE PROHIBITED / OPTIONAL / MANDATORY linebreaks????
 // Until an EOL or lower precedence rule...????
 fn_call
-    : caller=fn_caller (args+=call_args | params+=call_params)+
-    // | caller=fn_caller params+=call_params+
-    // | caller=fn_caller args+=call_args+
-    | caller=fn_caller LPAREN {this.noSpaces()}? RPAREN
-    ;
+    // : caller = fn_caller ( args += operand)+ ( params += param)+
+    // | caller = fn_caller ( args += operand)+
+    // | caller = fn_caller ( params += param)+
 
-call_args: ({this.noNewLines()}? operand);
-call_params: ({this.noNewLines()}? param);
+    : caller = fn_caller ({this.noNewLines()}? args += operand)+ ({this.noNewLines()}? params += param)+
+    | caller= fn_caller ({this.noNewLines()}? args += operand)+
+    | caller= fn_caller ({this.noNewLines()}? params += param)+
+    | caller= fn_caller PAREN_PAIR
+    // | operand
+    ;
+    
+nl: {this.enable(mxsLexer.NEWLINE_CHANNEL);} NL {this.disable(mxsLexer.NEWLINE_CHANNEL);} ;
 
 fn_caller
     : var_name
@@ -403,7 +421,7 @@ param
     ;
 
 param_name
-    : (var_name | KW_OVERRIDE) {this.noSpaces()}? COLON
+    : (var_name | KW_OVERRIDE) /* {this.noSpaces()}? */ COLON
     ;
 
 //------------------------------------------------------------------------//
@@ -414,10 +432,10 @@ operand
     ;
 
 accessor
-    : <assoc=right> accessor {this.noNewLines()}? property #AccProperty
-    | <assoc=right> accessor {this.noNewLines()}? index    #AccIndex
-    | factor {this.noNewLines()}? property                 #AccProperty
-    | factor {this.noNewLines()}? index                    #AccIndex
+    : <assoc=right> accessor property #AccProperty
+    | <assoc=right> accessor index    #AccIndex
+    | factor property                 #AccProperty
+    | factor index                    #AccIndex
     ;
 
 //Property accessor
@@ -446,8 +464,8 @@ factor
     | point3
     | point2
     | box2
-    | unary_minus //UNARY MINUS
-    | expr_seq //EXPRESSION SEQUENCE
+    // | unary_minus //UNARY MINUS
+    // | expr_seq //EXPRESSION SEQUENCE
     | QUESTION
     ;
 
@@ -460,8 +478,12 @@ unary_minus
 expr_seq
     : LPAREN
         // expr (expr)*
-        expr (eos expr)*
+        //{this.enable(mxsLexer.NEWLINE_CHANNEL);}
+        (expr (NL expr)*)?
+        //{this.disable(mxsLexer.NEWLINE_CHANNEL);}
+
       RPAREN
+    | PAREN_PAIR
     ;
 //------------------------------------------------------------------------//
 //TYPES
@@ -491,7 +513,7 @@ point2:
 
 //BitArray
 bitArray :
-    SHARP {this.noNewLines()}? LBRACE
+    SHARP LBRACE
         bitList?
     LBRACE
     ;
@@ -506,7 +528,7 @@ bitexpr
 
 //Array
 array :
-    SHARP {this.noNewLines()}? LPAREN
+    SHARP LPAREN
         elementList?
     RPAREN
     ;
@@ -539,7 +561,7 @@ level_name
     | QUOTED
     ;
 */
-noNLhere : {this.noNewLines()} ;
+// noNLhere : {this.noNewLines()} ;
 
 eos
     : {this.lineTerminatorAhead()}? {console.log('eos called');}

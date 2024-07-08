@@ -1,16 +1,20 @@
 /*$antlr-format alignColons hanging, alignSemicolons hanging, alignFirstTokens true */
 lexer grammar mxsLexer;
+@members{ 
+public static readonly NEWLINE_CHANNEL = 2;
+}
 /*
 options {
 	caseInsensitive = true;
 }
 //*/
-/*
+// /*
 channels {
-	WHITESPACE_CHANNEL,
-	COMMENTS_CHANNEL
+	NEWLINE_CHANNEL
+	// WHITESPACE_CHANNEL,
+	// COMMENTS_CHANNEL
 }
-*/
+// */
 /*
 tokens {
 	STRING
@@ -211,6 +215,7 @@ QUESTION : Question;
 // DOLLAR: Dollar;
 
 // CODE STRUCTURE
+PAREN_PAIR: '()' ;
 LPAREN: '(';
 RPAREN: ')';
 
@@ -300,12 +305,12 @@ RESOURCE
 	;
 
 //WHITESPACE
-EOL
-	: NLchar+ -> channel(HIDDEN)
+NL
+	: NLchar+ -> channel(NEWLINE_CHANNEL)
 	;
 
 WS
-	: ( WSchar | Backslash EOL )+ -> channel(HIDDEN)
+	: ( WSchar | Backslash NL )+ -> channel(HIDDEN)
 	;
 
 fragment WSchar: [ \t];
