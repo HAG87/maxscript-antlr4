@@ -14,7 +14,7 @@ options {
 
 /*GRAMMAR RULES*/
 program
-    : expr ({this.lineTerminatorAhead()}? expr)* EOF
+    : expr (NL expr)* EOF
     // : expr (NL expr)* EOF
     ;
 // THE ORDER OF FUNCTION CALLS IS BROKEN, IT NEEDS TO PRECEEDE OPERAND. MAYBE THIS WILL FIX WITH THE WS MANAGMENT???
@@ -303,12 +303,11 @@ loop_exit: EXIT (WITH expr)? ;
 
 //CASE-EXPR
 case_expr
-: CASE expr? OF
-    LPAREN
-        case_item
-       
+: CASE NL? expr? NL? OF
+    NL? LPAREN
+        case_item       
         // case_item*
-        (nl case_item)+
+        (NL case_item)*
     RPAREN
     ;
 
@@ -372,24 +371,24 @@ destination
 <expr_seq>
  */
 simple_expr
-    : <assoc=right> left=simple_expr {this.noNewLines()}? AS  right=simple_expr #TypecastExpression
-    | <assoc=right> left=simple_expr {this.noNewLines()}? POW right=simple_expr #ExponentExpression
+    : <assoc=right> left=simple_expr AS  right=simple_expr #TypecastExpression
+    | <assoc=right> left=simple_expr POW right=simple_expr #ExponentExpression
 
-    | left=simple_expr {this.noNewLines()}? (DIV | PROD)   right=simple_expr #ProductExpression
-    | left=simple_expr {this.noNewLines()}? (PLUS | MINUS) right=simple_expr #AdditionExpression
+    | left=simple_expr (DIV | PROD)   right=simple_expr #ProductExpression
+    | left=simple_expr (PLUS | MINUS) right=simple_expr #AdditionExpression
 
-    | left=simple_expr {this.noNewLines()}? (OR | AND)  right=simple_expr #LogicExpression
-    | NOT right=simple_expr #LogicNOTExpression
+    | left=simple_expr (OR | AND) right=simple_expr #LogicExpression
+    | NOT NL? right=simple_expr #LogicNOTExpression
 
-    | right=simple_expr {this.noNewLines()}? COMPARE left=simple_expr #ComparisonExpression
+    | right=simple_expr COMPARE left=simple_expr #ComparisonExpression
 
     // | <assoc=right> left=simple_expr ASSIGN right=simple_expr #AssigmentOperationExpression
     // | <assoc=right> left=simple_expr EQ     right=simple_expr #AssigmentExpression
 
     // : operand #OperandExpression
-    | fn_call    #FnCallExpression    //passthrough
-    
     // | fn_call    #FnCallExpression    //passthrough
+    
+    | fn_call    #FnCallExpression    //passthrough
     | operand    #OperandExpression   //passthrough
     ;
 
@@ -397,18 +396,19 @@ simple_expr
 //FUNCTION CALL --- HOW TO MANAGE PROHIBITED / OPTIONAL / MANDATORY linebreaks????
 // Until an EOL or lower precedence rule...????
 fn_call
-    // : caller = fn_caller ( args += operand)+ ( params += param)+
-    // | caller = fn_caller ( args += operand)+
-    // | caller = fn_caller ( params += param)+
+    // : caller = fn_caller ( args += operand)+
+    : caller = fn_caller ( args += operand)+ ( params += param)+
+    | caller = fn_caller ( args += operand)+
+    | caller = fn_caller ( params += param)+
 
-    : caller = fn_caller ({this.noNewLines()}? args += operand)+ ({this.noNewLines()}? params += param)+
-    | caller= fn_caller ({this.noNewLines()}? args += operand)+
-    | caller= fn_caller ({this.noNewLines()}? params += param)+
+    // : caller = fn_caller (args += operand)+ (params += param)+
+    // | caller= fn_caller (args += operand)+
+    // | caller= fn_caller (params += param)+
     | caller= fn_caller PAREN_PAIR
     // | operand
     ;
     
-nl: {this.enable(mxsLexer.NEWLINE_CHANNEL);} NL {this.disable(mxsLexer.NEWLINE_CHANNEL);} ;
+// nl: {this.enable(mxsLexer.NEWLINE_CHANNEL);} NL {this.disable(mxsLexer.NEWLINE_CHANNEL);} ;
 
 fn_caller
     : var_name

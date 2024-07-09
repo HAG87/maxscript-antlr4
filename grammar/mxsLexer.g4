@@ -15,11 +15,22 @@ channels {
 	// COMMENTS_CHANNEL
 }
 // */
-/*
-tokens {
-	STRING
-}
-*/
+
+//COMMENTS
+BLOCK_COMMENT
+	: '/*' .*? ('*/' | EOF) -> channel(HIDDEN)
+	;
+
+LINE_COMMENT
+	: '--' ~[\r\n]* -> channel(HIDDEN)
+	;
+
+//STRING
+STRING
+	: String_regular
+	| String_verbatim
+	;
+
 //KEYWORDS
 AND:    A N D;
 AS:     A S;
@@ -178,34 +189,34 @@ BOOL
 
 //OPERATORS
 COMPARE
-	: '=='
-	| '<'
-	| '>'
-	| '<='
-	| '>='
-	| '!='
+	: '==' Nls?
+	| '<'  Nls?
+	| '>'  Nls?
+	| '<=' Nls?
+	| '>=' Nls?
+	| '!=' Nls?
 	;
 
-EQ: '=';
+EQ: '=' Nls?;
 
 ASSIGN
-	: '+='
-	| '-='
-	| '*='
-	| '/='
+	: '+=' Nls?
+	| '-=' Nls?
+	| '*=' Nls?
+	| '/=' Nls?
 	;
 
-MINUS : '-';
-PLUS  : '+';
-PROD  : '*';
-DIV   : '/';
-POW   : '^';
+MINUS : '-' Nls? ;
+PLUS  : '+' Nls? ;
+PROD  : '*' Nls? ;
+DIV   : '/' Nls? ;
+POW   : '^' Nls? ;
 
 //SYMBOLS
 SHARP    : '#';
-COMMA    : ',';
-COLON    : ':';
-DOT      : '.';
+COMMA    : Nls? ',' Nls?;
+COLON    : ':' ;
+DOT      : '.' Nls?;
 GLOB     : '::';
 DOTDOT   : '..';
 AMP      : '&';
@@ -216,13 +227,13 @@ QUESTION : Question;
 
 // CODE STRUCTURE
 PAREN_PAIR: '()' ;
-LPAREN: '(';
-RPAREN: ')';
+LPAREN: '(' Nls?;
+RPAREN: Nls? ')';
 
-LBRACE: '{';
-RBRACE: '}';
+LBRACE: '{' Nls?;
+RBRACE:  Nls? '}';
 
-LBRACK: '[';
+LBRACK: '[' Nls?;
 RBRACK: ']';
 
 //BASIC VALUES
@@ -247,11 +258,7 @@ REF:   '&' ID;
 DEREF: '*' ID;
 NAME:  '#' ID;
 
-//STRING
-STRING
-	: String_regular
-	| String_verbatim
-	;
+
 
 fragment String_regular
 	: '"' (~["\r\n] | '\\"')* '"' //-> type(STRING)
@@ -260,14 +267,7 @@ fragment String_verbatim
 	: '@"' ~["]* '"' //-> type(STRING)
 	;
 
-//COMMENTS
-BLOCK_COMMENT
-	: '/*' .*? ('*/' | EOF) -> channel(HIDDEN)
-	;
 
-LINE_COMMENT
-	: '--' ~[\r\n]* -> channel(HIDDEN)
-	;
 
 //IDENTIFIERS
 PATH: Dollar (Alphanum | [*?\\] | Quoted | '/')* ;
@@ -304,14 +304,18 @@ RESOURCE
 	: '~' Alphanum '~'
 	;
 
+fragment Nls: (NLchar | WSchar | Backslash NLchar)+ ;
+
 //WHITESPACE
 NL
-	: NLchar+ -> channel(NEWLINE_CHANNEL)
+	: NLchar+ //-> channel(NEWLINE_CHANNEL)
 	;
 
 WS
-	: ( WSchar | Backslash NL )+ -> channel(HIDDEN)
+	:  ( WSchar | Backslash NLchar )+ -> channel(HIDDEN)
 	;
+
+// fragment wss: ( WSchar | Backslash NL )+ ;
 
 fragment WSchar: [ \t];
 fragment NLchar: [\r\n] | Semicolon;

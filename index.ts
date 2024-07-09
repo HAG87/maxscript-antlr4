@@ -35,8 +35,8 @@ import MultiChannelTokenStream from "./parser/multiChannelTokenStream";
 const inputStream = CharStream.fromString(str);
 // Create the lexer and parser
 const lexer       = new mxsLexer(inputStream);
-// const tokenStream = new CommonTokenStream(lexer);
-const tokenStream = new MultiChannelTokenStream(lexer);
+const tokenStream = new CommonTokenStream(lexer);
+// const tokenStream = new MultiChannelTokenStream(lexer);
 const parser      = new mxsParser(tokenStream);
 // let parser = new mxsParserBase(tokenStream);
 
@@ -53,7 +53,7 @@ try {
     tree = parser.program();    
 } catch (e:any) {
   console.log(e.message);
-  /*
+  // /*
     if (e instanceof ParseCancellationException) {
         lexer.reset();
         tokenStream.setTokenSource(lexer);
@@ -64,7 +64,7 @@ try {
     } else {
         throw e;
     }
-        */
+    // */
 }
 
 if (tree && tree.getChildCount() > 0) {
