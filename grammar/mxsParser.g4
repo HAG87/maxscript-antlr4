@@ -15,7 +15,7 @@ options {
 /*GRAMMAR RULES*/
 program
     // : expr ({this.lineTerminatorAhead()}? expr)* EOF
-    : expr (NL? expr)* EOF
+    : expr (NL expr)* EOF
     ;
 // THE ORDER OF FUNCTION CALLS IS BROKEN, IT NEEDS TO PRECEEDE OPERAND. MAYBE THIS WILL FIX WITH THE WS MANAGMENT???
 
@@ -306,17 +306,15 @@ loop_exit: EXIT (WITH expr)? ;
 case_expr
 : CASE expr? OF
     LPAREN
-    {this.enable(mxsLexer.NEWLINE_CHANNEL);}
+    // {this.enable(mxsLexer.NEWLINE_CHANNEL);}
         NL?
         case_item       
         // case_item*
         (NL case_item)+
         NL?
-    {this.disable(mxsLexer.NEWLINE_CHANNEL);}
+    // {this.disable(mxsLexer.NEWLINE_CHANNEL);}
     RPAREN
     ;
-
-// case_it : /*   {this.enable(mxsLexer.NEWLINE_CHANNEL);} NL */ case_item ;
 
 case_item : case_option expr;
 
@@ -391,7 +389,7 @@ simple_expr
     // | <assoc=right> left=simple_expr EQ     right=simple_expr #AssigmentExpression
 
     // : operand #OperandExpression
-    |  fn_call #FnCallExpression    //passthrough
+    | fn_call /* {this.disable(mxsLexer.NEWLINE_CHANNEL);} */ #FnCallExpression    //passthrough
     | operand    #OperandExpression   //passthrough
     ;
 
@@ -399,15 +397,19 @@ simple_expr
 //FUNCTION CALL --- HOW TO MANAGE PROHIBITED / OPTIONAL / MANDATORY linebreaks????
 // Until an EOL or lower precedence rule...????
 fn_call
-    // : caller = fn_caller {this.enable(mxsLexer.NEWLINE_CHANNEL);} (args += operand)+ (params += param)+ {this.disable(mxsLexer.NEWLINE_CHANNEL);}
-    // | caller = fn_caller {this.enable(mxsLexer.NEWLINE_CHANNEL);} (args += operand)+ {this.disable(mxsLexer.NEWLINE_CHANNEL);}
-    // | caller = fn_caller {this.enable(mxsLexer.NEWLINE_CHANNEL);} (params += param)+ {this.disable(mxsLexer.NEWLINE_CHANNEL);}
+    // : {this.enable(mxsLexer.NEWLINE_CHANNEL);} caller = fn_caller (args += operand)+ (params += param)+ {this.disable(mxsLexer.NEWLINE_CHANNEL);}
+    // | {this.enable(mxsLexer.NEWLINE_CHANNEL);} caller = fn_caller (args += operand)+ {this.disable(mxsLexer.NEWLINE_CHANNEL);}
+    // | {this.enable(mxsLexer.NEWLINE_CHANNEL);} caller = fn_caller (params += param)+ {this.disable(mxsLexer.NEWLINE_CHANNEL);}
 
-    : caller = fn_caller ({this.noNewLines()}? args += operand)+ ({this.noNewLines()}? params += param)+
-    | caller= fn_caller ({this.noNewLines()}? args += operand)+
-    | caller= fn_caller ({this.noNewLines()}? params += param)+
-    | caller= fn_caller PAREN_PAIR //{this.disable(mxsLexer.NEWLINE_CHANNEL);}
-    // | caller= fn_caller {this.enable(mxsLexer.NEWLINE_CHANNEL);} PAREN_PAIR {this.disable(mxsLexer.NEWLINE_CHANNEL);}
+    // : caller = fn_caller ({this.noNewLines()}? args += operand)+ ({this.noNewLines()}? params += param)+
+    // | caller= fn_caller ({this.noNewLines()}? args += operand)+
+    // | caller= fn_caller ({this.noNewLines()}? params += param)+
+    // | caller= fn_caller PAREN_PAIR
+    
+    : /* {this.disable(mxsLexer.NEWLINE_CHANNEL);} */ caller = fn_caller (args += operand)+ (params += param)+
+    | /* {this.enable(mxsLexer.NEWLINE_CHANNEL);} */  caller = fn_caller /* {this.enable(mxsLexer.NEWLINE_CHANNEL);} */ (args += operand)+ /* {this.disable(mxsLexer.NEWLINE_CHANNEL);} */
+    | /* {this.disable(mxsLexer.NEWLINE_CHANNEL);} */ caller = fn_caller (params += param)+
+    | /* {this.disable(mxsLexer.NEWLINE_CHANNEL);} */ caller = fn_caller PAREN_PAIR /* {this.disable(mxsLexer.NEWLINE_CHANNEL);} */
     // | operand
     ;
     
@@ -563,9 +565,3 @@ level_name
     | QUOTED
     ;
 */
-// noNLhere : {this.noNewLines()} ;
-
-eos
-    : {this.lineTerminatorAhead()}? {console.log('eos called');}
-    // | EOF
-    ;
