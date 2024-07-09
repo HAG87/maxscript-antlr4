@@ -46,7 +46,8 @@ program
 <plugin_def>
  */
 expr
-    : simple_expr     #SimpleExpr
+    : simple_expr      #SimpleExpr
+    // : {this.enable(mxsLexer.NEWLINE_CHANNEL);} NL {this.disable(mxsLexer.NEWLINE_CHANNEL);}simple_expr     #SimpleExpr
     // | var_decl        #VarDecl
     // | assignment      #Assign
     // | assignment_expr #AssignOp
@@ -305,7 +306,7 @@ loop_exit: EXIT (WITH expr)? ;
 case_expr
 : CASE expr? OF
     LPAREN
-        {this.enable(mxsLexer.NEWLINE_CHANNEL);}
+    {this.enable(mxsLexer.NEWLINE_CHANNEL);}
         NL?
         case_item       
         // case_item*
@@ -375,24 +376,22 @@ destination
 <expr_seq>
  */
 simple_expr
-    : <assoc=right> left=simple_expr {this.disable(mxsLexer.NEWLINE_CHANNEL);} AS  right=simple_expr #TypecastExpression
-    | <assoc=right> left=simple_expr {this.disable(mxsLexer.NEWLINE_CHANNEL);} POW right=simple_expr #ExponentExpression
+    : <assoc=right> left=simple_expr  AS  NL? right=simple_expr #TypecastExpression
+    | <assoc=right> left=simple_expr  POW NL? right=simple_expr #ExponentExpression
 
-    | left=simple_expr {this.disable(mxsLexer.NEWLINE_CHANNEL);} (DIV | PROD)   NL? right=simple_expr #ProductExpression
-    | left=simple_expr {this.disable(mxsLexer.NEWLINE_CHANNEL);} (PLUS | MINUS) NL? right=simple_expr #AdditionExpression
+    | left=simple_expr (DIV | PROD)   NL? right=simple_expr #ProductExpression
+    | left=simple_expr (PLUS | MINUS) NL? right=simple_expr #AdditionExpression
 
-    | left=simple_expr {this.disable(mxsLexer.NEWLINE_CHANNEL);} (OR | AND)  right=simple_expr #LogicExpression
-    | NOT right=simple_expr #LogicNOTExpression
+    | left=simple_expr (OR | AND) NL? right=simple_expr #LogicExpression
+    | NOT NL? right=simple_expr #LogicNOTExpression
 
-    | right=simple_expr {this.disable(mxsLexer.NEWLINE_CHANNEL);} COMPARE left=simple_expr #ComparisonExpression
+    | right=simple_expr COMPARE NL? left=simple_expr #ComparisonExpression
 
     // | <assoc=right> left=simple_expr ASSIGN right=simple_expr #AssigmentOperationExpression
     // | <assoc=right> left=simple_expr EQ     right=simple_expr #AssigmentExpression
 
     // : operand #OperandExpression
-    |  fn_call   #FnCallExpression    //passthrough
-    
-    // | fn_call    #FnCallExpression    //passthrough
+    |  fn_call #FnCallExpression    //passthrough
     | operand    #OperandExpression   //passthrough
     ;
 
@@ -400,19 +399,18 @@ simple_expr
 //FUNCTION CALL --- HOW TO MANAGE PROHIBITED / OPTIONAL / MANDATORY linebreaks????
 // Until an EOL or lower precedence rule...????
 fn_call
-    : caller = fn_caller {this.enable(mxsLexer.NEWLINE_CHANNEL);} (args += operand)+ (params += param)+ {this.disable(mxsLexer.NEWLINE_CHANNEL);}
-    | caller = fn_caller {this.enable(mxsLexer.NEWLINE_CHANNEL);} (args += operand)+ {this.disable(mxsLexer.NEWLINE_CHANNEL);}
-    | caller = fn_caller {this.enable(mxsLexer.NEWLINE_CHANNEL);} (params += param)+ {this.disable(mxsLexer.NEWLINE_CHANNEL);}
+    // : caller = fn_caller {this.enable(mxsLexer.NEWLINE_CHANNEL);} (args += operand)+ (params += param)+ {this.disable(mxsLexer.NEWLINE_CHANNEL);}
+    // | caller = fn_caller {this.enable(mxsLexer.NEWLINE_CHANNEL);} (args += operand)+ {this.disable(mxsLexer.NEWLINE_CHANNEL);}
+    // | caller = fn_caller {this.enable(mxsLexer.NEWLINE_CHANNEL);} (params += param)+ {this.disable(mxsLexer.NEWLINE_CHANNEL);}
 
-    // : caller = fn_caller ({this.noNewLines()}? args += operand)+ ({this.noNewLines()}? params += param)+
-    // | caller= fn_caller ({this.noNewLines()}? args += operand)+
-    // | caller= fn_caller ({this.noNewLines()}? params += param)+
-    | caller= fn_caller {this.enable(mxsLexer.NEWLINE_CHANNEL);} PAREN_PAIR {this.disable(mxsLexer.NEWLINE_CHANNEL);}
+    : caller = fn_caller ({this.noNewLines()}? args += operand)+ ({this.noNewLines()}? params += param)+
+    | caller= fn_caller ({this.noNewLines()}? args += operand)+
+    | caller= fn_caller ({this.noNewLines()}? params += param)+
+    | caller= fn_caller PAREN_PAIR //{this.disable(mxsLexer.NEWLINE_CHANNEL);}
+    // | caller= fn_caller {this.enable(mxsLexer.NEWLINE_CHANNEL);} PAREN_PAIR {this.disable(mxsLexer.NEWLINE_CHANNEL);}
     // | operand
     ;
     
-// nl: {this.enable(mxsLexer.NEWLINE_CHANNEL);} NL {this.disable(mxsLexer.NEWLINE_CHANNEL);} ;
-
 fn_caller
     : var_name
     | accessor
