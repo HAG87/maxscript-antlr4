@@ -12,14 +12,14 @@ export abstract class mxsParserBase extends Parser
     }
 
     public enable(channel: number): void {
-        console.log('ENABLE CHANNEL: ' + channel);
+        // console.log('ENABLE CHANNEL: ' + channel);
         if (this.inputStream instanceof MultiChannelTokenStream) {
             (this.inputStream as MultiChannelTokenStream).enable(channel);
         }
     }
     
     public disable(channel: number): void {
-        console.log('DISABLE CHANNEL: ' + channel);
+        // console.log('DISABLE CHANNEL: ' + channel);
         if (this.inputStream instanceof MultiChannelTokenStream) {
             (this.inputStream as MultiChannelTokenStream).disable(channel);
         }

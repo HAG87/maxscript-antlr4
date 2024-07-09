@@ -54,11 +54,11 @@ export default class MultiChannelTokenStream extends BufferedTokenStream
             return;
         }
         this.channels = [...this.channels, channel];
-        // console.log('START: ' + JSON.stringify(this.tokens[this.p].text));
+        // console.log('CURRENT: ' + JSON.stringify(this.tokens[this.p].text));
         // */
         // console.log('ENABLE CHANNELS: ' + this.channels.toString());
         // backtracks.... why?
-        /*
+        // /*
         // console.log(this.tokens[this.index].text);
         
         let i = this.p - 1;
@@ -73,13 +73,16 @@ export default class MultiChannelTokenStream extends BufferedTokenStream
                 break;
             }
         }
-        this.p = i + 1;
-        console.log('START: ' + JSON.stringify(this.tokens[this.p].text));
+        if (this.matches(this.tokens[i + 1].channel, this.channels)) {this.p = i + 1;}
+        
+        // this.p = i;
+        // console.log('START: ' + JSON.stringify(this.tokens[this.p].text));
         // console.log('START: ' + JSON.stringify(this.tokens[i+1].text));
         // this.p--
         // */
         // console.log(this.tokens[this.p]);
-        console.log('START: ' + JSON.stringify(this.tokens[this.p].text));
+        // this.p--
+        // console.log('START: ' + JSON.stringify(this.tokens[this.p].text));
     }
     public startAhead(channel: number): void
     {
@@ -97,13 +100,14 @@ export default class MultiChannelTokenStream extends BufferedTokenStream
         // console.log(JSON.stringify('End at: ' + this.tokens[this.p-2].text));
         // */
         // console.log('DISABLE CHANNEL: ' + channel);
-        console.log( 'actual token: '+ JSON.stringify(this.tokens[this.p].text));
+        let tok = this.tokens[this.p];
+        console.log(`END token: ${JSON.stringify(tok.text)} ${tok.line}:${tok.column}`);
 
         // rewind so I can call this at the end of the rule
         // will not work if rule needs to end in NL
 
         
-        // /*
+        /*
         let i = this.p - 1;
 
         while (i >= 0) {
@@ -124,7 +128,7 @@ export default class MultiChannelTokenStream extends BufferedTokenStream
 
         // console.log(JSON.stringify(this.tokens[i].text));
         // */
-        console.log('END: ' + JSON.stringify(this.tokens[this.p].text));
+        // console.log('END: ' + JSON.stringify(this.tokens[this.p].text));
     }
 
     /*

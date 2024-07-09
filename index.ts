@@ -42,8 +42,8 @@ const parser      = new mxsParser(tokenStream);
 
 // error handling strategy
 parser.errorHandler = new BailErrorStrategy();
-// parser.interpreter.predictionMode = PredictionMode.SLL;
-parser.interpreter.predictionMode = PredictionMode.LL;
+parser.interpreter.predictionMode = PredictionMode.SLL;
+// parser.interpreter.predictionMode = PredictionMode.LL;
 
 // AST tree
 let tree;
