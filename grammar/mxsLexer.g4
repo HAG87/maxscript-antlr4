@@ -134,33 +134,6 @@ SEPARATOR: S E P A R A T O R;
 MENUITEM:  M E N U I T E M;
 SUBMENU:   S U B M E N U;
 
-// OVERRIDABLE KEYWORDS
-// CONTEXTUAL KEYWORDS...can be used as identifiers outside the context...
-KW_RESERVED
-	: RolloutControl
-	| GROUP
-	| LEVEL
-	| MENUITEM
-	| SEPARATOR
-	| SUBMENU
-	| TIME
-	| SET
-	| CHANGE
-	| DELETED
-	;
-
-KW_OVERRIDE
-	: ATTRIBUTES
-	| PARAMETERS
-	| ROLLOUT
-	| PLUGIN
-	| RCMENU
-	// | TOOL
-	| TO
-	| RETURN
-	// | THROW
-	;
-
 //DEFINTITIONS
 MAPPED: M A P P E D;
 FN:     F U N C T I O N | F N;
@@ -189,34 +162,34 @@ BOOL
 
 //OPERATORS
 COMPARE
-	: '==' Nls?
-	| '<'  Nls?
-	| '>'  Nls?
-	| '<=' Nls?
-	| '>=' Nls?
-	| '!=' Nls?
+	: '==' NL*
+	| '<'  NL*
+	| '>'  NL*
+	| '<=' NL*
+	| '>=' NL*
+	| '!=' NL*
 	;
 
-EQ: '=' Nls?;
+EQ: '=' NL*;
 
 ASSIGN
-	: '+=' Nls?
-	| '-=' Nls?
-	| '*=' Nls?
-	| '/=' Nls?
+	: '+=' NL*
+	| '-=' NL*
+	| '*=' NL*
+	| '/=' NL*
 	;
 
-MINUS : '-' Nls? ;
-PLUS  : '+' Nls? ;
-PROD  : '*' Nls? ;
-DIV   : '/' Nls? ;
-POW   : '^' Nls? ;
+MINUS : '-' NL* ;
+PLUS  : '+' NL* ;
+PROD  : '*' NL* ;
+DIV   : '/' NL* ;
+POW   : '^' NL* ;
 
 //SYMBOLS
 SHARP    : '#';
-COMMA    : Nls? ',' Nls?;
+COMMA    : NL* ',' NL*;
 COLON    : ':' ;
-DOT      : '.' Nls?;
+DOT      : '.' NL*;
 GLOB     : '::';
 DOTDOT   : '..';
 AMP      : '&';
@@ -227,13 +200,13 @@ QUESTION : Question;
 
 // CODE STRUCTURE
 PAREN_PAIR: '()' ;
-LPAREN: '(' Nls?;
-RPAREN: Nls? ')';
+LPAREN: '(' NL*;
+RPAREN: NL* ')';
 
-LBRACE: '{' Nls?;
-RBRACE:  Nls? '}';
+LBRACE: '{' NL*;
+RBRACE:  NL* '}';
 
-LBRACK: '[' Nls?;
+LBRACK: '[' NL*;
 RBRACK: ']';
 
 //BASIC VALUES
@@ -258,16 +231,12 @@ REF:   '&' ID;
 DEREF: '*' ID;
 NAME:  '#' ID;
 
-
-
 fragment String_regular
 	: '"' (~["\r\n] | '\\"')* '"' //-> type(STRING)
 	;
 fragment String_verbatim
 	: '@"' ~["]* '"' //-> type(STRING)
 	;
-
-
 
 //IDENTIFIERS
 PATH: Dollar (Alphanum | [*?\\] | Quoted | '/')* ;
@@ -304,18 +273,17 @@ RESOURCE
 	: '~' Alphanum '~'
 	;
 
-fragment Nls: (NLchar | WSchar | Backslash NLchar)+ ;
+// fragment Nls: (NLchar | WSchar | Backslash NLchar)* NLchar;
+
 
 //WHITESPACE
-NL
-	: NLchar+ //-> channel(NEWLINE_CHANNEL)
-	;
-
 WS
 	:  ( WSchar | Backslash NLchar )+ -> channel(HIDDEN)
 	;
 
-// fragment wss: ( WSchar | Backslash NL )+ ;
+NL
+	: NLchar+ //-> channel(NEWLINE_CHANNEL)
+	;
 
 fragment WSchar: [ \t];
 fragment NLchar: [\r\n] | Semicolon;

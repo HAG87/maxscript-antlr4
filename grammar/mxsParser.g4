@@ -14,7 +14,7 @@ options {
 
 /*GRAMMAR RULES*/
 program
-    : expr (NL expr)* EOF
+    : nl* expr (nl+ expr)* nl* EOF
     // : expr (NL expr)* EOF
     ;
 // THE ORDER OF FUNCTION CALLS IS BROKEN, IT NEEDS TO PRECEEDE OPERAND. MAYBE THIS WILL FIX WITH THE WS MANAGMENT???
@@ -48,18 +48,18 @@ program
 expr
     : simple_expr     #SimpleExpr
     // | var_decl        #VarDecl
-    // | assignment      #Assign
-    // | assignment_expr #AssignOp
-    // | if_expr         #IfExpr
+    | assignment      #AssignExpr
+    // | assignment_expr #AssignOpExpr
+    | if_expr         #IfExpr
     // | while_loop      #WhileExpr
     // | do_loop         #DoExpr
     // | for_loop        #ForExpr
     // | loop_exit       #ExitExpr
     | case_expr       #CaseExpr
-    // | struct_def      #StructDef
+    | struct_def      #StructDef
     // | try_expr        #TryExpr    
-    // | fn_def          #FnDef
-    // | fn_return       #FnRet
+    | fn_def          #FnDef
+    // | fn_return       #FnRetExpr
     // | context_expr    #ContextExpr    
     // | attributes_def  #AttributesDef
     // | change_handler  #ChangeHandler
@@ -176,7 +176,7 @@ plugin_clause
 // when <attribute> <objects> change[s] [ id:<name> ] [handleAt:#redrawViews|#timeChange] [ <object_parameter> ] do <expr>
 // when             <objects> deleted   [ id:<name> ] [handleAt:#redrawViews|#timeChange] [ <object_parameter> ] do <expr> 
 change_handler
-    : WHEN var_name (var_name | KW_OVERRIDE | path | expr_seq) (CHANGE | DELETED) param* operand? DO expr
+    : WHEN var_name (var_name | kw_override | path | expr_seq) (CHANGE | DELETED) param* operand? DO expr
     ;
 
 //CONTEXT_EXPR
@@ -221,15 +221,16 @@ attributes_clause
 //------------------------------------------------------------------------//
 //STRUCT DEF
 struct_def
-    : STRUCT str_name= var_name
+    : STRUCT nl? str_name= var_name
+    nl?
     LPAREN
         struct_members
     RPAREN ;
 struct_members: struct_member (COMMA struct_member)* ;
 struct_member
-    : struct_scope? (assignment | var_name)
-    | struct_scope? fn_def
-    | struct_scope? event_handler
+    : struct_scope? nl? (assignment | var_name)
+    | struct_scope? nl? fn_def
+    | struct_scope? nl? event_handler
     //| struct_scope struct_member
     ;
 struct_scope: PUBLIC | PRIVATE ;
@@ -303,17 +304,41 @@ loop_exit: EXIT (WITH expr)? ;
 
 //CASE-EXPR
 case_expr
-: CASE NL? expr? NL? OF
-    NL? LPAREN
-        case_item       
+: CASE nl? expr? nl? OF
+    nl?
+    LPAREN
+        case_item
         // case_item*
-        (NL case_item)*
+        (nl case_item)*
     RPAREN
     ;
 
 // case_it : /*   {this.enable(mxsLexer.NEWLINE_CHANNEL);} NL */ case_item ;
+// this is not correct, because if should work for 5:(a), buuuut.....
+case_item
+    : case_factor {this.noSpaces()}? COLON nl? expr
+    | (NUMBER | TIMEVAL) {this.noSpaces()}? COLON ({!this.noSpaces()}? | nl) expr
+    ;
 
-case_item : case_option expr;
+case_factor
+    : var_name
+    // | PATH
+    | path
+    | by_ref
+    | BOOL
+    | STRING
+    | NAME
+    // | NUMBER
+    // | TIMEVAL
+    | array
+    | bitArray
+    | point3
+    | point2
+    | box2
+    | unary_minus //UNARY MINUS
+    | expr_seq //EXPRESSION SEQUENCE
+    | accessor
+    ;
 
 case_option
     : factor {this.noSpaces()}? COLON
@@ -321,17 +346,17 @@ case_option
 
 //IF-EXPR
 if_expr
-    : IF expr
-        THEN expr
-        (ELSE expr)?
-    | IF expr
-        DO expr
+    : IF nl? expr nl?
+        THEN nl? expr nl?
+        (ELSE nl? expr)?
+    | IF nl? expr nl?
+        DO nl? expr
     ;
 
 //DECLARATIONS
 var_decl
     // : decl_scope? declaration (COMMA declaration)*
-    : decl_scope declaration (COMMA declaration)*
+    : decl_scope nl? declaration (COMMA declaration)*
     ;
 // /*
 declaration
@@ -348,10 +373,10 @@ decl_scope
 // */
 //ASSIGNMENT EXPRESSION
 assignment
-    : assign_target=destination EQ NL? assign_expr=expr  #AssigmentExpression
+    : assign_target=destination EQ assign_expr=expr  #AssigmentExpr
     ;
 assignment_expr
-    : assign_target=destination ASSIGN NL? assign_expr=expr #AssigmentOperationExpression
+    : assign_target=destination ASSIGN assign_expr=expr #AssigmentOperationExpr
     ;
 destination
     : var_name
@@ -371,40 +396,38 @@ destination
 <expr_seq>
  */
 simple_expr
-    : <assoc=right> left=simple_expr AS  right=simple_expr #TypecastExpression
-    | <assoc=right> left=simple_expr POW right=simple_expr #ExponentExpression
+    : <assoc=right> left=simple_expr AS  right=simple_expr #TypecastExpr
+    | <assoc=right> left=simple_expr POW right=simple_expr #ExponentExpr
 
-    | left=simple_expr (DIV | PROD)   right=simple_expr #ProductExpression
-    | left=simple_expr (PLUS | MINUS) right=simple_expr #AdditionExpression
+    | left=simple_expr (DIV | PROD)   right=simple_expr #ProductExpr
+    | left=simple_expr (PLUS | MINUS) right=simple_expr #AdditionExpr
 
-    | left=simple_expr (OR | AND) right=simple_expr #LogicExpression
-    | NOT NL? right=simple_expr #LogicNOTExpression
+    | left=simple_expr (OR | AND) right=simple_expr #LogicExpr
+    | NOT NL? right=simple_expr #LogicNOTExpr
 
-    | right=simple_expr COMPARE left=simple_expr #ComparisonExpression
-
-    // | <assoc=right> left=simple_expr ASSIGN right=simple_expr #AssigmentOperationExpression
-    // | <assoc=right> left=simple_expr EQ     right=simple_expr #AssigmentExpression
-
-    // : operand #OperandExpression
-    // | fn_call    #FnCallExpression    //passthrough
-    
-    | fn_call    #FnCallExpression    //passthrough
-    | operand    #OperandExpression   //passthrough
+    | right=simple_expr COMPARE left=simple_expr #ComparisonExpr
+   
+    | fn_call    #FnCallExpr    //passthrough
+    | operand    #OperandExpr   //passthrough
     ;
 
 
 //FUNCTION CALL --- HOW TO MANAGE PROHIBITED / OPTIONAL / MANDATORY linebreaks????
 // Until an EOL or lower precedence rule...????
+// Positional Arguments
+// Keyword Arguments
+/*
+A <function_call> has a lower precedence than an <operand>,
+but it has a higher precedence than all the math,
+comparison, and logical operations.
+This means you have to be careful 
+about correctly parenthesizing function arguments */
 fn_call
-    // : caller = fn_caller ( args += operand)+
-    : caller = fn_caller ( args += operand)+ ( params += param)+
-    | caller = fn_caller ( args += operand)+
-    | caller = fn_caller ( params += param)+
-
-    // : caller = fn_caller (args += operand)+ (params += param)+
-    // | caller= fn_caller (args += operand)+
-    // | caller= fn_caller (params += param)+
-    | caller= fn_caller PAREN_PAIR
+    // : caller = fn_caller ( args += operand)+ ( params += param)*
+    : caller = fn_caller (args += operand)+ (params += param)+
+    | caller = fn_caller (args += operand)+
+    | caller = fn_caller (params += param)+
+    | caller = fn_caller PAREN_PAIR
     // | operand
     ;
     
@@ -417,11 +440,11 @@ fn_caller
 
 //PARAMETER
 param
-    :  param_name operand
+    :  param_name nl? operand
     ;
 
 param_name
-    : (var_name | KW_OVERRIDE) /* {this.noSpaces()}? */ COLON
+    : (var_name | kw_override) {this.noSpaces()}? COLON
     ;
 
 //------------------------------------------------------------------------//
@@ -440,7 +463,7 @@ accessor
 
 //Property accessor
 property
-    : DOT (var_name | KW_OVERRIDE)
+    : DOT (var_name | kw_override)
     ;
 
 //Index accessor
@@ -464,8 +487,8 @@ factor
     | point3
     | point2
     | box2
-    // | unary_minus //UNARY MINUS
-    // | expr_seq //EXPRESSION SEQUENCE
+    | unary_minus //UNARY MINUS
+    | expr_seq //EXPRESSION SEQUENCE
     | QUESTION
     ;
 
@@ -477,12 +500,14 @@ unary_minus
 //  <expr_seq> ::= ( <expr> { ( ; | <eol>) <expr> } )
 expr_seq
     : LPAREN
+    nl*
         // expr (expr)*
         //{this.enable(mxsLexer.NEWLINE_CHANNEL);}
-        (expr (NL expr)*)?
+        expr (nl+ expr)*
         //{this.disable(mxsLexer.NEWLINE_CHANNEL);}
-
+    nl*
       RPAREN
+    | LPAREN RPAREN
     | PAREN_PAIR
     ;
 //------------------------------------------------------------------------//
@@ -539,14 +564,15 @@ elementList : expr ( COMMA expr )* ;
 var_name
     : GLOB? ID            #Id
     | GLOB? QUOTED        #QuotedId
-    | GLOB? KW_RESERVED   #KeywordOverwrite
+    | GLOB? kw_reserved   #KeywordOverwrite
     ;
 
 by_ref
     : REF   #Ref
     | DEREF #DeRef
     ;
-
+// rparen: RPAREN NL*;
+// lparen: NL* LPAREN;
 //Path names
 path: PATH ;
 /*
@@ -561,8 +587,34 @@ level_name
     | QUOTED
     ;
 */
-// noNLhere : {this.noNewLines()} ;
+// OVERRIDABLE KEYWORDS
+// CONTEXTUAL KEYWORDS...can be used as identifiers outside the context...
+kw_reserved
+	: RolloutControl
+	| GROUP
+	| LEVEL
+	| MENUITEM
+	| SEPARATOR
+	| SUBMENU
+	| TIME
+	| SET
+	| CHANGE
+	| DELETED
+	;
 
+kw_override
+	: ATTRIBUTES
+	| PARAMETERS
+	| ROLLOUT
+	| PLUGIN
+	| RCMENU
+	// | TOOL
+	| TO
+	| RETURN
+	// | THROW
+	;
+// noNLhere : {this.noNewLines()} ;
+nl : NL+ ;
 eos
     : {this.lineTerminatorAhead()}? {console.log('eos called');}
     // | EOF
