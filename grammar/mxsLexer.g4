@@ -1,9 +1,9 @@
-/*$antlr-format
- alignColons hanging,
- alignSemicolons hanging,
- allowShortBlocksOnASingleLine true,
- allowShortRulesOnASingleLine true,
- alignFirstTokens true
+/* $antlr-format
+ * alignColons hanging,
+ * alignSemicolons hanging,
+ * allowShortBlocksOnASingleLine true,
+ * allowShortRulesOnASingleLine true,
+ * alignFirstTokens true
  */
 lexer grammar mxsLexer;
 
@@ -23,12 +23,6 @@ options {
  */
 
 /*
- tokens {
- UNARY_MINUS
- }
- //
- */
-/*
  channels {
  NEWLINE_CHANNEL
  // WHITESPACE_CHANNEL,
@@ -45,7 +39,9 @@ LINE_COMMENT: '--' ~[\r\n]* -> channel(HIDDEN)
 	;
 
 //STRING
-STRING: String_regular | String_verbatim
+STRING
+	: String_regular
+	| String_verbatim
 	;
 
 //KEYWORDS
@@ -80,6 +76,8 @@ IN: I N
 OF: O F
 	;
 ON: O N
+	;
+OFF: O F F
 	;
 OR: O R
 	;
@@ -127,31 +125,31 @@ DELETED: D E L E T E D
 DEFAULTACTION: D E F A U L T A C T I O N
 	;
 CONTEXT
-	: ANIMATE
-	| DONTREPEATMESSAGES
-	| MACRORECORDEREMITTERENABLED
-	| MXSCALLSTACKCAPTUREENABLED
-	| PRINTALLELEMENTS
-	| QUIET
-	| REDRAW
+	: Animate
+	| DontRepeatMessages
+	| MacroRecorderEmitterEnabled
+	| MXScallStackCaptureEnabled
+	| PrintAllElements
+	| Quiet
+	| Redraw
 	;
 
-fragment ANIMATE: A N I M A T E
+fragment Animate: A N I M A T E
 	;
-fragment DONTREPEATMESSAGES
+fragment DontRepeatMessages
 	: D O N T R E P E A T M E S S A G E S
 	;
-fragment MACRORECORDEREMITTERENABLED
+fragment MacroRecorderEmitterEnabled
 	: M A C R O R E C O R D E R E M I T T E R E N A B L E D
 	;
-fragment MXSCALLSTACKCAPTUREENABLED
+fragment MXScallStackCaptureEnabled
 	: M X S C A L L S T A C K C A P T U R E E N A B L E D
 	;
-fragment PRINTALLELEMENTS: P R I N T A L L E L E M E N T S
+fragment PrintAllElements: P R I N T A L L E L E M E N T S
 	;
-fragment QUIET: Q U I E T
+fragment Quiet: Q U I E T
 	;
-fragment REDRAW: R E D R A W
+fragment Redraw: R E D R A W
 	;
 
 //BLOCKS
@@ -224,18 +222,20 @@ LOCAL: L O C A L
 	;
 GLOBAL: G L O B A L
 	;
-PERSISTENT: P E R S I S T E N T WS GLOBAL
+PERSISTENT: P E R S I S T E N T
 	;
 
 //VALUES
-VOID
+fragment Void
 	: U N D E F I N E D
 	| U N S U P P L I E D
 	| S I L E N T V A L U E
 	| O K
 	;
 
-BOOL: T R U E | F A L S E | O F F | ON
+BOOL
+	: T R U E
+	| F A L S E
 	;
 
 //OPERATORS
@@ -393,13 +393,11 @@ fragment WSchar: [ \t]
 	;
 fragment NLchar: [\r\n] | Semicolon
 	;
-
 // BASIC FRAGMENTS
 fragment Num: [0-9]
 	;
 fragment Alpha: [_\p{L}]
 	;
-
 fragment Alphanum: Alpha (Alpha | Num)*
 	;
 
@@ -495,41 +493,38 @@ fragment Semicolon: ';'
 	;
 fragment Dollar: '$'
 	;
-// fragment Question   : '?';
 /*
- fragment Slash : '/';
- fragment Excl : '!';
- fragment Colon : ':';
- fragment DColon : '::';
- fragment SQuote : '\'';
- fragment DQuote : '"';
- fragment LParen : '(';
- fragment RParen : ')';
- fragment LBrace : '{';
- fragment RBrace : '}';
- fragment LBrack : '[';
- fragment RBrack : ']';
- fragment RArrow : '->';
- fragment Lt : '<';
- fragment Gt : '>';
- fragment Equal : '=';
- fragment
- Compare : '==';
- 
- fragment Astr : '*';
- fragment Plus : '+';
- fragment Minus : '-';
- fragment Pipe
- : '|';
- fragment Comma : ',';
- fragment Dot : '.';
- fragment Range : '..';
- fragment At : '@';
- fragment Amp : '&';
- fragment Sharp : '#';
- fragment Tilde : '~';
- fragment Pow : '^';
- */
+fragment Question   : '?';
+fragment Slash : '/';
+fragment Excl : '!';
+fragment Colon : ':';
+fragment DColon : '::';
+fragment SQuote : '\'';
+fragment DQuote : '"';
+fragment LParen : '(';
+fragment RParen : ')';
+fragment LBrace : '{';
+fragment RBrace : '}';
+fragment LBrack : '[';
+fragment RBrack : ']';
+fragment RArrow : '->';
+fragment Lt : '<';
+fragment Gt : '>';
+fragment Equal : '=';
+fragment Compare : '==';
+fragment Astr : '*';
+fragment Plus : '+';
+fragment Minus : '-';
+fragment Pipe : '|';
+fragment Comma : ',';
+fragment Dot : '.';
+fragment Range : '..';
+fragment At : '@';
+fragment Amp : '&';
+fragment Sharp : '#';
+fragment Tilde : '~';
+fragment Pow : '^';
+*/
 // Comment this rule out to allow the error to be propagated to the parser
 ERRCHAR: . -> channel (HIDDEN)
 	;
