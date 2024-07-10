@@ -13,62 +13,39 @@ options {
 }
 
 /*GRAMMAR RULES*/
+// THE ORDER OF FUNCTION CALLS IS BROKEN, IT NEEDS TO PRECEEDE OPERAND. MAYBE THIS WILL FIX WITH THE NL? MANAGMENT???
 program
     : nl* expr (nl+ expr)* nl* EOF
     // : expr (NL expr)* EOF
     ;
-// THE ORDER OF FUNCTION CALLS IS BROKEN, IT NEEDS TO PRECEEDE OPERAND. MAYBE THIS WILL FIX WITH THE WS MANAGMENT???
 
-//expr_iter: (expr EOL);
-/*
-<program> ::= { <expr> }+
-<expr> ::= <simple_expr>
-<variable_decls>
-<assignment>
-<if_expr>
-<while_loop>
-<do_loop>
-<for_loop>
-<loop_exit>
-<case_expr>
-<struct_def>
-<try_expr>
-<variable_decls>
-<function_def>
-<function_return>
-<context_expr>
-<max_command>
-<utility_def>
-<rollout_def>
-<tool_def>
-<rcmenu_def>
-<macroscript_def>
-<plugin_def>
- */
+//<program> ::= { <expr> }+
+
 expr
-    : simple_expr     #SimpleExpr
-    // | var_decl        #VarDecl
-    | assignment      #AssignExpr
-    // | assignment_expr #AssignOpExpr
-    | if_expr         #IfExpr
-    // | while_loop      #WhileExpr
-    // | do_loop         #DoExpr
-    // | for_loop        #ForExpr
-    // | loop_exit       #ExitExpr
-    | case_expr       #CaseExpr
-    | struct_def      #StructDef
-    // | try_expr        #TryExpr    
-    | fn_def          #FnDef
-    // | fn_return       #FnRetExpr
-    // | context_expr    #ContextExpr    
-    // | attributes_def  #AttributesDef
-    // | change_handler  #ChangeHandler
-    // | utility_def     #UtilityDef
-    // | rollout_def     #RolloutDef
-    // | tool_def        #ToolDef
-    // | rcmenu_def      #RcmenuDef
-    // | macroscript_def #MacroscriptDef
-    // | plugin_def      #PluginDef
+    : simple_expr
+    | var_decl
+    | assignment_expr
+    | assignmentOp_expr
+    | if_clause
+    | while_loop
+    | do_loop
+    // | for_loop
+    // | loop_exit
+    | case_expr
+    | struct_def
+    | try_expr   
+    | fn_def
+    // | fn_return
+    // | context_expr
+    // | attributes_def
+    // | change_handler
+    // | max_command NOOOO
+    // | utility_def
+    // | rollout_def
+    // | tool_def
+    // | rcmenu_def
+    // | macroscript_def
+    // | plugin_def
     ;
 
 //------------------------------------------------------------------------//
@@ -218,22 +195,6 @@ attributes_clause
     | param_def
     | rollout_def
     ;
-//------------------------------------------------------------------------//
-//STRUCT DEF
-struct_def
-    : STRUCT nl? str_name= var_name
-    nl?
-    LPAREN
-        struct_members
-    RPAREN ;
-struct_members: struct_member (COMMA struct_member)* ;
-struct_member
-    : struct_scope? nl? (assignment | var_name)
-    | struct_scope? nl? fn_def
-    | struct_scope? nl? event_handler
-    //| struct_scope struct_member
-    ;
-struct_scope: PUBLIC | PRIVATE ;
 
 //EVENT HANDLER
 event_handler
@@ -244,37 +205,56 @@ event_args
     | var_name var_name ev_target_type_args= var_name+
     ;
 
+//------------------------------------------------------------------------//
+//STRUCT DEF
+struct_def
+    : STRUCT nl? str_name = var_name
+    nl?
+    LPAREN
+        struct_members
+    RPAREN ;
+
+struct_members: struct_member (COMMA struct_member)* ;
+
+struct_member
+    : scope = struct_scope? nl? assignment_expr
+    | scope = struct_scope? nl? var_name
+    | scope = struct_scope? nl? fn_def
+    | scope = struct_scope? nl? event_handler
+    ;
+
+struct_scope: PUBLIC | PRIVATE ;
+
 //FUNCTION DEF
 fn_def
-    : fn_mod= MAPPED? fn_decl= FN fn_name= var_name
-        fn_args*
-        fn_params*
-        EQ fn_body= expr
+    : fn_mod  = MAPPED? nl?
+      fn_decl = FN nl?
+      fn_name = var_name nl?
+        (nl? fn_args)*
+        (nl? fn_params)*
+        nl? EQ
+        fn_body = expr
     ;
 
 fn_args: var_name | by_ref ;
 fn_params: param_name | param;
 
 //FN_RETURN
-fn_return: RETURN expr;
+fn_return: RETURN nl? expr;
 
-//TRY EXPR
-try_expr:
-    TRY expr
-    CATCH expr
-    ;
-
-//LOOPS
+//---------------------------------------- LOOPS
 //while loop
 while_loop:
-    WHILE expr
-    DO expr
+    WHILE nl? expr
+    nl?
+    DO nl ?expr
     ;
 
 //do loop
 do_loop:
-    DO expr
-    WHILE expr
+    DO nl? expr
+    nl?
+    WHILE nl? expr
     ;
 
 //for loop
@@ -302,18 +282,22 @@ for_while: WHILE expr ;
 for_where: WHERE expr ;
 loop_exit: EXIT (WITH expr)? ;
 
-//CASE-EXPR
+//----------------------------------------TRY EXPR
+try_expr:
+    TRY nl? expr
+    nl?
+    CATCH nl? expr
+    ;
+//---------------------------------------- CASE-EXPR
 case_expr
 : CASE nl? expr? nl? OF
     nl?
     LPAREN
         case_item
-        // case_item*
         (nl case_item)*
     RPAREN
     ;
 
-// case_it : /*   {this.enable(mxsLexer.NEWLINE_CHANNEL);} NL */ case_item ;
 // this is not correct, because if should work for 5:(a), buuuut.....
 case_item
     : case_factor {this.noSpaces()}? COLON nl? expr
@@ -322,7 +306,6 @@ case_item
 
 case_factor
     : var_name
-    // | PATH
     | path
     | by_ref
     | BOOL
@@ -335,8 +318,8 @@ case_factor
     | point3
     | point2
     | box2
-    | unary_minus //UNARY MINUS
-    | expr_seq //EXPRESSION SEQUENCE
+    | unary_minus
+    | expr_seq
     | accessor
     ;
 
@@ -344,8 +327,8 @@ case_option
     : factor {this.noSpaces()}? COLON
     ;
 
-//IF-EXPR
-if_expr
+//---------------------------------------- IF-CLAUSE
+if_clause
     : IF nl? expr nl?
         THEN nl? expr nl?
         (ELSE nl? expr)?
@@ -353,66 +336,60 @@ if_expr
         DO nl? expr
     ;
 
-//DECLARATIONS
+//---------------------------------------- DECLARATIONS
 var_decl
-    // : decl_scope? declaration (COMMA declaration)*
     : decl_scope nl? declaration (COMMA declaration)*
     ;
-// /*
+
 declaration
-    : assignment
+    : assignment_expr
     | var_name
     ;
-//  */
-// /*
+
 decl_scope
     : LOCAL
     | GLOBAL
     | PERSISTENT
     ;
-// */
-//ASSIGNMENT EXPRESSION
-assignment
-    : assign_target=destination EQ assign_expr=expr  #AssigmentExpr
-    ;
+
+//---------------------------------------- ASSIGNMENT EXPRESSION
 assignment_expr
-    : assign_target=destination ASSIGN assign_expr=expr #AssigmentOperationExpr
+    : left = destination EQ right = expr
     ;
+
+assignmentOp_expr
+    : left = destination ASSIGN right = expr
+    ;
+
 destination
     : var_name
     | accessor
     ;
-//-----------------------------------------------------------------------------//
 
-// LOGIC EXPRESSION
-//COMPARE EXPRESSION
-//MATH EXPRESSIONS
+//---------------------------------------- SIMPLE_EXPR
 /*
-<simple_expr> ::= <operand>
-<math_expr>
-<compare_expr>
-<logical_expr>
-<function_call>
-<expr_seq>
+<simple_expr> ::=
+    <operand>
+    <math_expr>
+    <compare_expr>
+    <logical_expr>
+    <function_call>
+    <expr_seq>
  */
 simple_expr
-    : <assoc=right> left=simple_expr AS  right=simple_expr #TypecastExpr
-    | <assoc=right> left=simple_expr POW right=simple_expr #ExponentExpr
-
-    | left=simple_expr (DIV | PROD)   right=simple_expr #ProductExpr
-    | left=simple_expr (PLUS | MINUS) right=simple_expr #AdditionExpr
-
-    | left=simple_expr (OR | AND) right=simple_expr #LogicExpr
-    | NOT NL? right=simple_expr #LogicNOTExpr
-
-    | right=simple_expr COMPARE left=simple_expr #ComparisonExpr
-   
+    : <assoc=right> left = simple_expr AS  right = simple_expr #TypecastExpr
+    | <assoc=right> left = simple_expr POW right = simple_expr #ExponentExpr
+    | left = simple_expr (DIV | PROD)                 right = simple_expr #ProductExpr
+    | left = simple_expr (PLUS | MINUS | UNARY_MINUS) right = simple_expr #AdditionExpr
+    | left = simple_expr (OR | AND) right = simple_expr #LogicExpr
+    | NOT nl? right = simple_expr #LogicNOTExpr
+    | right = simple_expr COMPARE left = simple_expr #ComparisonExpr   
     | fn_call    #FnCallExpr    //passthrough
     | operand    #OperandExpr   //passthrough
     ;
 
-
-//FUNCTION CALL --- HOW TO MANAGE PROHIBITED / OPTIONAL / MANDATORY linebreaks????
+//---------------------------------------- FUNCTION CALL
+//HOW TO SOLVE PROHIBITED / OPTIONAL / MANDATORY linebreaks????
 // Until an EOL or lower precedence rule...????
 // Positional Arguments
 // Keyword Arguments
@@ -422,17 +399,16 @@ but it has a higher precedence than all the math,
 comparison, and logical operations.
 This means you have to be careful 
 about correctly parenthesizing function arguments */
+
 fn_call
     // : caller = fn_caller ( args += operand)+ ( params += param)*
-    : caller = fn_caller (args += operand)+ (params += param)+
-    | caller = fn_caller (args += operand)+
+    : caller = fn_caller (args += operand_arg)+ (params += param)+
+    | caller = fn_caller (args += operand_arg)+
     | caller = fn_caller (params += param)+
     | caller = fn_caller PAREN_PAIR
     // | operand
     ;
     
-// nl: {this.enable(mxsLexer.NEWLINE_CHANNEL);} NL {this.disable(mxsLexer.NEWLINE_CHANNEL);} ;
-
 fn_caller
     : var_name
     | accessor
@@ -440,27 +416,55 @@ fn_caller
 
 //PARAMETER
 param
-    :  param_name nl? operand
+    :  param_name nl? operand_arg
     ;
 
 param_name
     : (var_name | kw_override) {this.noSpaces()}? COLON
     ;
 
-//------------------------------------------------------------------------//
+operand_arg
+    : factor_arg
+    | accessor
+    | unary_arg
+    ;
 
+factor_arg
+    : var_name
+    // | PATH
+    | path
+    | by_ref
+    | BOOL
+    | STRING
+    | NAME
+    | NUMBER
+    | TIMEVAL
+    | array
+    | bitArray
+    | point3
+    | point2
+    | box2
+    // | unary_minus //UNARY MINUS
+    | expr_seq //EXPRESSION SEQUENCE
+    | QUESTION
+    ;
+
+unary_arg
+    : UNARY_MINUS operand_arg ;
+
+//------------------------------------------------------------------------//
 operand
     : factor   
     | accessor
     ;
-
+//------------------------------------------------------------------------//
 accessor
     : <assoc=right> accessor property #AccProperty
     | <assoc=right> accessor index    #AccIndex
     | factor property                 #AccProperty
     | factor index                    #AccIndex
     ;
-
+//------------------------------------------------------------------------//
 //Property accessor
 property
     : DOT (var_name | kw_override)
@@ -471,7 +475,7 @@ index
     : LBRACK expr RBRACK
     ;
 
-//FACTORS
+//---------------------------------------- FACTORS
 factor
     : var_name
     // | PATH
@@ -492,8 +496,9 @@ factor
     | QUESTION
     ;
 
+//---------------------------------------- EXPR_SEQ
 unary_minus 
-    : MINUS operand
+    : (MINUS | UNARY_MINUS) operand
 // | MINUS expr_seq
     ;
 
@@ -510,8 +515,8 @@ expr_seq
     | LPAREN RPAREN
     | PAREN_PAIR
     ;
-//------------------------------------------------------------------------//
-//TYPES
+
+//---------------------------------------- TYPES
 box2:
     LBRACK
         expr COMMA
@@ -568,11 +573,11 @@ var_name
     ;
 
 by_ref
-    : REF   #Ref
-    | DEREF #DeRef
+    : REF
+    | DEREF
     ;
-// rparen: RPAREN NL*;
-// lparen: NL* LPAREN;
+
+
 //Path names
 path: PATH ;
 /*
@@ -587,7 +592,7 @@ level_name
     | QUOTED
     ;
 */
-// OVERRIDABLE KEYWORDS
+//---------------------------------------- OVERRIDABLE KEYWORDS
 // CONTEXTUAL KEYWORDS...can be used as identifiers outside the context...
 kw_reserved
 	: RolloutControl
@@ -611,11 +616,13 @@ kw_override
 	// | TOOL
 	| TO
 	| RETURN
-	// | THROW
 	;
-// noNLhere : {this.noNewLines()} ;
+
+//---------------------------------------- NEWLINE RESOLVING
 nl : NL+ ;
+/*
 eos
-    : {this.lineTerminatorAhead()}? {console.log('eos called');}
-    // | EOF
+    : {this.lineTerminatorAhead()}?
+    | EOF
     ;
+*/
