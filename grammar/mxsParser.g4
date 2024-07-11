@@ -174,7 +174,7 @@ plugin_def
     :PLUGIN nl? var_name nl? var_name (nl? param)* nl?
     lp
         plugin_clause
-        (nl? plugin_clause)+
+        (nl? plugin_clause)*
     rp
     ;
 
@@ -242,7 +242,7 @@ ctx_predicate
     ;
 
 //-------------------------------------- PARAMETER DEF
-param_expr
+param_def
     : PARAMETERS nl? var_name (nl? param)* nl?
     lp
         (
@@ -253,11 +253,11 @@ param_expr
     ;
 
 param_clause
-    : param_def
+    : param_expr
     | event_handler
     ;
 
-param_def: var_name (nl? param)*
+param_expr: var_name (nl? param)*
     ;
 
 //-------------------------------------- ATTRIBUTES DEFINITION
