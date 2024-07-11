@@ -30,11 +30,15 @@ program
 //<program> ::= { <expr> }+
 
 expr
+    : non_if_expr
+    | if_clause
+    ;
+
+non_if_expr
     : simple_expr
     | var_decl
     | assignment_expr
     | assignmentOp_expr
-    | if_clause
     | while_loop
     | do_loop
     | for_loop
@@ -428,10 +432,43 @@ case_option
     ;
 
 //---------------------------------------- IF-CLAUSE
+/*
+ifStatement
+  : 'if' expression 'then' (statement | block) 'else' (statement | block)
+  | 'if' expression 'then' (statementNoIf | block)
+  ;
+*/
+
+/*
+statement
+    : non_if_statement
+    | if_statement
+;
+
+if_statement
+    : 'if' parExpression 
+         ifBody= ( non_if_statement 'else' elseBody=statement
+                   | if_statement )
+;  
+*/
+/*
+stmt
+    : matched_stmt
+    ∣ open_stmt
+    ;
+matched_stmt
+    : if expr then matched_stmt else matched_stmt
+    ∣ other
+    ;
+open_stmt
+    : if expr then stmt
+    ∣ if expr then matched_stmt else open_stmt
+    ;
+*/
 if_clause
-    : IF nl? expr nl? THEN nl? expr
+    : IF nl? non_if_expr nl? THEN nl? expr nl? ELSE nl? expr //('else' expr | {_input.LA(1) != ELSE}?)
     // | IF nl? expr nl? DO nl? expr
-    | IF nl? expr nl? THEN nl? expr nl? ELSE nl? expr
+    | IF nl? non_if_expr nl? (THEN | DO) nl? non_if_expr
     ;
 
 //---------------------------------------- DECLARATIONS
