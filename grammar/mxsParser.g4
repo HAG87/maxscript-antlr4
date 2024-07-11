@@ -429,11 +429,9 @@ case_option
 
 //---------------------------------------- IF-CLAUSE
 if_clause
-    : IF nl? expr nl?
-        THEN nl? expr nl?
-        (ELSE nl? expr)?
-    | IF nl? expr nl?
-        DO nl? expr
+    : IF nl? expr nl? THEN nl? expr
+    // | IF nl? expr nl? DO nl? expr
+    | IF nl? expr nl? THEN nl? expr nl? ELSE nl? expr
     ;
 
 //---------------------------------------- DECLARATIONS
