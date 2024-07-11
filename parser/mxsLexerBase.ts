@@ -44,7 +44,7 @@ export abstract class mxsLexerBase extends Lexer
         return next;
     }
     // */
-    // /*
+
     public override emit(): Token {
         /*
         switch (this.type) {
@@ -64,8 +64,8 @@ export abstract class mxsLexerBase extends Lexer
                 console.log('\x1b[36m%s\x1b[0m', `${this.line} > ${JSON.stringify(this.text)}`);
                 break;
         }
-        // sanitize tokens
         // */
+        // sanitize tokens
         // if (this.channel === mxsLexer.DEFAULT_TOKEN_CHANNEL && this.type !== mxsLexer.NL)
         // {
         //     this.text = this.text.trim();
@@ -73,7 +73,7 @@ export abstract class mxsLexerBase extends Lexer
         if (this.type === mxsLexer.NL) this.text = '\r\n';
         return super.emit();
     }
-    //*/
+
     protected followed(): boolean
     {
         //  console.log(this.text.charCodeAt(0));
