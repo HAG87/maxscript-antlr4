@@ -305,7 +305,7 @@ RBRACK: ']'
 	;
 
 //BASIC VALUES
-NUMBER: INT | DEG | HEX
+NUMBER: INT | FLOAT | HEX
 	;
 
 TIMEVAL
@@ -314,7 +314,12 @@ TIMEVAL
 	| INT [nN]
 	;
 
-fragment DEG: INT? [.] INT ([eEdD] [+-] INT | [lLpP])?
+fragment FLOAT
+	: INT [.] TRAIL?
+	| [.] TRAIL
+	;
+
+fragment TRAIL: INT ([eEdD] [+-] INT | [lLpP])?
 	;
 fragment HEX: '0' [xX] (Num | [aAfF])+
 	;
