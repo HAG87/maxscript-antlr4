@@ -503,10 +503,10 @@ about correctly parenthesizing function arguments */
 
 fn_call
     // : caller = fn_caller ( args += operand)+ ( params += param)*
-    : caller = operand (args += operand_arg)+ (params += param)+
+    : caller = operand PAREN_PAIR //nullary call operator
+    | caller = operand (args += operand_arg)+ (params += param)+
     | caller = operand (args += operand_arg)+
     | caller = operand (params += param)+
-    | caller = operand PAREN_PAIR //nullary call operator
     // | operand
     ;
 
@@ -588,6 +588,7 @@ factor
     | box2
     | unary_minus //UNARY MINUS
     | expr_seq //EXPRESSION SEQUENCE
+    | PAREN_PAIR
     | QUESTION
     ;
 
@@ -601,15 +602,19 @@ unary_minus
 //<expr_seq> ::= ( <expr> { ( ; | <eol>) <expr> } )
 expr_seq
     : lp
-        // expr (expr)*
-        //{this.enable(mxsLexer.NEWLINE_CHANNEL);}
         expr (nl+ expr)*
-        //{this.disable(mxsLexer.NEWLINE_CHANNEL);}
       rp
     | LPAREN nl? RPAREN
     | PAREN_PAIR
     ;
-
+/*
+sub_expr
+    : lp
+        expr (nl+ expr)*
+      rp
+    | LPAREN nl? RPAREN
+    ;
+*/
 //---------------------------------------- TYPES
 box2:
     lb
