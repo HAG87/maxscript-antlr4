@@ -617,7 +617,7 @@ box2:
         expr comma
         expr comma
         expr
-    lb
+    rb
     ;
 
 point3:
@@ -625,14 +625,14 @@ point3:
         expr comma
         expr comma
         expr
-    lb
+    rb
     ;
 
 point2:
     lb
         expr comma
         expr
-    lb
+    rb
     ;
 
 // BitArray
