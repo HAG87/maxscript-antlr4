@@ -1,5 +1,5 @@
 struct RandVals 
-(
+( --ooops
     A = 1,
     B = 3,
 	RndVals=#(), ptr, eedVal, 
@@ -9,7 +9,7 @@ struct RandVals
 		RndVals=for i=1 to num collect random fromVal toVal 
 		ptr=1 
 		RndVals 
-	), 
+	)/* , 
     private
 	fn deleteRv = 
 	( 
@@ -29,12 +29,12 @@ struct RandVals
 	fn sortRV =(sort RndVals), 
 	fn setSeed val = (SeedVal = val), 
 	fn setPointer val = 
-	( 
+	(   
 		if val > 0 and val <= RndVals.count then 
 		(ptr=val;true) 
 		else 
 		false 
 	),
     on create do format "Struct Created: %\n" this,
-    on clone do format "Struct Cloned: %\n" this
+    on clone do format "Struct Cloned: %\n" this */
 )

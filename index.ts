@@ -31,8 +31,8 @@ const test_files = [
   './test/samples/tool-def.ms',
 ];
 
-let str:string = fs.readFileSync('./test/input.ms', 'utf-8');
-// let str:string = fs.readFileSync(test_files[7], 'utf-8');
+// let str:string = fs.readFileSync('./test/input.ms', 'utf-8');
+let str:string = fs.readFileSync(test_files[7], 'utf-8');
 
 
 // import { mxsParserBase } from "./parser/mxsParserBase";

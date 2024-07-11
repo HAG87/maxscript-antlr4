@@ -5,6 +5,7 @@ import
         Token,
         // Token
     } from "antlr4ng";
+import { mxsLexer } from "./mxsLexer";
 // import { mxsLexer } from "./mxsLexer";
 
 export abstract class mxsLexerBase extends Lexer
@@ -27,11 +28,14 @@ export abstract class mxsLexerBase extends Lexer
 
         return (this.inputStream.LA(1) === char);
     }
+
     public override nextToken(): Token
     {
         // Get the next token.
         const next: Token = super.nextToken();
-        console.log(next.text);
+
+        console.log(`${next.line} : ${next.channel} ${JSON.stringify(next.text)}`);
+
         if (next.channel == Token.DEFAULT_CHANNEL) {
             // Keep track of the last token on the default channel.
             this.lastToken = next;
@@ -40,6 +44,17 @@ export abstract class mxsLexerBase extends Lexer
         return next;
     }
     // */
+    public override emit(): Token {
+
+        if (this.channel === mxsLexer.DEFAULT_TOKEN_CHANNEL && this.type === mxsLexer.NL) console.log(`--> ${JSON.stringify(this.text)}`);
+        if (this.channel === mxsLexer.DEFAULT_TOKEN_CHANNEL && this.type !== mxsLexer.NL)
+        {
+            // sanitize token text
+            this.text = this.text.trim();
+            console.log(JSON.stringify(this.text));
+        }
+        return super.emit();
+    }
     protected followed(): boolean
     {
         //  console.log(this.text.charCodeAt(0));

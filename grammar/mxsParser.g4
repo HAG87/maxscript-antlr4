@@ -299,10 +299,7 @@ struct_members: struct_member (COMMA struct_member)*
     ;
 
 struct_member
-    : scope = struct_scope? nl? assignment_expr
-    | scope = struct_scope? nl? var_name
-    | scope = struct_scope? nl? fn_def
-    | scope = struct_scope? nl? event_handler
+    : (scope = struct_scope nl?)? ( assignment_expr | var_name | fn_def | event_handler )
     ;
 
 struct_scope: PUBLIC | PRIVATE
@@ -403,7 +400,8 @@ case_item
     ;
 
 case_factor
-    : var_name
+    : accessor
+    | var_name
     | path
     | by_ref
     | bool
@@ -418,7 +416,6 @@ case_factor
     | box2
     | unary_minus
     | expr_seq
-    | accessor
     ;
 
 case_option
@@ -460,8 +457,9 @@ assignmentOp_expr
     ;
 
 destination
-    : var_name
-    | accessor
+    : accessor
+    | by_ref
+    | var_name
     ;
 
 //---------------------------------------- SIMPLE_EXPR
@@ -506,12 +504,7 @@ fn_call
     | caller = operand PAREN_PAIR //nullary call operator
     // | operand
     ;
-/*
-fn_caller
-    : var_name
-    | accessor
-    ;
-*/
+
 //---------------------------------------- PARAMETER
 param
     : param_name nl? operand_arg
@@ -522,14 +515,13 @@ param_name
     ;
 
 operand_arg
-    : factor_arg
-    | accessor
+    : accessor
     | unary_arg
+    | factor_arg
     ;
 
 factor_arg
     : var_name
-    // | PATH
     | path
     | by_ref
     | bool
@@ -577,7 +569,6 @@ index
 //---------------------------------------- FACTORS
 factor
     : var_name
-    // | PATH
     | path
     | by_ref
     | bool
@@ -674,8 +665,8 @@ var_name
     ;
 
 by_ref
-    : REF
-    | DEREF
+    : AMP (var_name | path)
+    | PROD (var_name | path)
     ;
 
 // Path names

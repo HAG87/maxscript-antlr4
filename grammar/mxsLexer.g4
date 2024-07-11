@@ -1,9 +1,10 @@
 /* $antlr-format
- * alignColons hanging,
- * alignSemicolons hanging,
- * allowShortBlocksOnASingleLine true,
- * allowShortRulesOnASingleLine true,
- * alignFirstTokens true
+ alignColons hanging,
+ alignSemicolons hanging,
+ allowShortBlocksOnASingleLine
+ * true,
+ allowShortRulesOnASingleLine true,
+ alignFirstTokens true
  */
 lexer grammar mxsLexer;
 
@@ -37,11 +38,12 @@ BLOCK_COMMENT: '/*' .*? ('*/' | EOF) -> channel(HIDDEN)
 
 LINE_COMMENT: '--' ~[\r\n]* -> channel(HIDDEN)
 	;
+//WHITESPACE
+WS: ( WSchar | Backslash WSchar* [\r\n\f]+)+ -> channel(HIDDEN)
+	;
 
 //STRING
-STRING
-	: String_regular
-	| String_verbatim
+STRING: String_regular | String_verbatim
 	;
 
 //KEYWORDS
@@ -233,46 +235,40 @@ fragment Void
 	| O K
 	;
 
-BOOL
-	: T R U E
-	| F A L S E
+BOOL: T R U E | F A L S E
 	;
 
 //OPERATORS
-COMPARE
-	: '==' NL*
-	| '<' NL*
-	| '>' NL*
-	| '<=' NL*
-	| '>=' NL*
-	| '!=' NL*
+COMPARE: ('==' | '<' | '>' | '<=' | '>=' | '!=') NLaround*
 	;
 
-EQ: '=' NL*
+NAME: '#' ID
 	;
 
-ASSIGN: '+=' NL* | '-=' NL* | '*=' NL* | '/=' NL*
+EQ: '=' NLaround*
+	;
+
+ASSIGN: ('+=' | '-=' | '*=' | '/=') NLaround*
 	;
 
 UNARY_MINUS: '-' {this.followed()}?
 	;
 // MINUS : '-' NL+ :
-MINUS: '-' NL*
+MINUS: '-' NLaround*
 	;
-
-PLUS: '+' NL*
+PLUS: '+' NLaround*
 	;
-PROD: '*' NL*
+PROD: '*' NLaround*
 	;
-DIV: '/' NL*
+DIV: '/' NLaround*
 	;
-POW: '^' NL*
+POW: '^' NLaround*
 	;
 
 //SYMBOLS
 SHARP: '#'
 	;
-COMMA: NL* ',' NL*
+COMMA: NLaround* ',' NLaround*
 	;
 
 // COLON : ':' {this.preceeded()}?; COLON : ':' NL*;
@@ -281,9 +277,9 @@ COLON: ':'
 GLOB: '::'
 	;
 
-DOT: '.' NL*
+DOT: '.' NLaround*
 	;
-DOTDOT: '..' NL*
+DOTDOT: '..' NLaround*
 	;
 
 AMP: '&'
@@ -295,17 +291,17 @@ QUESTION: '?'
 // CODE STRUCTURE
 PAREN_PAIR: '()'
 	;
-LPAREN: '(' NL*
+LPAREN: '(' NLaround*
 	;
-RPAREN: NL* ')'
-	;
-
-LBRACE: '{' NL*
-	;
-RBRACE: NL* '}'
+RPAREN: NLaround* ')'
 	;
 
-LBRACK: '[' NL*
+LBRACE: '{' NLaround*
+	;
+RBRACE: NLaround* '}'
+	;
+
+LBRACK: '[' NLaround*
 	;
 RBRACK: ']'
 	;
@@ -327,19 +323,11 @@ fragment HEX: '0' [xX] (Num | [aAfF])+
 fragment INT: Num+
 	;
 
-//REFERENCING
-REF: '&' ID
-	;
-DEREF: '*' ID
-	;
-NAME: '#' ID
-	;
-
 fragment String_regular
-	: '"' (~["\r\n] | '\\"')* '"' //-> type(STRING)
+	: '"' (~["\r\n] | '\\"')* '"'
 	;
 fragment String_verbatim
-	: '@"' ~["]* '"' //-> type(STRING)
+	: '@"' ~["]* '"'
 	;
 
 //IDENTIFIERS
@@ -379,16 +367,14 @@ fragment Quoted: '\'' (~['] | [\]['])* '\''
 RESOURCE: '~' Alphanum '~'
 	;
 
-// fragment Nls: (NLchar | WSchar | Backslash NLchar)* NLchar;
-
-//WHITESPACE
-WS: ( WSchar | Backslash WSchar* [\r\n])+ -> channel(HIDDEN)
-	;
-
+//NEW LINES
 NL
 	: NLchar+ //-> channel(NEWLINE_CHANNEL)
 	;
 
+fragment NLaround
+	: WS* NLchar+ //-> channel(HIDDEN)
+	;
 fragment WSchar: [ \t]
 	;
 fragment NLchar: [\r\n] | Semicolon
@@ -494,37 +480,40 @@ fragment Semicolon: ';'
 fragment Dollar: '$'
 	;
 /*
-fragment Question   : '?';
-fragment Slash : '/';
-fragment Excl : '!';
-fragment Colon : ':';
-fragment DColon : '::';
-fragment SQuote : '\'';
-fragment DQuote : '"';
-fragment LParen : '(';
-fragment RParen : ')';
-fragment LBrace : '{';
-fragment RBrace : '}';
-fragment LBrack : '[';
-fragment RBrack : ']';
-fragment RArrow : '->';
-fragment Lt : '<';
-fragment Gt : '>';
-fragment Equal : '=';
-fragment Compare : '==';
-fragment Astr : '*';
-fragment Plus : '+';
-fragment Minus : '-';
-fragment Pipe : '|';
-fragment Comma : ',';
-fragment Dot : '.';
-fragment Range : '..';
-fragment At : '@';
-fragment Amp : '&';
-fragment Sharp : '#';
-fragment Tilde : '~';
-fragment Pow : '^';
-*/
+ fragment Question : '?';
+ fragment Slash : '/';
+ fragment Excl : '!';
+ fragment Colon : ':';
+ fragment DColon : '::';
+ fragment SQuote : '\'';
+ fragment DQuote : '"';
+ fragment LParen : '(';
+ fragment RParen : ')';
+ fragment LBrace : '{';
+ fragment RBrace : '}';
+ fragment LBrack : '[';
+ fragment RBrack : ']';
+ fragment RArrow : '->';
+ fragment Lt : '<';
+ fragment Gt : '>';
+ fragment
+ Equal : '=';
+ fragment Compare : '==';
+ fragment Astr : '*';
+ fragment Plus : '+';
+ fragment Minus
+ : '-';
+ fragment Pipe : '|';
+ fragment Comma : ',';
+ fragment Dot : '.';
+ fragment Range : '..';
+ fragment At : '@';
+ fragment Amp : '&';
+ fragment Sharp : '#';
+ fragment Tilde : '~';
+ fragment Pow
+ : '^';
+ */
 // Comment this rule out to allow the error to be propagated to the parser
 ERRCHAR: . -> channel (HIDDEN)
 	;

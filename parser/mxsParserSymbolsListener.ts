@@ -73,7 +73,7 @@ export class mxsParserSymbolsListener extends mxsParserListener
     public override visitTerminal = (ctx: TerminalNode): void =>
     {
         // console.log(ctx.getSymbol().type);
-        console.log(JSON.stringify(ctx.getText()));
+        // console.log(JSON.stringify(ctx.getText()));
 
     };
 
@@ -95,8 +95,8 @@ export class mxsParserSymbolsListener extends mxsParserListener
         });
         // console.log(ctx);
         console.log(ctx.children[0]);
-        // console.log(JSON.stringify(ctx.getText()));
         */
+        console.log(JSON.stringify(ctx.getText()));
     }
     // /*
     public override enterFn_def = (ctx: Fn_defContext): void =>
@@ -127,10 +127,7 @@ export class mxsParserSymbolsListener extends mxsParserListener
     // public override exitFactor = (ctx: FactorContext): void => {}; 
 
 
-    // /*
-    // */
-    // public override exitFn_call = (ctx: Fn_callContext): void => {};
-    // /*
+
     public override enterCase_expr = (ctx: Case_exprContext): void =>
     {
         console.log('case expression: ' + ctx.getText());
@@ -149,12 +146,18 @@ export class mxsParserSymbolsListener extends mxsParserListener
     //     console.log('function call: ' + ctx.getText() + '| caller1: ' + ctx._caller?.getText());
     // }
 
+    public override enterFn_call = (ctx: Fn_callContext): void =>
+    {
+        console.log('call: ' + ctx.getText());
+    };
+
     public override enterOperandExpr = (ctx: OperandExprContext): void =>
     {
-        console.log('operand: ' + ctx.getText());
+        // console.log('operand: ' + ctx.getText());
     };
-    public override enterAccessor = (ctx: AccessorContext): void => {
-        console.log('property: ' + ctx.getText());
+    public override enterAccessor = (ctx: AccessorContext): void =>
+    {
+        // console.log('property: ' + ctx.getText());
     }
     // public override enterAccIndex = (ctx: AccIndexContext): void =>
     // {
