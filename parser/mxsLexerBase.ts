@@ -44,17 +44,36 @@ export abstract class mxsLexerBase extends Lexer
         return next;
     }
     // */
+    // /*
     public override emit(): Token {
-
-        if (this.channel === mxsLexer.DEFAULT_TOKEN_CHANNEL && this.type === mxsLexer.NL) console.log(`--> ${JSON.stringify(this.text)}`);
-        if (this.channel === mxsLexer.DEFAULT_TOKEN_CHANNEL && this.type !== mxsLexer.NL)
-        {
-            // sanitize token text
-            this.text = this.text.trim();
-            console.log(JSON.stringify(this.text));
+        /*
+        switch (this.type) {
+            case mxsLexer.BLOCK_COMMENT:
+                // console.log(`cmmB | ${this.line} > ${JSON.stringify(this.text)}`);
+                break;
+            case mxsLexer.LINE_COMMENT:
+                // console.log(`cmmL | ${this.line} > ${JSON.stringify(this.text)}`);
+                break;
+            case mxsLexer.WS:
+                // console.log("\x1b[32m%s\x1b[0m", `ws | ${this.line} > ${JSON.stringify(this.text)}`);
+                break;
+            case mxsLexer.NL:
+                console.log("\x1b[35m%s\x1b[0m", `nl | ${this.line} > ${JSON.stringify(this.text)}`);
+                break;
+            default:
+                console.log('\x1b[36m%s\x1b[0m', `${this.line} > ${JSON.stringify(this.text)}`);
+                break;
         }
+        // sanitize tokens
+        // */
+        // if (this.channel === mxsLexer.DEFAULT_TOKEN_CHANNEL && this.type !== mxsLexer.NL)
+        // {
+        //     this.text = this.text.trim();
+        // }
+        if (this.type === mxsLexer.NL) this.text = '\r\n';
         return super.emit();
     }
+    //*/
     protected followed(): boolean
     {
         //  console.log(this.text.charCodeAt(0));

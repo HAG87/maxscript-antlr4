@@ -38,14 +38,12 @@ BLOCK_COMMENT: '/*' .*? ('*/' | EOF) -> channel(HIDDEN)
 
 LINE_COMMENT: '--' ~[\r\n]* -> channel(HIDDEN)
 	;
-//WHITESPACE
-WS: ( WSchar | Backslash WSchar* [\r\n\f]+)+ -> channel(HIDDEN)
-	;
 
 //STRING
 STRING: String_regular | String_verbatim
 	;
 
+//----------------------------------------------------------------------------------------------//
 //KEYWORDS
 AND: A N D
 	;
@@ -239,36 +237,36 @@ BOOL: T R U E | F A L S E
 	;
 
 //OPERATORS
-COMPARE: ('==' | '<' | '>' | '<=' | '>=' | '!=') NLaround*
+COMPARE: ('==' | '<' | '>' | '<=' | '>=' | '!=')
 	;
 
 NAME: '#' ID
 	;
 
-EQ: '=' NLaround*
+EQ: '='
 	;
 
-ASSIGN: ('+=' | '-=' | '*=' | '/=') NLaround*
+ASSIGN: ('+=' | '-=' | '*=' | '/=')
 	;
 
 UNARY_MINUS: '-' {this.followed()}?
 	;
 // MINUS : '-' NL+ :
-MINUS: '-' NLaround*
+MINUS: '-'
 	;
-PLUS: '+' NLaround*
+PLUS: '+'
 	;
-PROD: '*' NLaround*
+PROD: '*'
 	;
-DIV: '/' NLaround*
+DIV: '/'
 	;
-POW: '^' NLaround*
+POW: '^'
 	;
 
 //SYMBOLS
 SHARP: '#'
 	;
-COMMA: NLaround* ',' NLaround*
+COMMA: ','
 	;
 
 // COLON : ':' {this.preceeded()}?; COLON : ':' NL*;
@@ -277,9 +275,9 @@ COLON: ':'
 GLOB: '::'
 	;
 
-DOT: '.' NLaround*
+DOT: '.'
 	;
-DOTDOT: '..' NLaround*
+DOTDOT: '..'
 	;
 
 AMP: '&'
@@ -291,17 +289,17 @@ QUESTION: '?'
 // CODE STRUCTURE
 PAREN_PAIR: '()'
 	;
-LPAREN: '(' NLaround*
+LPAREN: '('
 	;
-RPAREN: NLaround* ')'
-	;
-
-LBRACE: '{' NLaround*
-	;
-RBRACE: NLaround* '}'
+RPAREN: ')'
 	;
 
-LBRACK: '[' NLaround*
+LBRACE: '{'
+	;
+RBRACE: '}'
+	;
+
+LBRACK: '['
 	;
 RBRACK: ']'
 	;
@@ -367,13 +365,21 @@ fragment Quoted: '\'' (~['] | [\]['])* '\''
 RESOURCE: '~' Alphanum '~'
 	;
 
+//WHITESPACE
+WS: ( WSchar | Backslash WSchar* [\r\n\f]+)+ -> channel(HIDDEN)
+	;
 //NEW LINES
 NL
 	: NLchar+ //-> channel(NEWLINE_CHANNEL)
 	;
 
-fragment NLaround
-	: WS* NLchar+ //-> channel(HIDDEN)
+// fragment Nleft : [\r\n] ;
+// wihitespace with newlines, around operators, is meaningless
+fragment NLeft
+	: [\r\n] [ \t\r\n]+//-> channel(HIDDEN)
+	;
+fragment Nright
+	:  [ \t\r\n]+ [\r\n]//-> channel(HIDDEN)
 	;
 fragment WSchar: [ \t]
 	;

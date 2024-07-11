@@ -58,12 +58,12 @@ expr
 //-------------------------------------- MACROSCRIPT_DEF
 macroscript_def
     : MACROSCRIPT nl? var_name ( nl? param_name nl? (operand | RESOURCE) )* nl?
-    LPAREN
+    lp
         (
             macroscript_clause
             (nl? macroscript_clause)*
         )?
-    RPAREN
+    rp
     ;
 macroscript_clause
     : expr
@@ -73,23 +73,23 @@ macroscript_clause
 //-------------------------------------- UTILITY_DEF
 utility_def
     : UTILITY nl? var_name nl? operand (nl? param)* nl?
-    LPAREN
+    lp
         (
             rollout_clause
             (nl? rollout_clause)*
         )?
-    RPAREN
+    rp
     ;
 
 //-------------------------------------- ROLLOUT_DEF
 rollout_def
     : ROLLOUT nl? var_name nl? operand (nl? param)* nl?
-    LPAREN
+    lp
         (
             rollout_clause
             (nl? rollout_clause)*
         )?
-    RPAREN
+    rp
     ;
 
 rollout_clause
@@ -105,12 +105,12 @@ rollout_clause
 
 rollout_group
     : GROUP nl? STRING? nl?
-    LPAREN
+    lp
         (
             rollout_control
             (nl? rollout_control)*
         )?
-    RPAREN
+    rp
     ;
 
 rollout_control
@@ -120,10 +120,10 @@ rollout_control
 //-------------------------------------- TOOL_DEF
 tool_def
     : TOOL nl? var_name (nl? param)* nl?
-    LPAREN
+    lp
         tool_clause
         (nl? tool_clause)+
-    RPAREN
+    rp
 ;
 
 tool_clause
@@ -136,12 +136,12 @@ tool_clause
 //-------------------------------------- RCMENU_DEF
 rcmenu_def
     : RCMENU nl? var_name nl?
-    LPAREN
+    lp
         (
             rc_clause
             (nl? rc_clause)*
         )?
-    RPAREN
+    rp
     ;
 
 rc_clause
@@ -155,13 +155,13 @@ rc_clause
     ;
 
 rc_submenu
-    : SUBMENU nl? STRING (nl? param)*
-    LPAREN
+    : SUBMENU nl? STRING (nl? param)* nl?
+    lp
         (
             rc_clause
             (nl? rc_clause)*
         )?
-    RPAREN
+    rp
     ;
 
 rc_separator: SEPARATOR nl? var_name (nl? param)*
@@ -172,10 +172,10 @@ rc_menuitem: MENUITEM nl? var_name nl? STRING (nl? param)*
 //-------------------------------------- PLUGIN_DEF
 plugin_def
     :PLUGIN nl? var_name nl? var_name (nl? param)* nl?
-    LPAREN
+    lp
         plugin_clause
         (nl? plugin_clause)+
-    RPAREN
+    rp
     ;
 
 plugin_clause
@@ -192,7 +192,14 @@ plugin_clause
 // when <attribute> <objects> change[s] [ id:<name> ] [handleAt:#redrawViews|#timeChange] [ <object_parameter> ] do <expr>
 // when             <objects> deleted   [ id:<name> ] [handleAt:#redrawViews|#timeChange] [ <object_parameter> ] do <expr> 
 change_handler
-    : WHEN var_name (var_name | kw_override | path | expr_seq) (CHANGE | DELETED) param* operand? DO expr
+    : WHEN nl?
+        var_name nl?
+        (var_name | kw_override | path | expr_seq) nl?
+        (CHANGE | DELETED) nl?
+        (nl? param)*
+        (nl? operand)? nl?
+        DO nl?
+        expr
     ;
 
 //-------------------------------------- CONTEXT_EXPR
@@ -218,7 +225,7 @@ in <node>
 [ with ] macroRecorderEmitterEnabled <boolean> */
 
 context_expr
-    : ctx_predicate (COMMA ctx_predicate)* expr
+    : ctx_predicate (comma ctx_predicate)* nl? expr
     ;
 
 ctx_predicate
@@ -236,13 +243,13 @@ ctx_predicate
 
 //-------------------------------------- PARAMETER DEF
 param_expr
-    : PARAMETERS var_name param*
-    LPAREN
+    : PARAMETERS nl? var_name (nl? param)* nl?
+    lp
         (
             param_clause
             (nl? param_clause)*
         )?
-    RPAREN
+    rp
     ;
 
 param_clause
@@ -250,7 +257,7 @@ param_clause
     | event_handler
     ;
 
-param_def: var_name nl? param*
+param_def: var_name (nl? param)*
     ;
 
 //-------------------------------------- ATTRIBUTES DEFINITION
@@ -259,10 +266,10 @@ attributes_def
     : ATTRIBUTES nl?
     var_name
     (nl? param)* nl?
-    LPAREN
+    lp
         attributes_clause
         (nl? attributes_clause)+
-    RPAREN
+    rp
     ;
 
 attributes_clause
@@ -288,18 +295,20 @@ event_args
 
 //---------------------------------------- STRUCT DEF
 struct_def
-    : STRUCT nl? str_name = var_name
-    nl?
-    LPAREN
-        struct_members
-    RPAREN
+    : STRUCT nl? str_name = var_name nl?
+    lp
+       struct_members
+    rp
     ;
 
-struct_members: struct_member (COMMA struct_member)* 
+struct_members: struct_member (comma struct_member)* 
     ;
 
 struct_member
-    : (scope = struct_scope nl?)? ( assignment_expr | var_name | fn_def | event_handler )
+    : (scope = struct_scope nl?)? assignment_expr
+    | (scope = struct_scope nl?)? var_name
+    | (scope = struct_scope nl?)? fn_def
+    | (scope = struct_scope nl?)? event_handler
     ;
 
 struct_scope: PUBLIC | PRIVATE
@@ -312,7 +321,7 @@ fn_def
     fn_name = var_name nl?
     (nl? fn_args)*
     (nl? fn_params)* nl?
-    EQ
+    EQ nl?
     fn_body = expr
     ;
 
@@ -333,22 +342,20 @@ fn_return: RETURN nl? expr
 //---------------------------------------- LOOPS
 // While loop
 while_loop:
-    WHILE nl? expr
-    nl?
-    DO nl ?expr
+    WHILE nl? expr nl?   
+    DO nl? expr
     ;
 
 // Do loop
 do_loop:
-    DO nl? expr
-    nl?
+    DO nl? expr nl?   
     WHILE nl? expr
     ;
 
 // For loop
 //for <var_name> [, <index_name>[, <filtered_index_name>]] ( in | = )<sequence> ( do | collect ) <expr>
 for_loop
-    : FOR nl? var = var_name (COMMA index_name = var_name (COMMA filtered_index_name = var_name)?)?
+    : FOR nl? var = var_name (comma index_name = var_name (comma filtered_index_name = var_name)?)?
     for_operator  = (IN | EQ) nl? for_sequence
     for_action    = (DO | COLLECT) nl? expr
     ;
@@ -365,7 +372,7 @@ for_sequence
         for_by? nl?
         for_while? nl?
         for_where?
-    | expr NL?
+    | expr nl?
         for_while? nl?
         for_where?
     ;
@@ -378,19 +385,17 @@ loop_exit: EXIT  nl? (WITH nl? expr)?;
 
 //----------------------------------------TRY EXPR
 try_expr
-    : TRY nl? expr
-    nl?
+    : TRY nl? expr nl?   
     CATCH nl? expr
     ;
 
 //---------------------------------------- CASE-EXPR
 case_expr
-    : CASE nl? expr? nl? OF
-        nl?
-        LPAREN
+    : CASE nl? expr? nl? OF nl?       
+        lp
             case_item
             (nl case_item)*
-        RPAREN
+        rp
         ;
 
 // this is not correct, because if should work for 5:(a), buuuut.....
@@ -433,7 +438,7 @@ if_clause
 
 //---------------------------------------- DECLARATIONS
 var_decl
-    : decl_scope nl? declaration (COMMA declaration)*
+    : decl_scope nl? declaration (comma declaration)*
     ;
 
 declaration
@@ -449,11 +454,11 @@ decl_scope
 
 //---------------------------------------- ASSIGNMENT EXPRESSION
 assignment_expr
-    : left = destination EQ right = expr
+    : left = destination EQ nl? right = expr
     ;
 
 assignmentOp_expr
-    : left = destination ASSIGN right = expr
+    : left = destination ASSIGN nl? right = expr
     ;
 
 destination
@@ -473,13 +478,13 @@ destination
     <expr_seq>
  */
 simple_expr
-    : <assoc=right> left = simple_expr AS  right = simple_expr #TypecastExpr
-    | <assoc=right> left = simple_expr POW right = simple_expr #ExponentExpr
-    | left = simple_expr (DIV | PROD)                 right = simple_expr #ProductExpr
-    | left = simple_expr (PLUS | MINUS | UNARY_MINUS) right = simple_expr #AdditionExpr
-    | left = simple_expr (OR | AND) right = simple_expr #LogicExpr
+    : <assoc=right> left = simple_expr AS  nl? right = simple_expr #TypecastExpr
+    | <assoc=right> left = simple_expr POW nl? right = simple_expr #ExponentExpr
+    | left = simple_expr (DIV | PROD) nl? right = simple_expr #ProductExpr
+    | left = simple_expr (PLUS | MINUS | UNARY_MINUS) nl? right = simple_expr #AdditionExpr
+    | left = simple_expr (OR | AND) nl? right = simple_expr #LogicExpr
     | NOT nl? right = simple_expr #LogicNOTExpr
-    | right = simple_expr COMPARE left = simple_expr #ComparisonExpr   
+    | right = simple_expr COMPARE nl? left = simple_expr #ComparisonExpr   
     | fn_call #FnCallExpr    //passthrough
     | operand #OperandExpr   //passthrough
     ;
@@ -550,20 +555,20 @@ operand
     ;
 //------------------------------------------------------------------------//
 accessor
-    : <assoc=right> accessor property //#AccProperty
+    : <assoc=right> accessor nl? property //#AccProperty
     | <assoc=right> accessor index    //#AccIndex
-    | factor property                 //#AccProperty
+    | factor nl? property                 //#AccProperty
     | factor index                    //#AccIndex
     ;
 //------------------------------------------------------------------------//
 //Property accessor
 property
-    : DOT (var_name | kw_override)
+    : DOT nl? (var_name | kw_override)
     ;
 
 //Index accessor
 index
-    : LBRACK expr RBRACK
+    : lb expr rb
     ;
 
 //---------------------------------------- FACTORS
@@ -588,74 +593,72 @@ factor
 
 //---------------------------------------- UNARY_MINUS
 unary_minus 
-    : (MINUS | UNARY_MINUS) operand
+    : (MINUS nl?| UNARY_MINUS) operand
     // | MINUS expr_seq
     ;
 
 //---------------------------------------- EXPR_SEQ
 //<expr_seq> ::= ( <expr> { ( ; | <eol>) <expr> } )
 expr_seq
-    : LPAREN
-    nl?
+    : lp
         // expr (expr)*
         //{this.enable(mxsLexer.NEWLINE_CHANNEL);}
         expr (nl+ expr)*
         //{this.disable(mxsLexer.NEWLINE_CHANNEL);}
-    nl?
-      RPAREN
-    | LPAREN RPAREN
+      rp
+    | LPAREN nl? RPAREN
     | PAREN_PAIR
     ;
 
 //---------------------------------------- TYPES
 box2:
-    LBRACK
-        expr COMMA
-        expr COMMA
-        expr COMMA
+    lb
+        expr comma
+        expr comma
+        expr comma
         expr
-    RBRACK
+    lb
     ;
 
 point3:
-    LBRACK
-        expr COMMA
-        expr COMMA
+    lb
+        expr comma
+        expr comma
         expr
-    RBRACK
+    lb
     ;
 
 point2:
-    LBRACK
-        expr COMMA
+    lb
+        expr comma
         expr
-    RBRACK
+    lb
     ;
 
 // BitArray
 bitArray :
-    SHARP nl? LBRACE
+    SHARP nl? lc
         bitList?
-    LBRACE
+    rc
     ;
 
 bitList
-    : bitexpr ( COMMA bitexpr)*
+    : bitexpr ( comma bitexpr)*
     ;
 bitexpr
-    : expr DOTDOT expr
+    : expr nl? DOTDOT nl? expr
     | expr
     ;
 
 // Array
 array :
-    SHARP nl? LPAREN
+    SHARP nl? lp
         elementList?
-    RPAREN
+    rp
     | SHARP nl? PAREN_PAIR
     ;
 
-elementList : expr ( COMMA expr )*
+elementList : expr ( comma expr )*
     ;
 // Identifiers
 var_name
@@ -715,6 +718,20 @@ kw_override
     | ON
 	;
 //---------------------------------------- NEWLINE RESOLVING
+lp: LPAREN nl?
+    ;
+rp: nl? RPAREN
+    ;
+lb: LBRACK nl?
+    ;
+rb: RBRACK
+    ;
+lc: LBRACE nl?
+    ;
+rc: nl? RBRACE
+    ;
+comma: nl? COMMA nl?;
+//----------------------------------------
 nl : NL+ ;
 /*
 eos
