@@ -2,6 +2,7 @@ import
     {
         CharStream,
         Lexer,
+        Token,
         // Token
     } from "antlr4ng";
 // import { mxsLexer } from "./mxsLexer";
@@ -30,7 +31,7 @@ export abstract class mxsLexerBase extends Lexer
     {
         // Get the next token.
         const next: Token = super.nextToken();
-
+        console.log(next.text);
         if (next.channel == Token.DEFAULT_CHANNEL) {
             // Keep track of the last token on the default channel.
             this.lastToken = next;
@@ -38,7 +39,7 @@ export abstract class mxsLexerBase extends Lexer
 
         return next;
     }
-    */
+    // */
     protected followed(): boolean
     {
         //  console.log(this.text.charCodeAt(0));

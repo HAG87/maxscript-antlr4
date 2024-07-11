@@ -47,7 +47,6 @@ expr
     | context_expr
     | attributes_def
     | change_handler
-    // | max_command NOOOO
     | utility_def
     | rollout_def
     | tool_def
@@ -258,9 +257,6 @@ param_def: var_name nl? param*
 // attributes <name> [version:n] [silentErrors:t/f] [initialRollupState:0xnnnnn] [remap:#(<old_param_names_array>, <new_param_names_array>)]
 attributes_def
     : ATTRIBUTES nl?
-    var_name nl?
-    var_name nl?
-    param nl?
     var_name
     (nl? param)* nl?
     LPAREN
@@ -557,15 +553,15 @@ unary_arg
 
 //------------------------------------------------------------------------//
 operand
-    : factor   
-    | accessor
+    : accessor
+    | factor
     ;
 //------------------------------------------------------------------------//
 accessor
-    : <assoc=right> accessor property #AccProperty
-    | <assoc=right> accessor index    #AccIndex
-    | factor property                 #AccProperty
-    | factor index                    #AccIndex
+    : <assoc=right> accessor property //#AccProperty
+    | <assoc=right> accessor index    //#AccIndex
+    | factor property                 //#AccProperty
+    | factor index                    //#AccIndex
     ;
 //------------------------------------------------------------------------//
 //Property accessor
@@ -665,6 +661,7 @@ array :
     SHARP nl? LPAREN
         elementList?
     RPAREN
+    | SHARP nl? PAREN_PAIR
     ;
 
 elementList : expr ( COMMA expr )*

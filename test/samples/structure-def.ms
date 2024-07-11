@@ -1,5 +1,5 @@
 struct RandVals 
-( 
+(
     A = 1,
     B = 3,
 	RndVals=#(), ptr, eedVal, 
@@ -20,9 +20,9 @@ struct RandVals
 	fn getNextRV = 
 	( 
 		if Nvals == 0 do return undefined 
-		val=RndVals[ptr] 
+		val = RndVals[ptr]
 		ptr += 1 
-		if ptr >RndVals.count do ptr=1 
+		if ptr > RndVals.count do ptr=1 
 		val 
 	), 
     public

@@ -19,11 +19,26 @@ import {
     // RuleTagToken
 } from "antlr4ng";
 
-let str:string = fs.readFileSync('./test/samples/input.ms', 'utf-8');
+const test_files = [
+  './test/samples/attributes-def.ms',
+  './test/samples/change-handler.ms',
+  './test/samples/context-exp.ms',
+  './test/samples/macroscript-def.ms',
+  './test/samples/plugin-def.ms',
+  './test/samples/rollout-util-def.ms',
+  './test/samples/simple-expr.ms',
+  './test/samples/structure-def.ms',
+  './test/samples/tool-def.ms',
+];
+
+let str:string = fs.readFileSync('./test/input.ms', 'utf-8');
+// let str:string = fs.readFileSync(test_files[7], 'utf-8');
+
 
 // import { mxsParserBase } from "./parser/mxsParserBase";
 import { mxsParser } from "./parser/mxsParser";
 import { mxsLexer } from "./parser/mxsLexer";
+// import { mxsLexerBase } from "./parser/mxsLexerBase";
 
 import { mxsParserVisitor } from "./parser/mxsParserVisitor";
 import { mxsParserSymbolsListener } from "./parser/mxsParserSymbolsListener";
@@ -35,6 +50,7 @@ import MultiChannelTokenStream from "./parser/multiChannelTokenStream";
 const inputStream = CharStream.fromString(str);
 // Create the lexer and parser
 const lexer       = new mxsLexer(inputStream);
+// const lexer       = new mxsLexerBase(inputStream);
 const tokenStream = new CommonTokenStream(lexer);
 // const tokenStream = new MultiChannelTokenStream(lexer);
 const parser      = new mxsParser(tokenStream);

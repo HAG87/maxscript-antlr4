@@ -1,11 +1,12 @@
-weaponDataCA= attributes weaponData 
+-- weaponDataCA=
+attributes weaponData 
 ( 
-	parameters main rollout:params 
-	( 
-		hitPoints type:#float ui:hits default:10 
-		cost type:#float ui:cost default:100 
-		sound type:#string 
-	) 
+	-- parameters main rollout:params 
+	-- ( 
+	-- 	hitPoints type:#float ui:hits default:10 
+	-- 	cost type:#float ui:cost default:100 
+	-- 	sound type:#string 
+	-- ) 
 
 	rollout params "Weapon Parameters" 
 	( 
@@ -16,7 +17,7 @@ weaponDataCA= attributes weaponData
 		on sound_dd selected i do sound = sound_dd.items [i] 
 	) 
 ) 
- 
+ /*
 CAT_DEF = attributes Custom_Attributes 
 Redefine:CAT_CurrentDef 
 remap:  # (# ("Param1"),# ("Param9")) 
@@ -33,3 +34,4 @@ remap:  # (# ("Param1"),# ("Param9"))
    )
    )
    CustAttributes.add CAT_TargetObject CAT_DEF #Unique BaseObject: false
+   */

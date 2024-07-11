@@ -382,7 +382,7 @@ RESOURCE: '~' Alphanum '~'
 // fragment Nls: (NLchar | WSchar | Backslash NLchar)* NLchar;
 
 //WHITESPACE
-WS: ( WSchar | Backslash [\r\n]+)+ -> channel(HIDDEN)
+WS: ( WSchar | Backslash WSchar* [\r\n])+ -> channel(HIDDEN)
 	;
 
 NL
