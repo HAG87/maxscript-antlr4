@@ -207,7 +207,7 @@ when_decl
         CHANGE nl? //change
         (nl? param)* //parameters
         (nl? var_name)? //object_parameter
-    | WHEN (var_name | path | expr_seq) nl? //objects
+    | WHEN (var_name | path | expr_seq | array) nl? //objects
         DELETED nl? //change
         (nl? param)* //parameters
         (nl? operand)? //object_parameter
