@@ -226,23 +226,40 @@ in <node>
 [ with ] defaultAction               <action>
 [ with ] MXSCallstackCaptureEnabled  <boolean>
 [ with ] dontRepeatMessages          <boolean>
-[ with ] macroRecorderEmitterEnabled <boolean> */
+[ with ] macroRecorderEmitterEnabled <boolean>
 
-context_expr
+set <context>      
+Where, <context> is one of the MAXScript context prefixes: 
+animate,
+time,
+in,
+coordsys,
+about,
+level,
+undo
+*/
+
+context_expr : ctx_cascading | ctx_set;
+
+ctx_cascading
     : ctx_predicate (comma ctx_predicate)* nl? expr
     ;
 
+ctx_set
+    : SET (ANIMATE | TIME | IN | LEVEL ) nl? operand
+    | SET COORDSYS  nl? (LOCAL | operand)
+    | SET ABOUT     nl? (COORDSYS | operand)
+    | SET UNDO      nl? (STRING | param | var_name)? nl? simple_expr
+    ;
+
 ctx_predicate
-    : SET? nl?
-        ( AT nl? LEVEL nl? operand
-        | AT nl? TIME operand
-        | IN nl? operand
-        | ABOUT nl? (COORDSYS | operand)
-        | IN?   nl? COORDSYS     nl? (LOCAL | operand)
-        | WITH? nl? ctx_keyword  nl? simple_expr
-        | WITH? nl? UNDO         nl? (STRING | param | var_name) nl? simple_expr
-        )
+    : AT nl? (LEVEL | TIME) nl? operand
+    | IN nl? operand
+    | ABOUT nl? (COORDSYS | operand)
+    | IN?   nl? COORDSYS      nl? (LOCAL | operand)
+    | WITH? nl? UNDO          nl? (STRING | param | var_name)? nl? simple_expr        
     | WITH? nl? DEFAULTACTION nl? NAME
+    | WITH? nl? ctx_keyword   nl? simple_expr
     ;
 
 ctx_keyword

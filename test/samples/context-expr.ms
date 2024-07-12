@@ -50,13 +50,13 @@ undo on
 	delete $sphere*  
 	clearUndoBuffer()  
 ) 
--- undo "add background" on 
+undo "add background" on 
 (  
 	--    ... 
 )
 
 my_context_name = "An Undo Context" 
--- undo my_context_name on 
+undo my_context_name on 
 (  
 	--... 
 )
@@ -113,9 +113,9 @@ s = sphere isSelected:true
 (t1=timestamp();with dontrepeatmessages on with animate on for t = 1 to 10000 do at time t s.radius = t/2;timestamp()-t1)
 
 -- cascading
--- animate on, at time (t+1), with undo off,coordsys local 
--- ( 
--- 	-- ...  
--- )
+animate on, at time (t+1), with undo off,coordsys local 
+( 
+	-- ...  
+)
 
--- oc = set coordsys parent -- remember old coordsys
+oc = set coordsys parent -- remember old coordsys
