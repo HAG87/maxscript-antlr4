@@ -570,11 +570,21 @@ about correctly parenthesizing function arguments */
 
 fn_call
     // : caller = fn_caller ( args += operand)+ ( params += param)*
-    : caller = operand PAREN_PAIR //nullary call operator
-    | caller = operand (args += operand_arg)+ (params += param)+
-    | caller = operand (args += operand_arg)+
-    | caller = operand (params += param)+
+    : caller = fn_caller PAREN_PAIR //nullary call operator
+    | caller = fn_caller (args += operand_arg)+ (params += param)+
+    | caller = fn_caller (args += operand_arg)+
+    | caller = fn_caller (params += param)+
     // | operand
+
+    ;
+fn_caller
+    : var_name
+    | path
+    | by_ref
+    | accessor
+    | unary_minus //UNARY MINUS
+    | expr_seq //EXPRESSION SEQUENCE
+    | QUESTION
     ;
 
 //---------------------------------------- PARAMETER
