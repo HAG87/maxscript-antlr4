@@ -349,7 +349,7 @@ ID: Alphanum
 QUOTED: Quoted
 	;
 
-fragment Quoted: '\'' (~['] | [\]['])* '\''
+fragment Quoted: '\'' (~['] | '\\\'')* '\''
 	;
 
 RESOURCE: '~' Alphanum '~'

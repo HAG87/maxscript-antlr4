@@ -304,7 +304,7 @@ attributes_def
     (nl? param)* nl?
     lp
         attributes_clause
-        (nl? attributes_clause)+
+        (nl? attributes_clause)*
     rp
     ;
 
