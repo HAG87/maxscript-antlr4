@@ -28,5 +28,6 @@ foo (*ref) x y z
 &foo
 &$box.position.x
 &valArray[23]
+valArray[23]
 *r.controller
 *ref = [10,0,0]

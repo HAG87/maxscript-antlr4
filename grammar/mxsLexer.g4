@@ -2,7 +2,7 @@
  alignColons hanging,
  alignSemicolons hanging,
  allowShortBlocksOnASingleLine
- * true,
+ true,
  allowShortRulesOnASingleLine true,
  alignFirstTokens true
  */
@@ -44,7 +44,7 @@ STRING: String_regular | String_verbatim
 	;
 
 //----------------------------------------------------------------------------------------------//
-//KEYWORDS
+// KEYWORDS
 AND: A N D
 	;
 AS: A S
@@ -124,32 +124,21 @@ DELETED: D E L E T E D
 	;
 DEFAULTACTION: D E F A U L T A C T I O N
 	;
-CONTEXT
-	: Animate
-	| DontRepeatMessages
-	| MacroRecorderEmitterEnabled
-	| MXScallStackCaptureEnabled
-	| PrintAllElements
-	| Quiet
-	| Redraw
+ANIMATE: A N I M A T E
 	;
-
-fragment Animate: A N I M A T E
+DONTREPEATMESSAGES: D O N T R E P E A T M E S S A G E S
 	;
-fragment DontRepeatMessages
-	: D O N T R E P E A T M E S S A G E S
-	;
-fragment MacroRecorderEmitterEnabled
+MACRORECORDEREMITERENABLED
 	: M A C R O R E C O R D E R E M I T T E R E N A B L E D
 	;
-fragment MXScallStackCaptureEnabled
+MXSCALLSTACKCAPTUREENABLED
 	: M X S C A L L S T A C K C A P T U R E E N A B L E D
 	;
-fragment PrintAllElements: P R I N T A L L E L E M E N T S
+PRINTALLELEMENTS: P R I N T A L L E L E M E N T S
 	;
-fragment Quiet: Q U I E T
+QUIET: Q U I E T
 	;
-fragment Redraw: R E D R A W
+REDRAW: R E D R A W
 	;
 
 //BLOCKS
@@ -314,9 +303,7 @@ TIMEVAL
 	| INT [nN]
 	;
 
-fragment FLOAT
-	: INT [.] TRAIL?
-	| [.] TRAIL
+fragment FLOAT: INT [.] TRAIL? | [.] TRAIL
 	;
 
 fragment TRAIL: INT ([eEdD] [+-] INT | [lLpP])?
@@ -326,15 +313,13 @@ fragment HEX: '0' [xX] (Num | [aAfF])+
 fragment INT: Num+
 	;
 
-fragment String_regular
-	: '"' (~["\r\n] | '\\"')* '"'
+fragment String_regular: '"' (~["\r\n] | '\\"')* '"'
 	;
-fragment String_verbatim
-	: '@"' ~["]* '"'
+fragment String_verbatim: '@"' ~["]* '"'
 	;
 
 //IDENTIFIERS
-PATH: Dollar (Alphanum | [*?\\] | Quoted | '/')*
+PATH: Dollar (Alphanum | [*?\\] | Quoted | '...' | '..' | '/')*
 	;
 
 /*
@@ -378,13 +363,12 @@ NL
 	: NLchar+ //-> channel(NEWLINE_CHANNEL)
 	;
 
-// fragment Nleft : [\r\n] ;
-// wihitespace with newlines, around operators, is meaningless
+// fragment Nleft : [\r\n] ; wihitespace with newlines, around operators, is meaningless
 fragment NLeft
-	: [\r\n] [ \t\r\n]+//-> channel(HIDDEN)
+	: [\r\n] [ \t\r\n]+ //-> channel(HIDDEN)
 	;
 fragment Nright
-	:  [ \t\r\n]+ [\r\n]//-> channel(HIDDEN)
+	: [ \t\r\n]+ [\r\n] //-> channel(HIDDEN)
 	;
 fragment WSchar: [ \t]
 	;
@@ -522,7 +506,8 @@ fragment Dollar: '$'
  fragment Amp : '&';
  fragment Sharp : '#';
  fragment Tilde : '~';
- fragment Pow
+ fragment
+ Pow
  : '^';
  */
 // Comment this rule out to allow the error to be propagated to the parser

@@ -3,7 +3,7 @@ in coordsys local selection.pos = random [-20,20,20] [20,20,20]
 -- rotate all the boxes 30 degrees about the y_axis of $foo
 about $box001 rotate $box002* 30 y_axis
 -- generate a keyframed animation of $foo randomly chasing $baz
-animate on 
+-- animate on 
 for t in 0 to 100 by 5 do 
 at time t 
 $box001.pos = $box002.pos + random [-10,-10,-10] [10,10,10] 
@@ -42,19 +42,21 @@ in coordsys parent rotate selection (EulerAngles 0 0 90)
 about $foo rotate $box* 30 y_axis
 -- rotate each planet 45 degrees around its parent
 in coordsys parent about coordsys rotate $planets* 45 z_axis
--- undo ["undo_item_label" | label:<string_operand> | variable_name ] <bool_expr> <expr> 
+
+-- -- undo ["undo_item_label" | label:<string_operand> | variable_name ] <bool_expr> <expr> 
 undo on 
 (  
 	delete $box*  
 	delete $sphere*  
 	clearUndoBuffer()  
 ) 
-undo "add background" on 
+-- undo "add background" on 
 (  
 	--    ... 
 )
+
 my_context_name = "An Undo Context" 
-undo my_context_name on 
+-- undo my_context_name on 
 (  
 	--... 
 )
@@ -111,9 +113,9 @@ s = sphere isSelected:true
 (t1=timestamp();with dontrepeatmessages on with animate on for t = 1 to 10000 do at time t s.radius = t/2;timestamp()-t1)
 
 -- cascading
-animate on, at time (t+1), with undo off,coordsys local 
-( 
-	-- ...  
-)
+-- animate on, at time (t+1), with undo off,coordsys local 
+-- ( 
+-- 	-- ...  
+-- )
 
-oc = set coordsys parent -- remember old coordsys
+-- oc = set coordsys parent -- remember old coordsys

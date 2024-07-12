@@ -238,13 +238,22 @@ ctx_predicate
         | AT nl? TIME operand
         | IN nl? operand
         | ABOUT nl? (COORDSYS | operand)
-        | IN?   nl? COORDSYS nl? (LOCAL | operand)
-        | WITH? nl? CONTEXT  nl? (simple_expr | bool)
-        | WITH? nl? UNDO     nl? (STRING | param | var_name) nl? (simple_expr | bool)
+        | IN?   nl? COORDSYS     nl? (LOCAL | operand)
+        | WITH? nl? ctx_keyword  nl? simple_expr
+        | WITH? nl? UNDO         nl? (STRING | param | var_name) nl? simple_expr
         )
     | WITH? nl? DEFAULTACTION nl? NAME
     ;
 
+ctx_keyword
+	: ANIMATE
+	| DONTREPEATMESSAGES
+	| MACRORECORDEREMITERENABLED
+	| MXSCALLSTACKCAPTUREENABLED
+	| PRINTALLELEMENTS
+	| QUIET
+	| REDRAW
+	;
 //-------------------------------------- PARAMETER DEF
 param_def
     : PARAMETERS nl? var_name (nl? param)* nl?
@@ -745,6 +754,7 @@ kw_reserved
 	| SET
 	| SUBMENU
 	| TIME
+	| PRINTALLELEMENTS
 	;
 kw_override
 	: ATTRIBUTES

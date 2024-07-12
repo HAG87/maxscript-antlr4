@@ -20,19 +20,19 @@ import {
 } from "antlr4ng";
 
 const test_files = [
-  './test/samples/attributes-def.ms',
-  './test/samples/change-handler.ms',
-  './test/samples/context-exp.ms',
-  './test/samples/macroscript-def.ms',
-  './test/samples/plugin-def.ms',
-  './test/samples/rollout-util-def.ms',
-  './test/samples/simple-expr.ms',
-  './test/samples/structure-def.ms',
-  './test/samples/tool-def.ms',
+  './test/samples/attributes-def.ms', //
+  './test/samples/change-handler.ms', //
+  './test/samples/context-expr.ms', //
+  './test/samples/macroscript-def.ms', //ok
+  './test/samples/plugin-def.ms', //ok
+  './test/samples/rollout-util-def.ms', //ok
+  './test/samples/simple-expr.ms', //ok
+  './test/samples/structure-def.ms', //ok
+  './test/samples/tool-def.ms', //ok
 ];
 
-// let str:string = fs.readFileSync('./test/input.ms', 'utf-8');
-let str:string = fs.readFileSync(test_files[7], 'utf-8');
+let str:string = fs.readFileSync('./test/input.ms', 'utf-8');
+// let str:string = fs.readFileSync(test_files[2], 'utf-8');
 
 
 // import { mxsParserBase } from "./parser/mxsParserBase";
@@ -52,6 +52,8 @@ const inputStream = CharStream.fromString(str);
 const lexer       = new mxsLexer(inputStream);
 // const lexer       = new mxsLexerBase(inputStream);
 const tokenStream = new CommonTokenStream(lexer);
+// tokenStream.fill();
+// /*
 // const tokenStream = new MultiChannelTokenStream(lexer);
 const parser      = new mxsParser(tokenStream);
 // let parser = new mxsParserBase(tokenStream);
@@ -69,7 +71,7 @@ try {
     tree = parser.program();    
 } catch (e:any) {
   console.log(e.message);
-  // /*
+  
     if (e instanceof ParseCancellationException) {
         lexer.reset();
         tokenStream.setTokenSource(lexer);
@@ -79,8 +81,7 @@ try {
         tree = parser.program();
     } else {
         throw e;
-    }
-    // */
+    }    
 }
 
 if (tree && tree.getChildCount() > 0) {
@@ -91,7 +92,7 @@ if (tree && tree.getChildCount() > 0) {
     
     ParseTreeWalker.DEFAULT.walk(listener, tree);
 }
-
+// */
 
 /*
 //  You can then use the generated parser to walk the parse tree, for example with a visitor to evaluate the expression:

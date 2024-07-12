@@ -13,7 +13,7 @@ import
     // Context_exprContext,
     // Ctx_predicateContext,
     // Macroscript_defContext,
-    // Utility_defContext,
+    Utility_defContext,
     // Rollout_defContext,
     // Rollout_clauseContext,
     // RolloutGroupContext,
@@ -45,6 +45,7 @@ import
     // FnCallExprContext,
     OperandExprContext,
     AccessorContext,
+    If_clauseContext,
     // AccIndexContext,
     // OperandContext,
     // CallerContext,
@@ -87,6 +88,12 @@ export class mxsParserSymbolsListener extends mxsParserListener
     {
         // console.log(ctx.getText());
     };
+
+    public override enterUtility_def = (ctx: Utility_defContext): void =>
+    {
+        console.log(JSON.stringify(ctx.getText()));
+    }
+
     public override enterStruct_def = (ctx: Struct_defContext): void =>
     {
         /*
@@ -145,10 +152,13 @@ export class mxsParserSymbolsListener extends mxsParserListener
     // public override enterFnCallExpr = (ctx: FnCallExprContext): void =>{
     //     console.log('function call: ' + ctx.getText() + '| caller1: ' + ctx._caller?.getText());
     // }
-
+    public override enterIf_clause = (ctx: If_clauseContext): void =>
+    {
+        console.log('if_clause: ' + ctx.getText());
+    }
     public override enterFn_call = (ctx: Fn_callContext): void =>
     {
-        console.log('call: ' + ctx.getText());
+        // console.log('call: ' + ctx.getText());
     };
 
     public override enterOperandExpr = (ctx: OperandExprContext): void =>
@@ -157,7 +167,7 @@ export class mxsParserSymbolsListener extends mxsParserListener
     };
     public override enterAccessor = (ctx: AccessorContext): void =>
     {
-        // console.log('property: ' + ctx.getText());
+        // console.log('accessor: ' + ctx.getText());
     }
     // public override enterAccIndex = (ctx: AccIndexContext): void =>
     // {

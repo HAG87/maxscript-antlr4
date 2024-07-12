@@ -1,5 +1,5 @@
 struct RandVals 
-( --ooops
+(--oops
     A = 1,
     B = 3,
 	RndVals=#(), ptr, eedVal, 
@@ -9,7 +9,7 @@ struct RandVals
 		RndVals=for i=1 to num collect random fromVal toVal 
 		ptr=1 
 		RndVals 
-	)/* , 
+	), 
     private
 	fn deleteRv = 
 	( 
@@ -36,5 +36,5 @@ struct RandVals
 		false 
 	),
     on create do format "Struct Created: %\n" this,
-    on clone do format "Struct Cloned: %\n" this */
+    on clone do format "Struct Cloned: %\n" this
 )
