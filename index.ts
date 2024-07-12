@@ -20,9 +20,9 @@ import {
 } from "antlr4ng";
 
 const test_files = [
-  './test/samples/attributes-def.ms', //
-  './test/samples/change-handler.ms', //
-  './test/samples/context-expr.ms', //
+  './test/samples/attributes-def.ms', //ok
+  './test/samples/change-handler.ms', //ok
+  './test/samples/context-expr.ms', //ok
   './test/samples/macroscript-def.ms', //ok
   './test/samples/plugin-def.ms', //ok
   './test/samples/rollout-util-def.ms', //ok
@@ -32,7 +32,7 @@ const test_files = [
 ];
 
 let str:string = fs.readFileSync('./test/input.ms', 'utf-8');
-// let str:string = fs.readFileSync(test_files[2], 'utf-8');
+// let str:string = fs.readFileSync(test_files[1], 'utf-8');
 
 
 // import { mxsParserBase } from "./parser/mxsParserBase";
