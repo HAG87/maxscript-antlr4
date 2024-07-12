@@ -118,7 +118,7 @@ rollout_group
     ;
 
 rollout_control
-    : RolloutControl nl? var_name nl? STRING? (nl? param)*
+    : RolloutControl (nl? operand)+ (nl? param)*
     ;
 
 //-------------------------------------- TOOL_DEF
