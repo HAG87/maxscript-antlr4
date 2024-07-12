@@ -50,7 +50,7 @@ non_if_expr
     | fn_return
     | context_expr
     | attributes_def
-    | change_handler
+    | when_construct
     | utility_def
     | rollout_def
     | tool_def
@@ -195,17 +195,23 @@ plugin_clause
 //--------------------------------------  CHANGE_HANDLER
 // when <attribute> <objects> change[s] [ id:<name> ] [handleAt:#redrawViews|#timeChange] [ <object_parameter> ] do <expr>
 // when             <objects> deleted   [ id:<name> ] [handleAt:#redrawViews|#timeChange] [ <object_parameter> ] do <expr> 
-change_handler
-    : WHEN nl?
-        var_name nl?
-        (var_name | kw_override | path | expr_seq) nl?
-        (CHANGE | DELETED) nl?
-        (nl? param)*
-        (nl? operand)? nl?
-        DO nl?
-        expr
+// objects var_name | path | array
+
+when_construct
+    :  when_decl nl? DO nl? expr
     ;
 
+when_decl
+    : WHEN nl? var_name nl? //attribute
+        (var_name | path | expr_seq | array) nl? //objects
+        CHANGE nl? //change
+        (nl? param)* //parameters
+        (nl? var_name)? //object_parameter
+    | WHEN (var_name | path | expr_seq) nl? //objects
+        DELETED nl? //change
+        (nl? param)* //parameters
+        (nl? operand)? //object_parameter
+    ;
 //-------------------------------------- CONTEXT_EXPR
 /*The full syntax for <context_expr> is:
 
