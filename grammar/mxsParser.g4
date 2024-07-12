@@ -436,8 +436,8 @@ case_expr
 
 // this is not correct, because if should work for 5:(a), buuuut.....
 case_item
-    : case_factor {this.noSpaces()}? COLON nl? expr
-    | (NUMBER | TIMEVAL) {this.noSpaces()}? COLON ({!this.noSpaces()}? | nl) expr
+    : case_factor COLON nl? expr
+    | (NUMBER | TIMEVAL) COLON (nl | {!this.noSpaces()}?) expr
     ;
 
 case_factor
@@ -460,7 +460,7 @@ case_factor
     ;
 
 case_option
-    : factor {this.noSpaces()}? COLON
+    : {this.colonBeNext()}? factor COLON
     ;
 
 //---------------------------------------- IF-CLAUSE
@@ -583,7 +583,7 @@ param
     ;
 
 param_name
-    : (var_name | kw_override) {this.noSpaces()}? COLON
+    : {this.colonBeNext()}? (var_name | kw_override) COLON
     ;
 
 operand_arg

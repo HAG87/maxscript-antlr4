@@ -9,7 +9,7 @@ import
 } from 'antlr4ng';
 import { mxsParser } from './mxsParser';
 import MultiChannelTokenStream from './multiChannelTokenStream';
-// import { mxsLexer } from './mxsLexer';
+import { mxsLexer } from './mxsLexer';
 
 export abstract class mxsParserBase extends Parser
 {
@@ -36,23 +36,24 @@ export abstract class mxsParserBase extends Parser
 
     private validatorState: boolean = true;
 
+    protected test(): void
+    {
+        let idx = this.getCurrentToken().tokenIndex;
+        // if (idx < 0) return false;
+        let token = this.inputStream.get(idx);
+        console.log(`${JSON.stringify(token?.text)}`);
+        // console.log(this.inputStream.get(idx));
+    }
+
+    protected colonBeNext(offset: number = 1): boolean
+    {
+        let idx = this.getCurrentToken().tokenIndex + offset;
+        let token = this.inputStream.get(idx);
+        return (token?.type === mxsLexer.COLON);
+    }
+
     protected noNewLines(): boolean
     {
-        /*
-        // Get the token ahead of the current index.
-        const possibleIndexEosToken: number = this.currentToken.tokenIndex - 1;
-        const ahead: Token = this.inputStream.get(possibleIndexEosToken);
-
-        // Check if the token resides on the HIDDEN channel and if it's of the
-        // provided type.
-        return (ahead.channel == Lexer.HIDDEN) && (ahead.type == type);
-        */
-
-        // console.log(" -> no new lines predicate: " + !this.lineTerminatorAhead() as string);
-
-        // console.log(this.inputStream.LA(1));
-        // return this.inputStream.LA(1) != mxsParser.EOL;
-        // console.log('No new lines!');
         return !this.lineTerminatorAhead();
         //return false;
     }
@@ -83,15 +84,6 @@ export abstract class mxsParserBase extends Parser
 
         if (token.channel !== Lexer.DEFAULT_TOKEN_CHANNEL) { return false; }
 
-        /*
-        idx = this.getCurrentToken().tokenIndex - 2;
-        if (idx < 0) return false;
-        token = this.inputStream.get(idx);
-        
-        // console.log(token.type === mxsParser.NL);
-        // console.log(token.channel !== 0);
-        // if (token.channel !== Lexer.DEFAULT_TOKEN_CHANNEL) { return false;}
-        // */
         return true;
     }
 
