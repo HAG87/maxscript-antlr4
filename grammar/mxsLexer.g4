@@ -241,7 +241,7 @@ BOOL: T R U E | F A L S E
 COMPARE: ('==' | '<' | '>' | '<=' | '>=' | '!=')
 	;
 
-NAME: '#' ID
+NAME: '#' (Alpha | Num)+
 	;
 
 EQ: '='
