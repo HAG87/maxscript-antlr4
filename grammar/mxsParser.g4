@@ -28,17 +28,17 @@ program
     ;
 
 //<program> ::= { <expr> }+
-
+/*
 expr
     : simple_expr
     | var_decl
     | assignment_expr
     | assignmentOp_expr
-    | if_statement
     | while_loop
     | do_loop
     | for_loop
     | loop_exit
+    | if_statement
     | case_expr
     | struct_def
     | try_expr   
@@ -54,8 +54,8 @@ expr
     | macroscript_def
     | plugin_def
     ;
-
-/*
+*/
+// /*
 expr
     : non_if_expr
     | if_statement
@@ -85,7 +85,7 @@ non_if_expr
     | macroscript_def
     | plugin_def
     ;
-*/
+// */
 
 //-------------------------------------- MACROSCRIPT_DEF
 macroscript_def
@@ -533,7 +533,7 @@ open_stmt
     ;
 */
 
-/* // this does work but it is slooow
+// /* // this does work but it is slooow
 if_statement
     : IF nl? expr nl? 
          ( THEN nl? non_if_expr nl? ELSE nl? expr
@@ -541,12 +541,12 @@ if_statement
             | if_statement )
     ;
 // */
-
+/* // this fails for whatever reason with SLL
 if_statement
-    : IF nl? ifClause = expr nl? THEN nl? expr nl? (ELSE nl? expr | {this.itsNot(mxsLexer.ELSE)}? )
-    | IF nl? ifClause = expr nl? DO nl? expr
+    : IF nl? ifClause = expr nl? THEN nl? ifBody = expr nl? (ELSE nl? elseBody = expr | {this.itsNot(mxsLexer.ELSE)}? )
+    | IF nl? ifClause = expr nl? DO nl? ifBody = expr
     ;
-
+*/
 //---------------------------------------- DECLARATIONS
 var_decl
     : decl_scope nl? declaration (comma declaration)*
