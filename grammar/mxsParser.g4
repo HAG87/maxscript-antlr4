@@ -30,8 +30,35 @@ program
 //<program> ::= { <expr> }+
 
 expr
+    : simple_expr
+    | var_decl
+    | assignment_expr
+    | assignmentOp_expr
+    | if_statement
+    | while_loop
+    | do_loop
+    | for_loop
+    | loop_exit
+    | case_expr
+    | struct_def
+    | try_expr   
+    | fn_def
+    | fn_return
+    | context_expr
+    | attributes_def
+    | when_construct
+    | utility_def
+    | rollout_def
+    | tool_def
+    | rcmenu_def
+    | macroscript_def
+    | plugin_def
+    ;
+
+/*
+expr
     : non_if_expr
-    | if_clause
+    | if_statement
     ;
 
 non_if_expr
@@ -58,6 +85,7 @@ non_if_expr
     | macroscript_def
     | plugin_def
     ;
+*/
 
 //-------------------------------------- MACROSCRIPT_DEF
 macroscript_def
@@ -471,6 +499,7 @@ case_option
 */
 //---------------------------------------- IF-CLAUSE
 /*
+('else' e | {_input.LA(1) != ELSE}?)
 ifStatement
   : 'if' expression 'then' (statement | block) 'else' (statement | block)
   | 'if' expression 'then' (statementNoIf | block)
@@ -503,10 +532,19 @@ open_stmt
     ∣ if expr then matched_stmt else open_stmt
     ;
 */
-if_clause
-    : IF nl? non_if_expr nl? THEN nl? expr nl? ELSE nl? expr //('else' expr | {_input.LA(1) != ELSE}?)
-    // | IF nl? expr nl? DO nl? expr
-    | IF nl? non_if_expr nl? (THEN | DO) nl? non_if_expr
+
+/* // this does work but it is slooow
+if_statement
+    : IF nl? expr nl? 
+         ( THEN nl? non_if_expr nl? ELSE nl? expr
+            | (THEN | DO) nl? expr
+            | if_statement )
+    ;
+// */
+
+if_statement
+    : IF nl? ifClause = expr nl? THEN nl? expr nl? (ELSE nl? expr | {this.itsNot(mxsLexer.ELSE)}? )
+    | IF nl? ifClause = expr nl? DO nl? expr
     ;
 
 //---------------------------------------- DECLARATIONS
@@ -551,7 +589,7 @@ destination
     <expr_seq>
  */
 simple_expr
-    : <assoc=right> left = simple_expr AS  nl? (var_name | expr_seq) #TypecastExpr
+    : <assoc=right> left = simple_expr AS  nl? classname #TypecastExpr
     | <assoc=right> left = simple_expr POW nl? right = simple_expr #ExponentExpr
     | left = simple_expr (PROD | DIV) nl? right = simple_expr #ProductExpr
     | left = simple_expr (PLUS | MINUS | UNARY_MINUS) nl? right = simple_expr #AdditionExpr
@@ -563,6 +601,7 @@ simple_expr
     | operand #OperandExpr   //passthrough
     ;
 
+classname : var_name | expr_seq;
 //---------------------------------------- FUNCTION CALL
 // Positional Arguments
 // Keyword Arguments
@@ -609,8 +648,8 @@ param_name
     ;
 
 operand_arg
-    : var_name
-    | accessor
+    : accessor
+    | var_name
     | path
     // | by_ref
     | bool
@@ -640,9 +679,9 @@ operand
 //------------------------------------------------------------------------//
 accessor
     : <assoc=right> accessor nl? property //#AccProperty
-    | <assoc=right> accessor index    //#AccIndex
+    | <assoc=right> accessor index        //#AccIndex
     | factor nl? property                 //#AccProperty
-    | factor index                    //#AccIndex
+    | factor index                        //#AccIndex
     ;
 //------------------------------------------------------------------------//
 //Property accessor
@@ -659,7 +698,6 @@ index
 factor
     : var_name
     | path
-    // | by_ref
     | bool
     | STRING
     | NAME
@@ -672,7 +710,6 @@ factor
     | box2
     | unary_minus //UNARY MINUS
     | expr_seq //EXPRESSION SEQUENCE
-    // | PAREN_PAIR
     | QUESTION
     ;
 
@@ -689,16 +726,7 @@ expr_seq
         expr (nl+ expr)*
       rp
     | LPAREN nl? RPAREN
-    // | PAREN_PAIR
     ;
-/*
-sub_expr
-    : lp
-        expr (nl+ expr)*
-      rp
-    | LPAREN nl? RPAREN
-    ;
-*/
 //---------------------------------------- TYPES
 box2:
     lb
@@ -771,27 +799,13 @@ ref_prefix
     | {this.noWSBeNext()}? PROD #deref
     ;
 */
-// /*
 by_ref
     : {this.noWSBeNext()}? AMP (var_name | path)
     ;
 de_ref
-    : {this.noWSBeNext()}? PROD (var_name | path)
+    : {this.noWSBeNext()}? PROD (accessor | var_name | path)
     ;
-// */
 
-/*
-path
-    : DOLLAR {this.noSpaces()}? levels?
-    ;
-levels
-    : level_name ( {this.noSpaces()}? '/' {this.noSpaces()}? level_name)*
-    ;
-level_name
-    : ( ID | PROD | QUESTION | BACKSLASH)
-    | QUOTED
-    ;
-*/
 // Boolean
 bool
     : BOOL
