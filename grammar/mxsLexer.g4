@@ -288,8 +288,7 @@ QUESTION: '?'
 // BACKSLASH : Backslash; DOLLAR: Dollar;
 
 // CODE STRUCTURE
-PAREN_PAIR: '()'
-	;
+// PAREN_PAIR: '()' ;
 LPAREN: '('
 	;
 RPAREN: ')'

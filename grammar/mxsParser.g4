@@ -576,13 +576,18 @@ about correctly parenthesizing function arguments */
 fn_call
     // : caller = fn_caller ( args += operand)+ ( params += param)*
     : caller = fn_caller (
-        PAREN_PAIR //nullary call operator
+        // PAREN_PAIR //nullary call operator
+        paren_pair //nullary call operator
         | (args += operand_arg)+ (params += param)*
         // | (args += operand_arg)+
         | (params += param)+
     )
     // | operand
     ;
+
+paren_pair
+        : {this.closedParens()}? LPAREN RPAREN
+        ;
 
 fn_caller
     : var_name
@@ -667,7 +672,7 @@ factor
     | box2
     | unary_minus //UNARY MINUS
     | expr_seq //EXPRESSION SEQUENCE
-    | PAREN_PAIR
+    // | PAREN_PAIR
     | QUESTION
     ;
 
@@ -684,7 +689,7 @@ expr_seq
         expr (nl+ expr)*
       rp
     | LPAREN nl? RPAREN
-    | PAREN_PAIR
+    // | PAREN_PAIR
     ;
 /*
 sub_expr
@@ -739,7 +744,7 @@ array :
     SHARP nl? lp
         elementList?
     rp
-    | SHARP nl? PAREN_PAIR
+    // | SHARP nl? PAREN_PAIR
     ;
 
 elementList : expr ( comma expr )*

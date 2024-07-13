@@ -47,6 +47,18 @@ export abstract class mxsParserBase extends Parser
         return true;
     }
 
+    protected closedParens(offset: number = 1): boolean
+    {
+        let idx = this.getCurrentToken().tokenIndex + offset;
+        let token = this.inputStream.get(idx);
+        // console.log(`IS COLON: ${token?.type === mxsLexer.COLON} | ${JSON.stringify(token?.text)}`);
+        if (token)
+        {
+            return (token?.type === mxsLexer.RPAREN);
+        }
+        return true;
+    }
+
     protected noWSBeNext(offset: number = 1): boolean
     {
         let idx = this.getCurrentToken().tokenIndex + offset;
