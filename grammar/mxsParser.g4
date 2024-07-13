@@ -363,12 +363,12 @@ fn_def
 
 fn_args
     : var_name
-    | by_ref
+    // | de_ref
     ;
 
 fn_params
-    : param_name
-    | param
+    : param
+    | param_name
     ;
 
 //FN_RETURN
@@ -434,6 +434,12 @@ case_expr
         rp
         ;
 
+
+// This will prodice errors at compile time...
+case_item
+    : factor COLON nl? expr
+    ;
+/*
 // this is not correct, because if should work for 5:(a), buuuut.....
 case_item
     : case_factor COLON nl? expr
@@ -462,7 +468,7 @@ case_factor
 case_option
     : {this.colonBeNext()}? factor COLON
     ;
-
+*/
 //---------------------------------------- IF-CLAUSE
 /*
 ifStatement
@@ -530,7 +536,7 @@ assignmentOp_expr
 
 destination
     : accessor
-    | by_ref
+    | de_ref
     | var_name
     ;
 
@@ -545,20 +551,19 @@ destination
     <expr_seq>
  */
 simple_expr
-    : <assoc=right> left = simple_expr AS  nl? right = simple_expr #TypecastExpr
+    : <assoc=right> left = simple_expr AS  nl? (var_name | expr_seq) #TypecastExpr
     | <assoc=right> left = simple_expr POW nl? right = simple_expr #ExponentExpr
-    | left = simple_expr (DIV | PROD) nl? right = simple_expr #ProductExpr
+    | left = simple_expr (PROD | DIV) nl? right = simple_expr #ProductExpr
     | left = simple_expr (PLUS | MINUS | UNARY_MINUS) nl? right = simple_expr #AdditionExpr
     | left = simple_expr (OR | AND) nl? right = simple_expr #LogicExpr
+    | right = simple_expr COMPARE nl? left = simple_expr #ComparisonExpr  
     | NOT nl? right = simple_expr #LogicNOTExpr
-    | right = simple_expr COMPARE nl? left = simple_expr #ComparisonExpr   
     | fn_call #FnCallExpr    //passthrough
+    | de_ref #byRef
     | operand #OperandExpr   //passthrough
     ;
 
 //---------------------------------------- FUNCTION CALL
-//HOW TO SOLVE PROHIBITED / OPTIONAL / MANDATORY linebreaks????
-// Until an EOL or lower precedence rule...????
 // Positional Arguments
 // Keyword Arguments
 /*
@@ -570,17 +575,19 @@ about correctly parenthesizing function arguments */
 
 fn_call
     // : caller = fn_caller ( args += operand)+ ( params += param)*
-    : caller = fn_caller PAREN_PAIR //nullary call operator
-    | caller = fn_caller (args += operand_arg)+ (params += param)+
-    | caller = fn_caller (args += operand_arg)+
-    | caller = fn_caller (params += param)+
+    : caller = fn_caller (
+        PAREN_PAIR //nullary call operator
+        | (args += operand_arg)+ (params += param)*
+        // | (args += operand_arg)+
+        | (params += param)+
+    )
     // | operand
-
     ;
+
 fn_caller
     : var_name
     | path
-    | by_ref
+    | de_ref
     | accessor
     | unary_minus //UNARY MINUS
     | expr_seq //EXPRESSION SEQUENCE
@@ -597,15 +604,10 @@ param_name
     ;
 
 operand_arg
-    : accessor
-    | unary_arg
-    | factor_arg
-    ;
-
-factor_arg
     : var_name
+    | accessor
     | path
-    | by_ref
+    // | by_ref
     | bool
     | STRING
     | NAME
@@ -616,7 +618,7 @@ factor_arg
     | point3
     | point2
     | box2
-    // | unary_minus //UNARY MINUS
+    | unary_arg //UNARY_MINUS operand_arg //UNARY MINUS
     | expr_seq //EXPRESSION SEQUENCE
     | QUESTION
     ;
@@ -652,7 +654,7 @@ index
 factor
     : var_name
     | path
-    | by_ref
+    // | by_ref
     | bool
     | STRING
     | NAME
@@ -742,20 +744,37 @@ array :
 
 elementList : expr ( comma expr )*
     ;
+
 // Identifiers
 var_name
-    : GLOB? ID            #Id
-    | GLOB? QUOTED        #QuotedId
-    | GLOB? kw_reserved   #KeywordOverwrite
+    : ids       #Id
+    | GLOB ids  #GlobId
     ;
 
-by_ref
-    : AMP (var_name | path)
-    | PROD (var_name | path)
+ids
+    : ID
+    | QUOTED
+    | kw_reserved
+    | by_ref
     ;
 
 // Path names
 path: PATH ;
+/*
+ref_prefix
+    : {this.noWSBeNext()}? AMP #ref
+    | {this.noWSBeNext()}? PROD #deref
+    ;
+*/
+// /*
+by_ref
+    : {this.noWSBeNext()}? AMP (var_name | path)
+    ;
+de_ref
+    : {this.noWSBeNext()}? PROD (var_name | path)
+    ;
+// */
+
 /*
 path
     : DOLLAR {this.noSpaces()}? levels?

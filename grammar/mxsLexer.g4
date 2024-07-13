@@ -43,6 +43,18 @@ LINE_COMMENT: '--' ~[\r\n]* -> channel(HIDDEN)
 STRING: String_regular | String_verbatim
 	;
 
+//BASIC VALUES
+NUMBER
+	: Int Cnot?
+	| Float
+	| Hex
+	;
+
+TIMEVAL
+	: (( (Int? [.])? Int | Int [.]) [mfstMFST])+
+	| Int [:] Int? [.] Int
+	| Int [nN]
+	;
 //----------------------------------------------------------------------------------------------//
 // KEYWORDS
 AND: A N D
@@ -258,7 +270,7 @@ SHARP: '#'
 COMMA: ','
 	;
 
-// COLON : ':' {this.preceeded()}?; COLON : ':' NL*;
+// COLON : {this.preceeded()}? ':';
 COLON: ':'
 	;
 GLOB: '::'
@@ -292,27 +304,30 @@ LBRACK: '['
 	;
 RBRACK: ']'
 	;
+/*
+[-]
+{<digit>}
+		[
+		(
+			.{<digit>}
+			[
+			(e | E | d | D)
+			[+ | -]
+			{<digit>}+
+		)
+		| L
+		| P
+		]
+*/
 
-//BASIC VALUES
-NUMBER: INT | FLOAT | HEX
+fragment Float: Int [.] (Int Cnot?)? | [.] Int Cnot?
 	;
-
-TIMEVAL
-	: (( (INT? [.])? INT | INT [.]) [mfstMFST])+
-	| INT [:] INT? [.] INT
-	| INT [nN]
+fragment Cnot: ( [eEdD] ([+-]? Int)? | [LP] )
 	;
-
-fragment FLOAT: INT [.] TRAIL? | [.] TRAIL
+fragment Hex: '0' [xX] (Num | [aAfF])+
 	;
-
-fragment TRAIL: INT ([eEdD] [+-] INT | [lLpP])?
+fragment Int: Num+
 	;
-fragment HEX: '0' [xX] (Num | [aAfF])+
-	;
-fragment INT: Num+
-	;
-
 fragment String_regular: '"' (~["\r\n] | '\\"')* '"'
 	;
 fragment String_verbatim: '@"' ~["]* '"'

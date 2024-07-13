@@ -34,44 +34,34 @@ export abstract class mxsParserBase extends Parser
         }
     }
 
-    private validatorState: boolean = true;
-
-    protected test(): void
-    {
-        let idx = this.getCurrentToken().tokenIndex;
-        // if (idx < 0) return false;
-        let token = this.inputStream.get(idx);
-        console.log(`${JSON.stringify(token?.text)}`);
-        // console.log(this.inputStream.get(idx));
-    }
-
+    // used for param:name
     protected colonBeNext(offset: number = 1): boolean
     {
         let idx = this.getCurrentToken().tokenIndex + offset;
         let token = this.inputStream.get(idx);
-        return (token?.type === mxsLexer.COLON);
+        // console.log(`IS COLON: ${token?.type === mxsLexer.COLON} | ${JSON.stringify(token?.text)}`);
+        if (token)
+        {
+            return (token?.type === mxsLexer.COLON);
+        }
+        return true;
+    }
+
+    protected noWSBeNext(offset: number = 1): boolean
+    {
+        let idx = this.getCurrentToken().tokenIndex + offset;
+        let token = this.inputStream.get(idx);
+        if (token)
+        {
+            return (token?.channel !== mxsLexer.HIDDEN);
+        }
+        return true;
     }
 
     protected noNewLines(): boolean
     {
         return !this.lineTerminatorAhead();
         //return false;
-    }
-
-    protected flagNewLine(): void
-    {
-
-        console.log('set flag!: ' + this.lineTerminatorAhead());
-        if (this.lineTerminatorAhead()) this.validatorState = false;
-    }
-
-    protected useFlag(): boolean
-    {
-        console.log('use flag!: ' + this.validatorState);
-        let flag = this.validatorState;
-        // reset state
-        this.validatorState = true;
-        return flag;
     }
 
     protected noSpaces(): boolean
@@ -87,15 +77,6 @@ export abstract class mxsParserBase extends Parser
         return true;
     }
 
-    protected SimpleExprAhead(): boolean
-    {
-        let possibleIndexToken = this.getCurrentToken().tokenIndex - 1;
-        let ahead: Token = this.inputStream.get(possibleIndexToken);
-        console.log('--- ' + ahead.text);
-
-        // mxsParser.RULE_simple_expr
-        return false;
-    }
     /**
      * Returns {@code true} iff on the current index of the parser's
      * token stream a token exists on the {@code HIDDEN} channel which
