@@ -1,12 +1,62 @@
-import * as Parser from "./mxsParser.js";
+import ParseTreeListener from "antlr4/tree/ParseTreeListener.js";
+import
+{
+    ProgramContext,
+
+    Struct_defContext,
+    // Struct_memberContext, Struct_scopeContext,
+    Fn_defContext,
+
+    // Plugin_defContext,
+    // Plugin_clauseContext,
+    // Change_handlerContext,
+    // Context_exprContext,
+    // Ctx_predicateContext,
+    // Macroscript_defContext,
+    Utility_defContext,
+    // Rollout_defContext,
+    // Rollout_clauseContext,
+    // RolloutGroupContext,
+    // RolloutControlContext,
+    // Tool_defContext,
+    // Rcmenu_defContext,
+    // Rc_submenuContext,
+    // Rc_separatorContext,
+    // Rc_menuitemContext,
+    // Rc_clauseContext,
+    // VarDeclContext, AssignContext, IfExprContext,
+    Case_exprContext,
+    // WhileExprContext, DoExprContext, ForExprContext, ExitExprContext,
+    // TryExprContext,  FnRetContext,
+    // ContextExprContext, AttributesDefContext, UtilityDefContext, RolloutDefContext, ToolDefContext, RcmenuDefContext, MacroscriptDefContext, PluginDefContext, ChangeHandlerContext,
+    // Param_exprContext, Param_defContext, Attributes_defContext, Attributes_clauseContext, Struct_defContext,
+    // Event_handlerContext, Event_argsContext,
+    // , Fn_argsContext, Fn_paramsContext, Fn_returnContext, Try_exprContext, While_loopContext,
+    // Do_loopContext, For_loopContext, For_sequenceContext, For_whileContext, For_whereContext, Loop_exitContext,
+    // Case_exprContext, Case_itemContext, If_exprContext, Var_declContext, DeclarationContext, AssignmentContext, AssigmentOperationExpressionContext, DestinationContext,
+    Fn_callContext,
+    TypecastExprContext,
+    ExponentExprContext,
+    ProductExprContext,
+    AdditionExprContext,
+    LogicExprContext,
+    LogicNOTExprContext,
+    ComparisonExprContext,
+    // FnCallExprContext,
+    // OperandExprContext,
+    AccessorContext,
+    If_statementContext,
+    // AccIndexContext,
+    // OperandContext,
+    // CallerContext,
+    // ParamContext, Param_nameContext, AccPropertyContext, AccIndexContext, PropertyContext, IndexContext, FactorContext,
+    // Unary_minusContext, Box2Context, Point3Context, Point2Context, BitArrayContext, BitListContext, BitexprContext, ArrayContext,
+    // ElementListContext, IdContext, QuotedIdContext, KeywordOverwriteContext, RefContext, DeRefContext, PathContext,
+    // Expr_seqContext
+} from "./mxsParser.js";
 
 import { mxsParserListener } from "./mxsParserListener";
-import
-    {
-        TerminalNode,
-        ParseTreeListener
-
-    } from "antlr4ng";
+import { TerminalNode } from "antlr4ng";
 
 /*
 class CustomVisitor
@@ -23,36 +73,40 @@ export class mxsParserSymbolsListener extends mxsParserListener
     */
     public override visitTerminal = (ctx: TerminalNode): void =>
     {
-        //    console.log(ctx.getSymbol().type);
-        // console.log(ctx.getText());
+        // console.log(ctx.getSymbol().type);
+        // console.log(JSON.stringify(ctx.getText()));
 
     };
-    // /*
-    public override enterSimpleExpr = (ctx: Parser.SimpleExprContext): void =>
-    {
-        console.log(ctx.getText());
-       
 
-    };
-    /*
-    public override enterExpr = (ctx: ExprContext): void => {
-        // console.log(ctx);       
-       
-    }; 
-    // */
-    public override enterProgram = (ctx: Parser.ProgramContext): void =>
+    public override enterProgram = (ctx: ProgramContext): void =>
     {
         // console.log(ctx);
 
-
     };
 
-    public override exitProgram = (ctx: Parser.ProgramContext): void =>
+    public override exitProgram = (ctx: ProgramContext): void =>
     {
         // console.log(ctx.getText());
     };
+
+    public override enterUtility_def = (ctx: Utility_defContext): void =>
+    {
+        console.log(JSON.stringify(ctx.getText()));
+    }
+
+    public override enterStruct_def = (ctx: Struct_defContext): void =>
+    {
+        /*
+        ctx.children.forEach( c => {
+            console.log(c.getText());
+        });
+        // console.log(ctx);
+        console.log(ctx.children[0]);
+        */
+        // console.log(JSON.stringify(ctx.getText()));
+    }
     // /*
-    public override enterFnDef = (ctx: Parser.FnDefContext): void =>
+    public override enterFn_def = (ctx: Fn_defContext): void =>
     {
         // console.log(ctx.fn_def()._fn_mod?.text);
         // console.log(ctx.fn_def()._fn_decl?.text);
@@ -62,7 +116,7 @@ export class mxsParserSymbolsListener extends mxsParserListener
         // console.log(ctx.fn_def().fn_params().forEach(p => p.getText()));
         // console.log(ctx.fn_def()._fn_body?.getText());
         // console.log(ctx.fn_def()._fn_body?.getText());
-        console.log(ctx.getText());
+        // console.log(JSON.stringify(ctx.getText()));
 
     };
     // */
@@ -80,28 +134,48 @@ export class mxsParserSymbolsListener extends mxsParserListener
     // public override exitFactor = (ctx: FactorContext): void => {}; 
 
 
-    // /*
-    public override enterFnCallExpression = (ctx: Parser.FnCallExpressionContext): void =>
-    {
 
-        // console.log('function call: ' + ctx.getText() + '| caller1: ' + ctx._caller?.getText());
-        // console.log(ctx.getText());
+    public override enterCase_expr = (ctx: Case_exprContext): void =>
+    {
+        // console.log('case expression: ' + ctx.getText());
     };
     // */
-    // public override exitFn_call = (ctx: Fn_callContext): void => {};
-    // /*
-    public override enterCaseExpr = (ctx: Parser.CaseExprContext): void =>
+
+    // public override enterTypecastExpr = (ctx: TypecastExprContext): void =>{}
+    // public override enterExponentExpr = (ctx: ExponentExprContext): void =>{}
+    // public override enterProductExpr = (ctx: ProductExprContext): void =>{}
+    // public override enterAdditionExpr = (ctx: AdditionExprContext): void =>{}
+    // public override enterLogicExpr = (ctx: LogicExprContext): void =>{}
+    // public override enterLogicNOTExpr = (ctx: LogicNOTExprContext): void =>{}
+    // public override enterComparisonExpr = (ctx: ComparisonExprContext): void =>{}
+
+    // public override enterFnCallExpr = (ctx: FnCallExprContext): void =>{
+    //     console.log('function call: ' + ctx.getText() + '| caller1: ' + ctx._caller?.getText());
+    // }
+    public override enterIf_statement = (ctx: If_statementContext): void =>
     {
-        console.log('case expression: ' + ctx.getText());
-    };
-    public override enterOperand = (ctx: Parser.OperandContext): void =>
+        // console.log(`--> IF_clause: ${ctx.getText()}\n----`);
+    }
+    public override enterFn_call = (ctx: Fn_callContext): void =>
     {
-        // console.log('operand: '+ ctx.getText());
+        // console.log('call: ' + ctx.getText());
     };
+/*
+    public override enterOperandExpr = (ctx: OperandExprContext): void =>
+    {
+        // console.log('operand: ' + ctx.getText());
+    };*/
+    public override enterAccessor = (ctx: AccessorContext): void =>
+    {
+        // console.log('accessor: ' + ctx.getText());
+    }
+    // public override enterAccIndex = (ctx: AccIndexContext): void =>
+    // {
+    //     console.log(ctx.getText());
+    // }
     // public override exitOperand = (ctx: OperandContext): void => {};
     // public override exitCaseExpr = (ctx: CaseExprContext): void => {}; 
     /*
-    public override enterSimpleExpr = (ctx: SimpleExprContext): void => {}; 
     public override exitSimpleExpr = (ctx: SimpleExprContext): void => {}; 
 
     public override enterVarDecl = (ctx: VarDeclContext): void => {}; 

@@ -9,7 +9,7 @@ import {
     PredictionMode,
     ParseCancellationException,
     RecognitionException,
-    // DiagnosticErrorListener,
+    DiagnosticErrorListener,
     // Lexer,
     // Parser,
     // ParserRuleContext,
@@ -19,11 +19,26 @@ import {
     // RuleTagToken
 } from "antlr4ng";
 
-let str:string = fs.readFileSync('./test/samples/input.ms', 'utf-8');
+const test_files = [
+  './test/samples/attributes-def.ms', //ok
+  './test/samples/change-handler.ms', //ok
+  './test/samples/context-expr.ms', //ok
+  './test/samples/macroscript-def.ms', //ok
+  './test/samples/plugin-def.ms', //ok
+  './test/samples/rollout-util-def.ms', //ok
+  './test/samples/simple-expr.ms', //ok
+  './test/samples/structure-def.ms', //ok
+  './test/samples/tool-def.ms', //ok
+];
+
+let str:string = fs.readFileSync('./test/input.ms', 'utf-8');
+// let str:string = fs.readFileSync(test_files[1], 'utf-8');
+
 
 // import { mxsParserBase } from "./parser/mxsParserBase";
 import { mxsParser } from "./parser/mxsParser";
 import { mxsLexer } from "./parser/mxsLexer";
+// import { mxsLexerBase } from "./parser/mxsLexerBase";
 
 import { mxsParserVisitor } from "./parser/mxsParserVisitor";
 import { mxsParserSymbolsListener } from "./parser/mxsParserSymbolsListener";
@@ -35,13 +50,20 @@ import MultiChannelTokenStream from "./parser/multiChannelTokenStream";
 const inputStream = CharStream.fromString(str);
 // Create the lexer and parser
 const lexer       = new mxsLexer(inputStream);
-// const tokenStream = new CommonTokenStream(lexer);
-const tokenStream = new MultiChannelTokenStream(lexer);
+// const lexer       = new mxsLexerBase(inputStream);
+const tokenStream = new CommonTokenStream(lexer);
+// tokenStream.fill();
+// /*
+// const tokenStream = new MultiChannelTokenStream(lexer);
 const parser      = new mxsParser(tokenStream);
 // let parser = new mxsParserBase(tokenStream);
 
+// parser.setTrace(true);
+
 // error handling strategy
 parser.errorHandler = new BailErrorStrategy();
+// parser.addErrorListener(new DiagnosticErrorListener());
+// parser.interpreter.predictionMode = PredictionMode.LL_EXACT_AMBIG_DETECTION;
 parser.interpreter.predictionMode = PredictionMode.SLL;
 // parser.interpreter.predictionMode = PredictionMode.LL;
 
@@ -52,8 +74,9 @@ let tree;
 try {
     tree = parser.program();    
 } catch (e:any) {
-  console.log(e.message);
-  /*
+    // console.log(`ERROR: ${e.message}`);
+    console.log(`ERROR: ${e?.msg}`);
+
     if (e instanceof ParseCancellationException) {
         lexer.reset();
         tokenStream.setTokenSource(lexer);
@@ -63,8 +86,7 @@ try {
         tree = parser.program();
     } else {
         throw e;
-    }
-        */
+    }    
 }
 
 if (tree && tree.getChildCount() > 0) {
@@ -75,7 +97,7 @@ if (tree && tree.getChildCount() > 0) {
     
     ParseTreeWalker.DEFAULT.walk(listener, tree);
 }
-
+// */
 
 /*
 //  You can then use the generated parser to walk the parse tree, for example with a visitor to evaluate the expression:

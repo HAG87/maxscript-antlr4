@@ -1,8 +1,16 @@
+/* $antlr-format
+ * alignColons hanging,
+ * alignSemicolons hanging,
+ * allowShortBlocksOnASingleLine true,
+ * allowShortRulesOnASingleLine true,
+ * alignFirstTokens true,
+ * minEmptyLines 1
+ */
 parser grammar mxsParser;
 
 @header {
-import { mxsParserBase } from "./mxsParserBase"
-import { mxsLexer } from "./mxsLexer"
+    import { mxsParserBase } from "./mxsParserBase"
+    import { mxsLexer } from "./mxsLexer"
 }
 
 options {
@@ -13,91 +21,109 @@ options {
 }
 
 /*GRAMMAR RULES*/
+// THE ORDER OF FUNCTION CALLS IS BROKEN, IT NEEDS TO PRECEEDE OPERAND. MAYBE THIS WILL FIX WITH THE NL? MANAGMENT???
 program
-    // : expr ({this.lineTerminatorAhead()}? expr)* EOF
-    : expr (NL expr)* EOF
+    : nl* expr (nl+ expr)* nl* EOF
+    // : expr (NL expr)* EOF
     ;
-// THE ORDER OF FUNCTION CALLS IS BROKEN, IT NEEDS TO PRECEEDE OPERAND. MAYBE THIS WILL FIX WITH THE WS MANAGMENT???
 
-//expr_iter: (expr EOL);
+//<program> ::= { <expr> }+
 /*
-<program> ::= { <expr> }+
-<expr> ::= <simple_expr>
-<variable_decls>
-<assignment>
-<if_expr>
-<while_loop>
-<do_loop>
-<for_loop>
-<loop_exit>
-<case_expr>
-<struct_def>
-<try_expr>
-<variable_decls>
-<function_def>
-<function_return>
-<context_expr>
-<max_command>
-<utility_def>
-<rollout_def>
-<tool_def>
-<rcmenu_def>
-<macroscript_def>
-<plugin_def>
- */
 expr
-    : simple_expr      #SimpleExpr
-    // : {this.enable(mxsLexer.NEWLINE_CHANNEL);} NL {this.disable(mxsLexer.NEWLINE_CHANNEL);}simple_expr     #SimpleExpr
-    // | var_decl        #VarDecl
-    // | assignment      #Assign
-    // | assignment_expr #AssignOp
-    // | if_expr         #IfExpr
-    // | while_loop      #WhileExpr
-    // | do_loop         #DoExpr
-    // | for_loop        #ForExpr
-    // | loop_exit       #ExitExpr
-    | case_expr       #CaseExpr
-    // | struct_def      #StructDef
-    // | try_expr        #TryExpr    
-    | fn_def          #FnDef
-    // | fn_return       #FnRet
-    // | context_expr    #ContextExpr    
-    // | attributes_def  #AttributesDef
-    // | change_handler  #ChangeHandler
-    // | utility_def     #UtilityDef
-    // | rollout_def     #RolloutDef
-    // | tool_def        #ToolDef
-    // | rcmenu_def      #RcmenuDef
-    // | macroscript_def #MacroscriptDef
-    // | plugin_def      #PluginDef
+    : simple_expr
+    | var_decl
+    | assignment_expr
+    | assignmentOp_expr
+    | while_loop
+    | do_loop
+    | for_loop
+    | loop_exit
+    | if_statement
+    | case_expr
+    | struct_def
+    | try_expr   
+    | fn_def
+    | fn_return
+    | context_expr
+    | attributes_def
+    | when_construct
+    | utility_def
+    | rollout_def
+    | tool_def
+    | rcmenu_def
+    | macroscript_def
+    | plugin_def
+    ;
+*/
+// /*
+expr
+    : non_if_expr
+    | if_statement
     ;
 
-//------------------------------------------------------------------------//
-//MACROSCRIPT_DEF
+non_if_expr
+    : simple_expr
+    | var_decl
+    | assignment_expr
+    | assignmentOp_expr
+    | while_loop
+    | do_loop
+    | for_loop
+    | loop_exit
+    | case_expr
+    | struct_def
+    | try_expr   
+    | fn_def
+    | fn_return
+    | context_expr
+    | attributes_def
+    | when_construct
+    | utility_def
+    | rollout_def
+    | tool_def
+    | rcmenu_def
+    | macroscript_def
+    | plugin_def
+    ;
+// */
+
+//-------------------------------------- MACROSCRIPT_DEF
 macroscript_def
-    : MACROSCRIPT var_name (param_name (operand | RESOURCE))*
-        LPAREN
-            (expr | event_handler)*
-        RPAREN
+    : MACROSCRIPT nl? var_name ( nl? param_name nl? (operand | RESOURCE) )* nl?
+    lp
+        (
+            macroscript_clause
+            (nl? macroscript_clause)*
+        )?
+    rp
+    ;
+macroscript_clause
+    : expr
+    | event_handler
     ;
 
-//UTILITY_DEF
+//-------------------------------------- UTILITY_DEF
 utility_def
-    : UTILITY var_name operand param*
-        LPAREN
-            rollout_clause*
-        RPAREN
+    : UTILITY nl? var_name nl? operand (nl? param)* nl?
+    lp
+        (
+            rollout_clause
+            (nl? rollout_clause)*
+        )?
+    rp
     ;
 
-//ROLLOUT_DEF
+//-------------------------------------- ROLLOUT_DEF
 rollout_def
-    : ROLLOUT var_name operand param*
-        LPAREN
-            rollout_clause*
-        RPAREN
+    : ROLLOUT nl? var_name nl? operand (nl? param)* nl?
+    lp
+        (
+            rollout_clause
+            (nl? rollout_clause)*
+        )?
+    rp
     ;
 
-//ROLLOUT CLAUSE
 rollout_clause
     : var_decl
     | rollout_control
@@ -110,41 +136,46 @@ rollout_clause
     ;
 
 rollout_group
-    : GROUP STRING? LPAREN rollout_control* RPAREN #RolloutGroup
+    : GROUP nl? STRING? nl?
+    lp
+        (
+            rollout_control
+            (nl? rollout_control)*
+        )?
+    rp
     ;
 
 rollout_control
-    : RolloutControl var_name STRING? param* #RolloutControl
+    : RolloutControl (nl? operand)+ (nl? param)*
     ;
 
-//TOOL_DEF
+//-------------------------------------- TOOL_DEF
 tool_def
-    : TOOL var_name param*
-        LPAREN
-        (
-            var_decl
-            | fn_def
-            | struct_def
-            | event_handler
-        )+
-        RPAREN
+    : TOOL nl? var_name (nl? param)* nl?
+    lp
+        tool_clause
+        (nl? tool_clause)+
+    rp
+;
+
+tool_clause
+    : var_decl
+    | fn_def
+    | struct_def
+    | event_handler
     ;
 
-//RCMENU_DEF
+//-------------------------------------- RCMENU_DEF
 rcmenu_def
-    : RCMENU var_name
-        LPAREN
-            rc_clause*
-        RPAREN
+    : RCMENU nl? var_name nl?
+    lp
+        (
+            rc_clause
+            (nl? rc_clause)*
+        )?
+    rp
     ;
-rc_submenu
-    : SUBMENU STRING param*
-        LPAREN
-            rc_clause*
-        RPAREN
-    ;
-rc_separator: SEPARATOR var_name param*;
-rc_menuitem: MENUITEM var_name STRING param*;
+
 rc_clause
     : var_decl
     | fn_def
@@ -155,12 +186,28 @@ rc_clause
     | rc_separator
     ;
 
-//PLUGIN_DEF
+rc_submenu
+    : SUBMENU nl? STRING (nl? param)* nl?
+    lp
+        (
+            rc_clause
+            (nl? rc_clause)*
+        )?
+    rp
+    ;
+
+rc_separator: SEPARATOR nl? var_name (nl? param)*
+    ;
+rc_menuitem: MENUITEM nl? var_name nl? STRING (nl? param)*
+    ;
+
+//-------------------------------------- PLUGIN_DEF
 plugin_def
-    :PLUGIN var_name var_name param*
-        LPAREN
-            plugin_clause+
-        RPAREN
+    :PLUGIN nl? var_name nl? var_name (nl? param)* nl?
+    lp
+        plugin_clause
+        (nl? plugin_clause)*
+    rp
     ;
 
 plugin_clause
@@ -173,116 +220,208 @@ plugin_clause
     | param_def
     ;
 
-//CHANGE_HANDLER
+//--------------------------------------  CHANGE_HANDLER
 // when <attribute> <objects> change[s] [ id:<name> ] [handleAt:#redrawViews|#timeChange] [ <object_parameter> ] do <expr>
 // when             <objects> deleted   [ id:<name> ] [handleAt:#redrawViews|#timeChange] [ <object_parameter> ] do <expr> 
-change_handler
-    : WHEN var_name (var_name | KW_OVERRIDE | path | expr_seq) (CHANGE | DELETED) param* operand? DO expr
+// objects var_name | path | array
+
+when_construct
+    :  when_decl nl? DO nl? expr
     ;
 
-//CONTEXT_EXPR
-context_expr
-    : ctx_predicate (COMMA ctx_predicate)* expr
+when_decl
+    : WHEN nl? var_name nl? //attribute
+        (var_name | path | expr_seq | array) nl? //objects
+        CHANGE nl? //change
+        (nl? param)* //parameters
+        (nl? var_name)? //object_parameter
+    | WHEN (var_name | path | expr_seq | array) nl? //objects
+        DELETED nl? //change
+        (nl? param)* //parameters
+        (nl? operand)? //object_parameter
+    ;
+//-------------------------------------- CONTEXT_EXPR
+/*The full syntax for <context_expr> is:
+
+<context> { , <context> } <expr>
+where <context> is one of:
+
+at level <node>
+at time <time>
+about <center_spec>
+in <node>
+[ in ] coordsys <coordsys>
+[ with ] animate                     <boolean>
+[ with ] undo                        <boolean>
+[ with ] redraw                      <boolean>
+[ with ] quiet                       <boolean>
+[ with ] redraw                      <boolean>
+[ with ] printAllElements            <boolean>
+[ with ] defaultAction               <action>
+[ with ] MXSCallstackCaptureEnabled  <boolean>
+[ with ] dontRepeatMessages          <boolean>
+[ with ] macroRecorderEmitterEnabled <boolean>
+
+set <context>      
+Where, <context> is one of the MAXScript context prefixes: 
+animate,
+time,
+in,
+coordsys,
+about,
+level,
+undo
+*/
+
+context_expr : ctx_cascading | ctx_set;
+
+ctx_cascading
+    : ctx_predicate (comma ctx_predicate)* nl? expr
+    ;
+
+ctx_set
+    : SET (ANIMATE | TIME | IN | LEVEL ) nl? operand
+    | SET COORDSYS  nl? (LOCAL | operand)
+    | SET ABOUT     nl? (COORDSYS | operand)
+    | SET UNDO      nl? (STRING | param | var_name)? nl? simple_expr
     ;
 
 ctx_predicate
-    : (SET | AT) (LEVEL | TIME) operand
-    | SET? IN operand
-    | SET? ABOUT (COORDSYS | operand)
-    | (SET | IN)? COORDSYS (LOCAL | operand)
-    | (SET | WITH)? CONTEXT (simple_expr | BOOL)
-    | (SET | WITH)? UNDO (STRING | param | var_name) (simple_expr | BOOL)
-    | WITH? DEFAULTACTION NAME
+    : AT nl? (LEVEL | TIME) nl? operand
+    | IN nl? operand
+    | ABOUT nl? (COORDSYS | operand)
+    | IN?   nl? COORDSYS      nl? (LOCAL | operand)
+    | WITH? nl? UNDO          nl? (STRING | param | var_name)? nl? simple_expr        
+    | WITH? nl? DEFAULTACTION nl? NAME
+    | WITH? nl? ctx_keyword   nl? simple_expr
     ;
 
-//PARAMETER DEF
-param_expr
-    : PARAMETERS var_name param*
-        LPAREN
-            (param_def | event_handler)*
-        RPAREN
-        ;
-// param_clause : param_def | event_handler ;
-param_def: var_name param*;
+ctx_keyword
+	: ANIMATE
+	| DONTREPEATMESSAGES
+	| MACRORECORDEREMITERENABLED
+	| MXSCALLSTACKCAPTUREENABLED
+	| PRINTALLELEMENTS
+	| QUIET
+	| REDRAW
+	;
+//-------------------------------------- PARAMETER DEF
+param_def
+    : PARAMETERS nl? var_name (nl? param)* nl?
+    lp
+        (
+            param_clause
+            (nl? param_clause)*
+        )?
+    rp
+    ;
 
-// ATTRIBUTES DEFINITION
+param_clause
+    : param_expr
+    | event_handler
+    ;
+
+param_expr: var_name (nl? param)*
+    ;
+
+//-------------------------------------- ATTRIBUTES DEFINITION
 // attributes <name> [version:n] [silentErrors:t/f] [initialRollupState:0xnnnnn] [remap:#(<old_param_names_array>, <new_param_names_array>)]
 attributes_def
-    : ATTRIBUTES var_name var_name param var_name param*
-        LPAREN
-            attributes_clause+
-        RPAREN
-        ;
+    : ATTRIBUTES nl?
+    var_name
+    (nl? param)* nl?
+    lp
+        attributes_clause
+        (nl? attributes_clause)*
+    rp
+    ;
+
 attributes_clause
     : var_decl
     | event_handler
     | param_def
     | rollout_def
     ;
-//------------------------------------------------------------------------//
-//STRUCT DEF
-struct_def
-    : STRUCT str_name= var_name
-    LPAREN
-        struct_members
-    RPAREN ;
-struct_members: struct_member (COMMA struct_member)* ;
-struct_member
-    : struct_scope? (assignment | var_name)
-    | struct_scope? fn_def
-    | struct_scope? event_handler
-    //| struct_scope struct_member
-    ;
-struct_scope: PUBLIC | PRIVATE ;
 
-//EVENT HANDLER
+//-------------------------------------- EVENT HANDLER
 event_handler
-    : ON en_args= event_args (DO | RETURN) ev_body= expr ;
+    : ON nl?
+    en_args = event_args nl?
+    (DO | RETURN) nl?
+    ev_body = expr
+    ;
+
 event_args
-    : ev_type= var_name
-    | var_name ev_target_type= var_name
-    | var_name var_name ev_target_type_args= var_name+
+    : ev_type = var_name
+    | ev_target = var_name nl? ev_type = var_name
+    | ev_target = var_name nl? ev_type = var_name (nl? ev_args += var_name)+
     ;
 
-//FUNCTION DEF
+//---------------------------------------- STRUCT DEF
+struct_def
+    : STRUCT nl? str_name = var_name nl?
+    lp
+       struct_members
+    rp
+    ;
+
+struct_members: struct_member (comma struct_member)* 
+    ;
+
+struct_member
+    : (scope = struct_scope nl?)? assignment_expr
+    | (scope = struct_scope nl?)? var_name
+    | (scope = struct_scope nl?)? fn_def
+    | (scope = struct_scope nl?)? event_handler
+    ;
+
+struct_scope: PUBLIC | PRIVATE
+    ;
+
+//---------------------------------------- FUNCTION DEF
 fn_def
-    : fn_mod= MAPPED? fn_decl= FN fn_name= var_name
-        fn_args*
-        fn_params*
-        EQ fn_body= expr
+    : fn_mod = MAPPED? nl?
+    fn_decl = FN nl?
+    fn_name = var_name nl?
+    (nl? fn_args)*
+    (nl? fn_params)* nl?
+    EQ nl?
+    fn_body = expr
     ;
 
-fn_args: var_name | by_ref ;
-fn_params: param_name | param;
+fn_args
+    : var_name
+    // | de_ref
+    ;
+
+fn_params
+    : param
+    | param_name
+    ;
 
 //FN_RETURN
-fn_return: RETURN expr;
-
-//TRY EXPR
-try_expr:
-    TRY expr
-    CATCH expr
+fn_return: RETURN nl? expr
     ;
 
-//LOOPS
-//while loop
+//---------------------------------------- LOOPS
+// While loop
 while_loop:
-    WHILE expr
-    DO expr
+    WHILE nl? expr nl?   
+    DO nl? expr
     ;
 
-//do loop
+// Do loop
 do_loop:
-    DO expr
-    WHILE expr
+    DO nl? expr nl?   
+    WHILE nl? expr
     ;
 
-//for loop
+// For loop
 //for <var_name> [, <index_name>[, <filtered_index_name>]] ( in | = )<sequence> ( do | collect ) <expr>
 for_loop
-    : FOR var=var_name (COMMA index_name=var_name (COMMA filtered_index_name=var_name)?)?
-    for_operator=(IN | EQ) for_sequence
-    for_action=(DO | COLLECT) expr
+    : FOR nl? var = var_name (comma index_name = var_name (comma filtered_index_name = var_name)?)? nl?
+    for_operator  = (IN | EQ) nl? for_sequence nl?
+    for_action    = (DO | COLLECT) nl? expr
     ;
 
 // for-sequence
@@ -292,172 +431,271 @@ for_loop
 //<expr> [where <expr>]
 
 for_sequence
-    : expr for_to for_by? for_while? for_where?
-    | expr for_while? for_where?
+    : expr nl?
+        for_to nl?
+        for_by? nl?
+        for_while? nl?
+        for_where?
+    | expr nl?
+        for_while? nl?
+        for_where?
     ;
 
-for_by: BY expr ;
-for_to: TO expr ;
-for_while: WHILE expr ;
-for_where: WHERE expr ;
-loop_exit: EXIT (WITH expr)? ;
+for_by:    BY    nl? expr;
+for_to:    TO    nl? expr;
+for_while: WHILE nl? expr;
+for_where: WHERE nl? expr;
+loop_exit: EXIT  ( nl? WITH nl? expr)?
+    ;
 
-//CASE-EXPR
+//----------------------------------------TRY EXPR
+try_expr
+    : TRY nl? expr nl?   
+    CATCH nl? expr
+    ;
+
+//---------------------------------------- CASE-EXPR
 case_expr
-: CASE expr? OF
-    LPAREN
-    // {this.enable(mxsLexer.NEWLINE_CHANNEL);}
-        NL?
-        case_item       
-        // case_item*
-        (NL case_item)+
-        NL?
-    // {this.disable(mxsLexer.NEWLINE_CHANNEL);}
-    RPAREN
+    : CASE nl? expr? nl? OF nl?       
+        lp
+            case_item
+            (nl case_item)*
+        rp
+        ;
+
+
+// This will prodice errors at compile time...
+case_item
+    : factor COLON nl? expr
+    ;
+/*
+// this is not correct, because if should work for 5:(a), buuuut.....
+case_item
+    : case_factor COLON nl? expr
+    | (NUMBER | TIMEVAL) COLON (nl | {!this.noSpaces()}?) expr
     ;
 
-case_item : case_option expr;
+case_factor
+    : accessor
+    | var_name
+    | path
+    | by_ref
+    | bool
+    | STRING
+    | NAME
+    // | NUMBER
+    // | TIMEVAL
+    | array
+    | bitArray
+    | point3
+    | point2
+    | box2
+    | unary_minus
+    | expr_seq
+    ;
 
 case_option
-    : factor {this.noSpaces()}? COLON
+    : {this.colonBeNext()}? factor COLON
     ;
+*/
+//---------------------------------------- IF-CLAUSE
+/*
+('else' e | {_input.LA(1) != ELSE}?)
+ifStatement
+  : 'if' expression 'then' (statement | block) 'else' (statement | block)
+  | 'if' expression 'then' (statementNoIf | block)
+  ;
+*/
 
-//IF-EXPR
-if_expr
-    : IF expr
-        THEN expr
-        (ELSE expr)?
-    | IF expr
-        DO expr
+/*
+statement
+    : non_if_statement
+    | if_statement
+;
+
+if_statement
+    : 'if' parExpression 
+         ifBody= ( non_if_statement 'else' elseBody=statement
+                   | if_statement )
+;  
+*/
+/*
+stmt
+    : matched_stmt
+    ∣ open_stmt
     ;
+matched_stmt
+    : if expr then matched_stmt else matched_stmt
+    ∣ other
+    ;
+open_stmt
+    : if expr then stmt
+    ∣ if expr then matched_stmt else open_stmt
+    ;
+*/
 
-//DECLARATIONS
+// /* // this does work but it is slooow
+if_statement
+    : IF nl? expr nl? 
+         ( THEN nl? non_if_expr nl? ELSE nl? expr
+            | (THEN | DO) nl? expr
+            | if_statement )
+    ;
+/*
+    : IF nl? expr nl? THEN nl? expr     
+    | IF nl? expr nl? 
+         ( THEN nl? non_if_expr nl? ELSE nl? expr
+            // | THEN nl? expr
+            | if_statement )
+*/
+// */
+/* // this fails for whatever reason with SLL
+if_statement
+    : IF nl? ifClause = expr nl? THEN nl? ifBody = expr nl? (ELSE nl? elseBody = expr | {this.itsNot(mxsLexer.ELSE)}? )
+    | IF nl? ifClause = expr nl? DO nl? ifBody = expr
+    ;
+*/
+//---------------------------------------- DECLARATIONS
 var_decl
-    // : decl_scope? declaration (COMMA declaration)*
-    : decl_scope declaration (COMMA declaration)*
+    : decl_scope nl? declaration (comma declaration)*
     ;
-// /*
+
 declaration
-    : assignment
+    : assignment_expr
     | var_name
     ;
-//  */
-// /*
+
 decl_scope
     : LOCAL
     | GLOBAL
-    | PERSISTENT
+    | PERSISTENT nl? GLOBAL
     ;
-// */
-//ASSIGNMENT EXPRESSION
-assignment
-    : assign_target=destination EQ NL? assign_expr=expr  #AssigmentExpression
-    ;
-assignment_expr
-    : assign_target=destination ASSIGN NL? assign_expr=expr #AssigmentOperationExpression
-    ;
-destination
-    : var_name
-    | accessor
-    ;
-//-----------------------------------------------------------------------------//
 
-// LOGIC EXPRESSION
-//COMPARE EXPRESSION
-//MATH EXPRESSIONS
+//---------------------------------------- ASSIGNMENT EXPRESSION
+assignment_expr
+    : left = destination EQ nl? right = expr
+    ;
+
+assignmentOp_expr
+    : left = destination ASSIGN nl? right = expr
+    ;
+
+destination
+    : accessor
+    | de_ref
+    | var_name
+    | path
+    ;
+
+//---------------------------------------- SIMPLE_EXPR
 /*
-<simple_expr> ::= <operand>
-<math_expr>
-<compare_expr>
-<logical_expr>
-<function_call>
-<expr_seq>
+<simple_expr> ::=
+    <operand>
+    <math_expr>
+    <compare_expr>
+    <logical_expr>
+    <function_call>
+    <expr_seq>
  */
 simple_expr
-    : <assoc=right> left=simple_expr  AS  NL? right=simple_expr #TypecastExpression
-    | <assoc=right> left=simple_expr  POW NL? right=simple_expr #ExponentExpression
-
-    | left=simple_expr (DIV | PROD)   NL? right=simple_expr #ProductExpression
-    | left=simple_expr (PLUS | MINUS) NL? right=simple_expr #AdditionExpression
-
-    | left=simple_expr (OR | AND) NL? right=simple_expr #LogicExpression
-    | NOT NL? right=simple_expr #LogicNOTExpression
-
-    | right=simple_expr COMPARE NL? left=simple_expr #ComparisonExpression
-
-    // | <assoc=right> left=simple_expr ASSIGN right=simple_expr #AssigmentOperationExpression
-    // | <assoc=right> left=simple_expr EQ     right=simple_expr #AssigmentExpression
-
-    // : operand #OperandExpression
-    | fn_call /* {this.disable(mxsLexer.NEWLINE_CHANNEL);} */ #FnCallExpression    //passthrough
-    | operand    #OperandExpression   //passthrough
+    : <assoc=right> left = simple_expr AS  nl? classname #TypecastExpr
+    | <assoc=right> left = simple_expr POW nl? right = simple_expr #ExponentExpr
+    | left = simple_expr (PROD | DIV) nl? right = simple_expr #ProductExpr
+    | left = simple_expr (PLUS | MINUS | UNARY_MINUS) nl? right = simple_expr #AdditionExpr
+    | left = simple_expr (OR | AND) nl? right = simple_expr #LogicExpr
+    | right = simple_expr COMPARE nl? left = simple_expr #ComparisonExpr  
+    | NOT nl? right = simple_expr #LogicNOTExpr
+    | (MINUS | UNARY_MINUS) simple_expr #UnaryExpr    //passthrough
+    | fn_call #FnCallExpr    //passthrough
+    | de_ref #byRef
+    | operand #OperandExpr   //passthrough
     ;
 
+classname : var_name | expr_seq;
+//---------------------------------------- FUNCTION CALL
+// Positional Arguments
+// Keyword Arguments
+/*
+A <function_call> has a lower precedence than an <operand>,
+but it has a higher precedence than all the math,
+comparison, and logical operations.
+This means you have to be careful 
+about correctly parenthesizing function arguments */
 
-//FUNCTION CALL --- HOW TO MANAGE PROHIBITED / OPTIONAL / MANDATORY linebreaks????
-// Until an EOL or lower precedence rule...????
 fn_call
-    // : {this.enable(mxsLexer.NEWLINE_CHANNEL);} caller = fn_caller (args += operand)+ (params += param)+ {this.disable(mxsLexer.NEWLINE_CHANNEL);}
-    // | {this.enable(mxsLexer.NEWLINE_CHANNEL);} caller = fn_caller (args += operand)+ {this.disable(mxsLexer.NEWLINE_CHANNEL);}
-    // | {this.enable(mxsLexer.NEWLINE_CHANNEL);} caller = fn_caller (params += param)+ {this.disable(mxsLexer.NEWLINE_CHANNEL);}
-
-    // : caller = fn_caller ({this.noNewLines()}? args += operand)+ ({this.noNewLines()}? params += param)+
-    // | caller= fn_caller ({this.noNewLines()}? args += operand)+
-    // | caller= fn_caller ({this.noNewLines()}? params += param)+
-    // | caller= fn_caller PAREN_PAIR
-    
-    : /* {this.disable(mxsLexer.NEWLINE_CHANNEL);} */ caller = fn_caller (args += operand)+ (params += param)+
-    | /* {this.enable(mxsLexer.NEWLINE_CHANNEL);} */  caller = fn_caller /* {this.enable(mxsLexer.NEWLINE_CHANNEL);} */ (args += operand)+ /* {this.disable(mxsLexer.NEWLINE_CHANNEL);} */
-    | /* {this.disable(mxsLexer.NEWLINE_CHANNEL);} */ caller = fn_caller (params += param)+
-    | /* {this.disable(mxsLexer.NEWLINE_CHANNEL);} */ caller = fn_caller PAREN_PAIR /* {this.disable(mxsLexer.NEWLINE_CHANNEL);} */
+    // : caller = fn_caller ( args += operand)+ ( params += param)*
+    : caller = fn_caller (
+        // PAREN_PAIR //nullary call operator
+        paren_pair //nullary call operator
+        | (args += operand_arg)+ (params += param)*
+        // | (args += operand_arg)+
+        | (params += param)+
+    )
     // | operand
     ;
-    
+
+paren_pair
+        : {this.closedParens()}? LPAREN RPAREN
+        ;
+
 fn_caller
     : var_name
+    | path
+    | de_ref
     | accessor
+    // | unary_minus //UNARY MINUS
+    | expr_seq //EXPRESSION SEQUENCE
+    | QUESTION
     ;
 
-//PARAMETER
+//---------------------------------------- PARAMETER
 param
-    :  param_name operand
+    : param_name nl? operand_arg
     ;
 
 param_name
-    : (var_name | KW_OVERRIDE) /* {this.noSpaces()}? */ COLON
+    : {this.colonBeNext()}? (var_name | kw_override) COLON
     ;
+
+operand_arg
+    : UNARY_MINUS? accessor
+    | UNARY_MINUS? factor
+    ;
+
+// unary_arg
+//     : UNARY_MINUS operand_arg
+//     ;
 
 //------------------------------------------------------------------------//
-
 operand
-    : factor   
-    | accessor
+    : accessor
+    // : (MINUS | UNARY_MINUS) unaryMinus = operand // unary minus
+    // | accessor
+    | factor
     ;
-
+//------------------------------------------------------------------------//
 accessor
-    : <assoc=right> accessor property #AccProperty
-    | <assoc=right> accessor index    #AccIndex
-    | factor property                 #AccProperty
-    | factor index                    #AccIndex
+    : <assoc=right> accessor nl? property //#AccProperty
+    | <assoc=right> accessor index        //#AccIndex
+    | factor nl? property                 //#AccProperty
+    | factor index                        //#AccIndex
     ;
-
+//------------------------------------------------------------------------//
 //Property accessor
 property
-    : DOT (var_name | KW_OVERRIDE)
+    : DOT nl? (var_name | kw_override)
     ;
 
 //Index accessor
 index
-    : LBRACK expr RBRACK
+    : lb expr rb
     ;
 
-//FACTORS
+//---------------------------------------- FACTORS
 factor
     : var_name
-    // | PATH
     | path
-    | by_ref
-    | BOOL
+    | bool
     | STRING
     | NAME
     | NUMBER
@@ -472,96 +710,149 @@ factor
     | QUESTION
     ;
 
-unary_minus 
-    : MINUS operand
-// | MINUS expr_seq
-    ;
+//---------------------------------------- UNARY_MINUS
+// unary_minus 
+//     : (MINUS nl?| UNARY_MINUS) expr
+//     ;
 
-//  <expr_seq> ::= ( <expr> { ( ; | <eol>) <expr> } )
+//---------------------------------------- EXPR_SEQ
+//<expr_seq> ::= ( <expr> { ( ; | <eol>) <expr> } )
 expr_seq
-    : LPAREN
-        // expr (expr)*
-        // {this.enable(mxsLexer.NEWLINE_CHANNEL);}
-        NL?
-        expr (NL expr)*
-        NL?
-        // {this.disable(mxsLexer.NEWLINE_CHANNEL);}
-      RPAREN
-    | (RPAREN LPAREN | PAREN_PAIR)
+    : lp
+        expr (nl+ expr)*
+      rp
+    | LPAREN nl? RPAREN
     ;
-//------------------------------------------------------------------------//
-//TYPES
+//---------------------------------------- TYPES
 box2:
-    LBRACK
-        expr COMMA
-        expr COMMA
-        expr COMMA
+    lb
+        expr comma
+        expr comma
+        expr comma
         expr
-    RBRACK
+    rb
     ;
 
 point3:
-    LBRACK
-        expr COMMA
-        expr COMMA
+    lb
+        expr comma
+        expr comma
         expr
-    RBRACK
+    rb
     ;
 
 point2:
-    LBRACK
-        expr COMMA
+    lb
+        expr comma
         expr
-    RBRACK
+    rb
     ;
 
-//BitArray
+// BitArray
 bitArray :
-    SHARP LBRACE
+    SHARP nl? lc
         bitList?
-    LBRACE
+    rc
     ;
 
 bitList
-    : bitexpr ( COMMA bitexpr)*
+    : bitexpr ( comma bitexpr)*
     ;
 bitexpr
-    : expr DOTDOT expr
+    : expr nl? DOTDOT nl? expr
     | expr
     ;
 
-//Array
+// Array
 array :
-    SHARP LPAREN
+    SHARP nl? lp
         elementList?
-    RPAREN
+    rp
+    // | SHARP nl? PAREN_PAIR
     ;
 
-elementList : expr ( COMMA expr )* ;
+elementList : expr ( comma expr )*
+    ;
 
-//IDENTIFIERS
+// Identifiers
 var_name
-    : GLOB? ID            #Id
-    | GLOB? QUOTED        #QuotedId
-    | GLOB? KW_RESERVED   #KeywordOverwrite
+    : ids       #Id
+    | GLOB ids  #GlobId
     ;
 
-by_ref
-    : REF   #Ref
-    | DEREF #DeRef
+ids
+    : ID
+    | QUOTED
+    | kw_reserved
+    | by_ref
     ;
 
-//Path names
+// Path names
 path: PATH ;
 /*
-path
-    : DOLLAR {this.noSpaces()}? levels?
+ref_prefix
+    : {this.noWSBeNext()}? AMP #ref
+    | {this.noWSBeNext()}? PROD #deref
     ;
-levels
-    : level_name ( {this.noSpaces()}? '/' {this.noSpaces()}? level_name)*
+*/
+by_ref
+    : {this.noWSBeNext()}? AMP (var_name | path)
     ;
-level_name
-    : ( ID | PROD | QUESTION | BACKSLASH)
-    | QUOTED
+de_ref
+    : {this.noWSBeNext()}? PROD (accessor | var_name | path)
+    ;
+
+// Boolean
+bool
+    : BOOL
+    | OFF
+    | ON
+    ;
+//---------------------------------------- OVERRIDABLE KEYWORDS
+// CONTEXTUAL KEYWORDS...can be used as identifiers outside the context...
+kw_reserved
+	: RolloutControl
+	| CHANGE
+	| DELETED
+	| GROUP
+	| LEVEL
+	| MENUITEM
+	| SEPARATOR
+	| SET
+	| SUBMENU
+	| TIME
+	| PRINTALLELEMENTS
+	;
+kw_override
+	: ATTRIBUTES
+	| PARAMETERS
+	| PLUGIN
+	| RCMENU
+	| RETURN
+	| ROLLOUT
+	| TO
+	| TOOL
+    | ON
+	;
+//---------------------------------------- NEWLINE RESOLVING
+lp: LPAREN nl?
+    ;
+rp: nl? RPAREN
+    ;
+lb: LBRACK nl?
+    ;
+rb: RBRACK
+    ;
+lc: LBRACE nl?
+    ;
+rc: nl? RBRACE
+    ;
+comma: nl? COMMA nl?;
+//----------------------------------------
+nl : NL+ ;
+/*
+eos
+    : {this.lineTerminatorAhead()}?
+    | EOF
     ;
 */

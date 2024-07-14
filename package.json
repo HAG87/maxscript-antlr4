@@ -16,6 +16,7 @@
   },
   "scripts": {
     "start": "ts-node index.ts",
+    "compile": "tsc",
     "dev": "nodemon index.ts",
     "generate": "antlr4ng -Dlanguage=TypeScript -visitor -listener -Xexact-output-dir ./grammar/mxsLexer.g4 ./grammar/mxsParser.g4 -o ./parser",
     "antlr4-lexer": "antlr4 -Dlanguage=TypeScript -visitor -lib ./grammar/mxsLexer.g4 -o ./build/",

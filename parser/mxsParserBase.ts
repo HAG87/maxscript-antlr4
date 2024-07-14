@@ -1,7 +1,15 @@
-import { Parser, Lexer, Token, TokenStream } from 'antlr4ng';
-import { mxsLexer } from './mxsLexer';
+import
+{
+    Parser,
+    Lexer,
+    Token,
+    TokenStream,
+    // BufferedTokenStream,
+    // CommonTokenStream,
+} from 'antlr4ng';
 import { mxsParser } from './mxsParser';
 import MultiChannelTokenStream from './multiChannelTokenStream';
+import { mxsLexer } from './mxsLexer';
 
 export abstract class mxsParserBase extends Parser
 {
@@ -12,7 +20,7 @@ export abstract class mxsParserBase extends Parser
 
     public enable(channel: number): void
     {
-        // console.log('ENABLE CHANNEL: ' + channel);
+        console.log('ENABLE CHANNEL: ' + channel);
         if (this.inputStream instanceof MultiChannelTokenStream) {
             (this.inputStream as MultiChannelTokenStream).enable(channel);
         }
@@ -20,33 +28,59 @@ export abstract class mxsParserBase extends Parser
 
     public disable(channel: number): void
     {
-        // console.log('DISABLE CHANNEL: ' + channel);
+        console.log('DISABLE CHANNEL: ' + channel);
         if (this.inputStream instanceof MultiChannelTokenStream) {
             (this.inputStream as MultiChannelTokenStream).disable(channel);
         }
     }
 
-    private validatorState: boolean = true;
+    protected itsNot(token: number): boolean
+    {
+        return this.inputStream.LA(1) !== token;
+    }
+    
+    // used for param:name
+    protected colonBeNext(offset: number = 1): boolean
+    {
+        let idx = this.getCurrentToken().tokenIndex + offset;
+        let token = this.inputStream.get(idx);
+        // console.log(`IS COLON: ${token?.type === mxsLexer.COLON} | ${JSON.stringify(token?.text)}`);
+        if (token)
+        {
+            return (token?.type === mxsLexer.COLON);
+        }
+        return true;
+    }
+
+    protected closedParens(offset: number = 1): boolean
+    {
+        let idx = this.getCurrentToken().tokenIndex + offset;
+        let token = this.inputStream.get(idx);
+        // console.log(`IS COLON: ${token?.type === mxsLexer.COLON} | ${JSON.stringify(token?.text)}`);
+        if (token)
+        {
+            return (token?.type === mxsLexer.RPAREN);
+        }
+        return true;
+    }
+
+    protected noWSBeNext(offset: number = 1): boolean
+    {
+        let idx = this.getCurrentToken().tokenIndex + offset;
+        let token = this.inputStream.get(idx);
+        if (token)
+        {
+            return (token?.channel !== mxsLexer.HIDDEN);
+        }
+        return true;
+    }
 
     protected noNewLines(): boolean
     {
         return !this.lineTerminatorAhead();
         //return false;
     }
-
-    protected flagNewLine(): void
-    {
-        if (this.lineTerminatorAhead()) this.validatorState = false;
-    }
-    protected resetFlag(): void { this.validatorState = true };
-    protected useFlag(): boolean
-    {
-        let flag = this.validatorState;
-        // reset state
-        this.validatorState = true;
-        return flag;
-    }
-
+    
     protected noSpaces(): boolean
     {
         // this.getCurrentToken().tokenIndex is the current token (next token to consume)
@@ -71,7 +105,7 @@ export abstract class mxsParserBase extends Parser
      * either is a line terminator, or is a multi line comment that
      * contains a line terminator.
      */
-    protected lineTerminatorAhead(channel: number = mxsLexer.NEWLINE_CHANNEL): boolean
+    protected lineTerminatorAhead(/* channel: number = mxsLexer.NEWLINE_CHANNEL */): boolean
     {
 
         // Get the token ahead of the current index.
@@ -82,13 +116,14 @@ export abstract class mxsParserBase extends Parser
         if (idx < 0) return false;
         let ahead: Token = this.inputStream.get(idx);
 
-        // console.log('   token eval: ' + JSON.stringify(ahead.text));
+        // console.log('token: ' + ahead.text + ' | ' + JSON.stringify(ahead.text) + '|');
         // console.log(`${ahead.channel} -- ${channel} -- ${ahead.channel === channel}`);
         ///*
-        if (ahead.channel === Lexer.DEFAULT_TOKEN_CHANNEL) {
-            // We're only interested in tokens on the CHANNEL.
-            return false;
-        }
+        // if (ahead.channel === Lexer.DEFAULT_TOKEN_CHANNEL) {
+        // if (ahead.channel === Lexer.HIDDEN) {
+        //     // We're only interested in tokens on the CHANNEL.
+        //     return false;
+        // }
 
         if (ahead.type === mxsParser.NL) {
             // There is definitely a line terminator ahead.
