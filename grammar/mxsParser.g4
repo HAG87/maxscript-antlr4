@@ -419,8 +419,8 @@ do_loop:
 // For loop
 //for <var_name> [, <index_name>[, <filtered_index_name>]] ( in | = )<sequence> ( do | collect ) <expr>
 for_loop
-    : FOR nl? var = var_name (comma index_name = var_name (comma filtered_index_name = var_name)?)?
-    for_operator  = (IN | EQ) nl? for_sequence
+    : FOR nl? var = var_name (comma index_name = var_name (comma filtered_index_name = var_name)?)? nl?
+    for_operator  = (IN | EQ) nl? for_sequence nl?
     for_action    = (DO | COLLECT) nl? expr
     ;
 
@@ -584,6 +584,7 @@ destination
     : accessor
     | de_ref
     | var_name
+    | path
     ;
 
 //---------------------------------------- SIMPLE_EXPR

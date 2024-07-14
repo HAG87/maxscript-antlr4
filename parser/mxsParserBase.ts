@@ -34,6 +34,11 @@ export abstract class mxsParserBase extends Parser
         }
     }
 
+    protected itsNot(token: number): boolean
+    {
+        return this.inputStream.LA(1) !== token;
+    }
+    
     // used for param:name
     protected colonBeNext(offset: number = 1): boolean
     {
@@ -75,7 +80,7 @@ export abstract class mxsParserBase extends Parser
         return !this.lineTerminatorAhead();
         //return false;
     }
-
+    
     protected noSpaces(): boolean
     {
         // this.getCurrentToken().tokenIndex is the current token (next token to consume)
