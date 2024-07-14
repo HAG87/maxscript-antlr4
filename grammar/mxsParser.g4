@@ -596,6 +596,7 @@ simple_expr
     | left = simple_expr (OR | AND) nl? right = simple_expr #LogicExpr
     | right = simple_expr COMPARE nl? left = simple_expr #ComparisonExpr  
     | NOT nl? right = simple_expr #LogicNOTExpr
+    | (MINUS | UNARY_MINUS) simple_expr #UnaryExpr    //passthrough
     | fn_call #FnCallExpr    //passthrough
     | de_ref #byRef
     | operand #OperandExpr   //passthrough
@@ -633,7 +634,7 @@ fn_caller
     | path
     | de_ref
     | accessor
-    | unary_minus //UNARY MINUS
+    // | unary_minus //UNARY MINUS
     | expr_seq //EXPRESSION SEQUENCE
     | QUESTION
     ;
@@ -648,32 +649,19 @@ param_name
     ;
 
 operand_arg
-    : accessor
-    | var_name
-    | path
-    // | by_ref
-    | bool
-    | STRING
-    | NAME
-    | NUMBER
-    | TIMEVAL
-    | array
-    | bitArray
-    | point3
-    | point2
-    | box2
-    | unary_arg //UNARY_MINUS operand_arg //UNARY MINUS
-    | expr_seq //EXPRESSION SEQUENCE
-    | QUESTION
+    : UNARY_MINUS? accessor
+    | UNARY_MINUS? factor
     ;
 
-unary_arg
-    : UNARY_MINUS operand_arg
-    ;
+// unary_arg
+//     : UNARY_MINUS operand_arg
+//     ;
 
 //------------------------------------------------------------------------//
 operand
     : accessor
+    // : (MINUS | UNARY_MINUS) unaryMinus = operand // unary minus
+    // | accessor
     | factor
     ;
 //------------------------------------------------------------------------//
@@ -708,16 +696,15 @@ factor
     | point3
     | point2
     | box2
-    | unary_minus //UNARY MINUS
+    // | unary_minus //UNARY MINUS
     | expr_seq //EXPRESSION SEQUENCE
     | QUESTION
     ;
 
 //---------------------------------------- UNARY_MINUS
-unary_minus 
-    : (MINUS nl?| UNARY_MINUS) operand
-    // | MINUS expr_seq
-    ;
+// unary_minus 
+//     : (MINUS nl?| UNARY_MINUS) expr
+//     ;
 
 //---------------------------------------- EXPR_SEQ
 //<expr_seq> ::= ( <expr> { ( ; | <eol>) <expr> } )
