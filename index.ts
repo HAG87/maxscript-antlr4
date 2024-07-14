@@ -9,7 +9,7 @@ import {
     PredictionMode,
     ParseCancellationException,
     RecognitionException,
-    // DiagnosticErrorListener,
+    DiagnosticErrorListener,
     // Lexer,
     // Parser,
     // ParserRuleContext,
@@ -58,8 +58,12 @@ const tokenStream = new CommonTokenStream(lexer);
 const parser      = new mxsParser(tokenStream);
 // let parser = new mxsParserBase(tokenStream);
 
+// parser.setTrace(true);
+
 // error handling strategy
 parser.errorHandler = new BailErrorStrategy();
+// parser.addErrorListener(new DiagnosticErrorListener());
+// parser.interpreter.predictionMode = PredictionMode.LL_EXACT_AMBIG_DETECTION;
 parser.interpreter.predictionMode = PredictionMode.SLL;
 // parser.interpreter.predictionMode = PredictionMode.LL;
 
@@ -70,8 +74,9 @@ let tree;
 try {
     tree = parser.program();    
 } catch (e:any) {
-  console.log(e.message);
-  
+    // console.log(`ERROR: ${e.message}`);
+    console.log(`ERROR: ${e?.msg}`);
+
     if (e instanceof ParseCancellationException) {
         lexer.reset();
         tokenStream.setTokenSource(lexer);

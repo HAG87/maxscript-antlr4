@@ -43,9 +43,9 @@ import
     LogicNOTExprContext,
     ComparisonExprContext,
     // FnCallExprContext,
-    OperandExprContext,
+    // OperandExprContext,
     AccessorContext,
-    If_clauseContext,
+    If_statementContext,
     // AccIndexContext,
     // OperandContext,
     // CallerContext,
@@ -103,7 +103,7 @@ export class mxsParserSymbolsListener extends mxsParserListener
         // console.log(ctx);
         console.log(ctx.children[0]);
         */
-        console.log(JSON.stringify(ctx.getText()));
+        // console.log(JSON.stringify(ctx.getText()));
     }
     // /*
     public override enterFn_def = (ctx: Fn_defContext): void =>
@@ -137,7 +137,7 @@ export class mxsParserSymbolsListener extends mxsParserListener
 
     public override enterCase_expr = (ctx: Case_exprContext): void =>
     {
-        console.log('case expression: ' + ctx.getText());
+        // console.log('case expression: ' + ctx.getText());
     };
     // */
 
@@ -152,19 +152,19 @@ export class mxsParserSymbolsListener extends mxsParserListener
     // public override enterFnCallExpr = (ctx: FnCallExprContext): void =>{
     //     console.log('function call: ' + ctx.getText() + '| caller1: ' + ctx._caller?.getText());
     // }
-    public override enterIf_clause = (ctx: If_clauseContext): void =>
+    public override enterIf_statement = (ctx: If_statementContext): void =>
     {
-        console.log('if_clause: ' + ctx.getText());
+        // console.log(`--> IF_clause: ${ctx.getText()}\n----`);
     }
     public override enterFn_call = (ctx: Fn_callContext): void =>
     {
         // console.log('call: ' + ctx.getText());
     };
-
+/*
     public override enterOperandExpr = (ctx: OperandExprContext): void =>
     {
         // console.log('operand: ' + ctx.getText());
-    };
+    };*/
     public override enterAccessor = (ctx: AccessorContext): void =>
     {
         // console.log('accessor: ' + ctx.getText());
