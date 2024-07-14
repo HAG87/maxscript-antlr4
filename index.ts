@@ -51,10 +51,10 @@ const inputStream = CharStream.fromString(str);
 // Create the lexer and parser
 const lexer       = new mxsLexer(inputStream);
 // const lexer       = new mxsLexerBase(inputStream);
-const tokenStream = new CommonTokenStream(lexer);
+// const tokenStream = new CommonTokenStream(lexer);
 // tokenStream.fill();
 // /*
-// const tokenStream = new MultiChannelTokenStream(lexer);
+const tokenStream = new MultiChannelTokenStream(lexer);
 const parser      = new mxsParser(tokenStream);
 // let parser = new mxsParserBase(tokenStream);
 

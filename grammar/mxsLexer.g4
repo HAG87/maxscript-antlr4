@@ -366,7 +366,7 @@ WS: ( WSchar | Backslash WSchar* [\r\n\f]+)+ -> channel(HIDDEN)
 	;
 //NEW LINES
 NL
-	: NLchar+ //-> channel(NEWLINE_CHANNEL)
+	: NLchar+ -> channel(HIDDEN)
 	;
 
 // fragment Nleft : [\r\n] ; wihitespace with newlines, around operators, is meaningless
