@@ -445,7 +445,8 @@ for_by:    BY    nl? expr;
 for_to:    TO    nl? expr;
 for_while: WHILE nl? expr;
 for_where: WHERE nl? expr;
-loop_exit: EXIT  nl? (WITH nl? expr)?;
+loop_exit: EXIT  ( nl? WITH nl? expr)?
+    ;
 
 //----------------------------------------TRY EXPR
 try_expr
@@ -540,6 +541,13 @@ if_statement
             | (THEN | DO) nl? expr
             | if_statement )
     ;
+/*
+    : IF nl? expr nl? THEN nl? expr     
+    | IF nl? expr nl? 
+         ( THEN nl? non_if_expr nl? ELSE nl? expr
+            // | THEN nl? expr
+            | if_statement )
+*/
 // */
 /* // this fails for whatever reason with SLL
 if_statement
