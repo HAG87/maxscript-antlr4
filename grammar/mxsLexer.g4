@@ -23,15 +23,6 @@ options {
  //
  */
 
-/*
- channels {
- NEWLINE_CHANNEL
- // WHITESPACE_CHANNEL,
- // COMMENTS_CHANNEL
- }
- //
- */
-
 //COMMENTS
 BLOCK_COMMENT: '/*' .*? ('*/' | EOF) -> channel(HIDDEN)
 	;

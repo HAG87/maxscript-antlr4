@@ -749,10 +749,10 @@ bitexpr: expr NL* DOTDOT NL* expr | expr
 	;
 
 // Array
-array: SHARP NL* lp elementList? rp
+array: SHARP NL* lp arrayList? rp
 	;
 
-elementList: expr ( comma expr)*
+arrayList: expr ( comma expr)*
 	;
 
 // */ Identifiers
