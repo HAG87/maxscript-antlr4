@@ -1,8 +1,8 @@
-import { BufferedTokenStream, TokenSource, Token, CommonTokenStream } from "antlr4ng";
+import { BufferedTokenStream, TokenSource, Token } from "antlr4ng";
 import { mxsParser } from "./mxsParser";
 
-export default class MultiChannelTokenStream extends BufferedTokenStream
 // export default class MultiChannelTokenStream extends CommonTokenStream
+export default class MultiChannelTokenStream extends BufferedTokenStream
 {
     private channels: number[] = [Token.DEFAULT_CHANNEL];
 
@@ -18,7 +18,6 @@ export default class MultiChannelTokenStream extends BufferedTokenStream
 
     public enable(channel: number): void
     {
-
         if (this.channels.includes(channel)) {
             return;
         }
@@ -37,11 +36,12 @@ export default class MultiChannelTokenStream extends BufferedTokenStream
             }
         }
         // this.p = i + 1;
-        if (this.tokens[i + 1].channel === 0 && this.tokens[i + 1].type !== mxsParser.EOF) {this.p = i + 1;}
-        
+        if (this.tokens[i + 1].channel === 0 && this.tokens[i + 1].type !== mxsParser.EOF) { this.p = i + 1; }
+
         // let tok = this.tokens[this.p];
         // console.log(`START token: ${JSON.stringify(tok.text)} ${tok.line}:${tok.column}`);
     }
+
     public startAhead(channel: number): void
     {
         if (this.channels.includes(channel)) {
@@ -49,6 +49,7 @@ export default class MultiChannelTokenStream extends BufferedTokenStream
         }
         this.channels = [...this.channels, channel];
     }
+
     public disable(channel: number): void
     {
         this.channels = this.channels.filter(c => c !== channel);
@@ -93,7 +94,6 @@ export default class MultiChannelTokenStream extends BufferedTokenStream
         let token = this.tokens[i];
         while (!this.matches(token.channel, <number[]>channels)) {
             // console.log(`${i.toString()} : ${token.text} | ${token.channel.toString()}`);
-
             if (token.type === Token.EOF) {
                 return i;
             }
@@ -123,8 +123,8 @@ export default class MultiChannelTokenStream extends BufferedTokenStream
 
     public override LB(k: number): Token | null
     {
-        /*
-        if (k===0 || this.index-k<0) {
+        // /*
+        if (k === 0 || this.index - k < 0) {
             return null;
         }
         let i = this.index;
@@ -136,12 +136,12 @@ export default class MultiChannelTokenStream extends BufferedTokenStream
             n += 1;
         }
         // */
-        // /*
+        /*
         if (k === 0 || (this.p - k) < 0) {
             return null;
         }
-        let i = this.p;        
-        
+        let i = this.p;
+
         for (let n = 1; n <= k; n++) {
             i = this.previousTokenOnChannel(i - 1, this.channels);
         }
@@ -158,7 +158,7 @@ export default class MultiChannelTokenStream extends BufferedTokenStream
         if (k < 0) {
             return this.LB(-k);
         }
-        /*
+        // /*
         let i = this.index;
         let n = 1; // we know tokens[pos] is a good one
         // find k good tokens
@@ -170,21 +170,20 @@ export default class MultiChannelTokenStream extends BufferedTokenStream
             n += 1;
         }
         // */
-        //    /*
+        /*
         let i = this.p;
         for (let n = 1; n < k; n++) {
             if (this.sync(i + 1)) {
                 i = this.nextTokenOnChannel(i + 1, this.channels);
             }
         }
-        // */
         // console.log (JSON.stringify(this.tokens[i].text));
-
+        // */
         return this.tokens[i];
     }
 
     // Count EOF just once.
-    public /* override */ getNumberOfOnChannelTokens(): number
+    public getNumberOfOnChannelTokens(): number
     {
         let n = 0;
         this.fill();
