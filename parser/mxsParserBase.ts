@@ -39,7 +39,7 @@ export abstract class mxsParserBase extends Parser
         let idx = this.getCurrentToken().tokenIndex + offset;
         let token = this.inputStream.get(idx);
         if (token) {
-            return (token?.channel === type);
+            return (token?.type === type);
         }
         return true;
     }
@@ -49,7 +49,7 @@ export abstract class mxsParserBase extends Parser
         let idx = this.getCurrentToken().tokenIndex - offset;
         let token = this.inputStream.get(idx);
         if (token) {
-            return (token?.channel === type);
+            return (token?.type === type);
         }
         return true;
     }
