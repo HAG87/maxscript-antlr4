@@ -358,9 +358,11 @@ struct_scope: PUBLIC | PRIVATE
 
 //---------------------------------------- FUNCTION DEF
 fn_def
-	: fn_mod = MAPPED? NL* fn_decl = FN NL* fn_name = var_name NL* (
-		NL* fn_args
-	)* (NL* fn_params)* NL* EQ NL* fn_body = expr
+	: fn_mod = MAPPED? NL* fn_decl = FN NL* fn_name = var_name NL*
+		( NL* fn_args )*
+		(NL* fn_params)*
+		NL* EQ NL*
+		fn_body = expr
 	;
 
 fn_args
