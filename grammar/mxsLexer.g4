@@ -175,6 +175,7 @@ RolloutControl
 	| C O M B O B O X
 	| C U R V E C O N T R O L
 	| D R O P D O W N L I S T
+	| D O T N E T C O N T R O L
 	| E D I T T E X T
 	| G R O U P B O X
 	| H Y P E R L I N K
