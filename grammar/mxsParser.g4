@@ -25,42 +25,12 @@ options {
 program: NL* expr (NL+ expr)* NL* EOF
 	;
 
-/*
- expr
- : simple_expr
- | var_decl
- | assignment_expr
- | assignmentOp_expr
- | while_loop
- | do_loop
- | for_loop
- | loop_exit
- | if_statement
- | case_expr
- | struct_def
- | try_expr 
- | fn_def
- | fn_return
- | context_expr
- | attributes_def
- | when_construct
- | utility_def
- | rollout_def
- | tool_def
- | rcmenu_def
- | macroscript_def
- | plugin_def
- ;
- */
-// /*
-expr: non_if_expr | if_statement
-	;
-
-non_if_expr
+expr
 	: simple_expr
 	| var_decl
 	| assignment_expr
 	| assignmentOp_expr
+	| if_statement
 	| while_loop
 	| do_loop
 	| for_loop
@@ -81,7 +51,10 @@ non_if_expr
 	| plugin_def
 	;
 
-// */
+if_statement
+	: IF NL* simple_expr NL* THEN NL* expr (NL* ELSE NL* expr)?
+	| IF NL* simple_expr NL* DO NL* expr
+	;
 
 //-------------------------------------- MACROSCRIPT_DEF
 macroscript_def
@@ -500,14 +473,8 @@ case_item
  */
 
 // /*
-// this does work but it is slooow
-if_statement
-	: IF NL* expr NL* (
-		THEN NL* non_if_expr NL* ELSE NL* expr
-		| (THEN | DO) NL* expr
-		| if_statement
-	)
-	;
+
+
 
 /*
  : IF NL* expr NL* DO NL* expr 
