@@ -22,37 +22,9 @@ options {
 
 /*GRAMMAR RULES*/
 
-program: NL* expr (NL+ expr)* NL* EOF
+program:  expr (NL+ expr)*  EOF
 	;
 
-/*
- expr
- : simple_expr
- | var_decl
- | assignment_expr
- | assignmentOp_expr
- | while_loop
- | do_loop
- | for_loop
- | loop_exit
- | if_statement
- | case_expr
- | struct_def
- | try_expr 
- | fn_def
- | fn_return
- | context_expr
- | attributes_def
- | when_construct
- | utility_def
- | rollout_def
- | tool_def
- | rcmenu_def
- | macroscript_def
- | plugin_def
- ;
- */
-// /*
 expr: non_if_expr | if_statement
 	;
 
@@ -61,6 +33,7 @@ non_if_expr
 	| var_decl
 	| assignment_expr
 	| assignmentOp_expr
+	| if_statement
 	| while_loop
 	| do_loop
 	| for_loop
@@ -81,13 +54,11 @@ non_if_expr
 	| plugin_def
 	;
 
-// */
-
 //-------------------------------------- MACROSCRIPT_DEF
 macroscript_def
-	: MACROSCRIPT NL* var_name ( NL* param_name NL* (operand | RESOURCE) )* NL*
+	: MACROSCRIPT  var_name (  param_name  (operand | RESOURCE) )* 
     lp
-        (macroscript_clause (NL* macroscript_clause)*)?
+        (macroscript_clause ( macroscript_clause)*)?
     rp
 	;
 
@@ -96,17 +67,17 @@ macroscript_clause: expr | event_handler
 
 //-------------------------------------- UTILITY_DEF
 utility_def
-	: UTILITY NL* var_name NL* operand (NL* param)* NL*
+	: UTILITY  var_name  operand ( param)* 
     lp
-        ( rollout_clause (NL* rollout_clause)* )?
+        ( rollout_clause ( rollout_clause)* )?
     rp
 	;
 
 //-------------------------------------- ROLLOUT_DEF
 rollout_def
-	: ROLLOUT NL* var_name NL* operand (NL* param)* NL*
+	: ROLLOUT  var_name  operand ( param)* 
     lp
-        ( rollout_clause (NL* rollout_clause)* )?
+        ( rollout_clause ( rollout_clause)* )?
     rp
 	;
 
@@ -122,20 +93,20 @@ rollout_clause
 	;
 
 rollout_group
-	: GROUP NL* STRING? NL*
+	: GROUP  STRING? 
     lp
-        ( rollout_control (NL* rollout_control)* )?
+        ( rollout_control ( rollout_control)* )?
     rp
 	;
 
-rollout_control: RolloutControl (NL* operand)+ (NL* param)*
+rollout_control: RolloutControl ( operand)+ ( param)*
 	;
 
 //-------------------------------------- TOOL_DEF
 tool_def
-	: TOOL NL* var_name (NL* param)* NL*
+	: TOOL  var_name ( param)* 
     lp
-        tool_clause (NL* tool_clause)+
+        tool_clause ( tool_clause)+
     rp
 	;
 
@@ -144,7 +115,7 @@ tool_clause: var_decl | fn_def | struct_def | event_handler
 
 //-------------------------------------- RCMENU_DEF
 rcmenu_def
-	: RCMENU NL* var_name NL* lp (rc_clause (NL* rc_clause)*)? rp
+	: RCMENU  var_name  lp (rc_clause ( rc_clause)*)? rp
 	;
 
 rc_clause
@@ -158,23 +129,23 @@ rc_clause
 	;
 
 rc_submenu
-	: SUBMENU NL* STRING (NL* param)* NL*
+	: SUBMENU  STRING ( param)* 
     lp
-        ( rc_clause (NL* rc_clause)* )?
+        ( rc_clause ( rc_clause)* )?
     rp
 	;
 
-rc_separator: SEPARATOR NL* var_name (NL* param)*
+rc_separator: SEPARATOR  var_name ( param)*
 	;
 
-rc_menuitem: MENUITEM (NL* operand)+ (NL* param)*
+rc_menuitem: MENUITEM ( operand)+ ( param)*
 	;
 
 //-------------------------------------- PLUGIN_DEF
 plugin_def
-	: PLUGIN NL* var_name NL* var_name (NL* param)* NL*
+	: PLUGIN  var_name  var_name ( param)* 
     lp
-        plugin_clause (NL* plugin_clause)*
+        plugin_clause ( plugin_clause)*
     rp
 	;
 
@@ -193,11 +164,11 @@ plugin_clause
 // deleted [ id:<name> ] [handleAt:#redrawViews|#timeChange] [ <object_parameter> ] do <expr>
 // objects var_name | PATH | array
 
-when_expr: when_predicate NL* DO NL* expr
+when_expr: when_predicate  DO  expr
 	;
 
 when_predicate
-	: WHEN NL* (var_name NL*)? (var_name | PATH | expr_seq | array) NL* (CHANGE | DELETED)  NL*  (NL* param)* (NL* operand)?
+	: WHEN  (var_name )? (var_name | PATH | expr_seq | array)  (CHANGE | DELETED)    ( param)* ( operand)?
 	;
 
 //-------------------------------------- CONTEXT_EXPR
@@ -248,24 +219,24 @@ when_predicate
 context_expr: ctx_cascading | ctx_set
 	;
 
-ctx_cascading: ctx_predicate (comma ctx_predicate)* NL* expr
+ctx_cascading: ctx_predicate (comma ctx_predicate)*  expr
 	;
 
 ctx_set
-	: SET (ANIMATE | TIME | IN | LEVEL) NL* operand
-	| SET COORDSYS NL* (LOCAL | operand)
-	| SET ABOUT NL* (COORDSYS | operand)
-	| SET UNDO NL* (STRING | param | var_name)? NL* simple_expr
+	: SET (ANIMATE | TIME | IN | LEVEL)  operand
+	| SET COORDSYS  (LOCAL | operand)
+	| SET ABOUT  (COORDSYS | operand)
+	| SET UNDO  (STRING | param | var_name)?  simple_expr
 	;
 
 ctx_predicate
-	: AT NL* (LEVEL | TIME) NL* operand
-	| IN NL* operand
-	| ABOUT NL* (COORDSYS | operand)
-	| IN? NL* COORDSYS NL* (LOCAL | operand)
-	| WITH? NL* UNDO NL* (STRING | param | var_name)? NL* simple_expr
-	| WITH? NL* DEFAULTACTION NL* NAME
-	| WITH? NL* ctx_keyword NL* simple_expr
+	: AT  (LEVEL | TIME)  operand
+	| IN  operand
+	| ABOUT  (COORDSYS | operand)
+	| IN?  COORDSYS  (LOCAL | operand)
+	| WITH?  UNDO  (STRING | param | var_name)?  simple_expr
+	| WITH?  DEFAULTACTION  NAME
+	| WITH?  ctx_keyword  simple_expr
 	;
 
 ctx_keyword
@@ -280,7 +251,7 @@ ctx_keyword
 
 //-------------------------------------- PARAMETER DEF
 param_def
-	: PARAMETERS NL* var_name (NL* param)* NL*
+	: PARAMETERS  var_name ( param)* 
     lp
         ( param_clause (NL+ param_clause)* )?
     rp
@@ -289,14 +260,14 @@ param_def
 param_clause: param_expr | event_handler
 	;
 
-param_expr: var_name (NL* param)*
+param_expr: var_name ( param)*
 	;
 
 //-------------------------------------- ATTRIBUTES DEFINITION attributes <name> [version:n]
 // [silentErrors:t/f] [initialRollupState:0xnnnnn] [remap:#(<old_param_names_array>,
 // <new_param_names_array>)]
 attributes_def
-	: ATTRIBUTES NL* var_name (NL* param)* NL*
+	: ATTRIBUTES  var_name ( param)* 
     lp
         attributes_clause ( NL+ attributes_clause )*
     rp
@@ -311,18 +282,18 @@ attributes_clause
 
 //-------------------------------------- EVENT HANDLER
 event_handler
-	: ON NL* ev_args = event_args NL* ev_action = (DO | RETURN) NL* ev_body = expr
+	: ON  ev_args = event_args  ev_action = (DO | RETURN)  ev_body = expr
 	;
 
 event_args
-	: ev_target = var_name NL* ev_type = var_name ( NL* ev_args += var_name )+
-	| ev_target = var_name NL* ev_type = var_name
+	: ev_target = var_name  ev_type = var_name (  ev_args += var_name )+
+	| ev_target = var_name  ev_type = var_name
 	| ev_type = var_name
 	;
 
 //---------------------------------------- STRUCT DEF
 struct_def
-	: STRUCT NL* str_name = var_name NL*
+	: STRUCT  str_name = var_name 
     lp
         struct_member ( comma struct_member )*
     rp
@@ -331,7 +302,7 @@ struct_def
 // struct_members: struct_member (comma struct_member)* ;
 /*
  struct_member
- : (scope = struct_scope NL*)? 
+ : (scope = struct_scope )? 
  (
  assignment_expr
  | var_name
@@ -343,7 +314,7 @@ struct_def
  */
 // /* 
 struct_member
-	: (scope = struct_scope NL*)? (
+	: (scope = struct_scope )? (
 		assignment_expr
 		| var_name
 		| fn_def
@@ -358,10 +329,10 @@ struct_scope: PUBLIC | PRIVATE
 
 //---------------------------------------- FUNCTION DEF
 fn_def
-	: fn_mod = MAPPED? NL* fn_decl = FN NL* fn_name = var_name NL*
-		( NL* fn_args )*
-		(NL* fn_params)*
-		NL* EQ NL*
+	: fn_mod = MAPPED?  fn_decl = FN  fn_name = var_name 
+		(  fn_args )*
+		( fn_params)*
+		 EQ 
 		fn_body = expr
 	;
 
@@ -374,15 +345,15 @@ fn_params: param | param_name
 	;
 
 //FN_RETURN
-fn_return: RETURN NL* expr
+fn_return: RETURN  expr
 	;
 
 //---------------------------------------- LOOPS While loop
-while_loop: WHILE NL* expr NL* DO NL* expr
+while_loop: WHILE  expr  DO  expr
 	;
 
 // Do loop
-do_loop: DO NL* expr NL* WHILE NL* expr
+do_loop: DO  expr  WHILE  expr
 	;
 
 /* For loop
@@ -397,57 +368,57 @@ do_loop: DO NL* expr NL* WHILE NL* expr
  */
 
 for_loop
-	: FOR NL* var = var_name (
+	: FOR  var = var_name (
 		comma index_name = var_name (
 			comma filtered_index_name = var_name
 		)?
-	)? NL* for_operator = (IN | EQ) NL* for_sequence NL* for_action = (
+	)?  for_operator = (IN | EQ)  for_sequence  for_action = (
 		DO
 		| COLLECT
-	) NL* expr
+	)  expr
 	;
 
 for_sequence
-	: expr NL* (
-		for_to NL* for_by? NL* for_while? NL* for_where?
-		| for_while? NL* for_where?
+	: expr  (
+		for_to  for_by?  for_while?  for_where?
+		| for_while?  for_where?
 	)
 	;
 
-for_to: TO NL* expr
+for_to: TO  expr
 	;
 
-for_by: BY NL* expr
+for_by: BY  expr
 	;
 
-for_while: WHILE NL* expr
+for_while: WHILE  expr
 	;
 
-for_where: WHERE NL* expr
+for_where: WHERE  expr
 	;
 
-loop_exit: EXIT ( NL* WITH NL* expr)?
+loop_exit: EXIT (  WITH  expr)?
 	;
 
 //----------------------------------------TRY EXPR
-try_expr: TRY NL* expr NL* CATCH NL* expr
+try_expr: TRY  expr  CATCH  expr
 	;
 
 //---------------------------------------- CASE-EXPR
 case_expr
-	: CASE NL* expr? NL* OF NL* lp case_item (NL+ case_item)* rp
+	: CASE  expr?  OF  lp case_item (NL+ case_item)* rp
 	;
 
 // This will produce errors at compile time...
-case_item: factor COLON NL* expr
+case_item: factor COLON  expr
 	;
 
 /*
  // this is not correct, because if should work for 5:(a), buuuut.....
 case_item
-    :{!this.colonBeNext()}? (NUMBER | TIMEVAL) COLON NL* expr;
+    :{!this.colonBeNext()}? (NUMBER | TIMEVAL) COLON  expr;
     | (NUMBER | TIMEVAL) COLON (NL+ | {!this.noSpaces()}?) expr
-    | factor NL* COLON NL* expr
+    | factor  COLON  expr
     ;
 
  case_factor
@@ -469,7 +440,7 @@ case_item
  */
 //---------------------------------------- IF-CLAUSE
 /*
- ('else' e | {_input.LA(1) != ELSE}?)
+ //('else' e | {_input.LA(1) != ELSE}?)
  ifStatement
     : 'if' expression 'then' (statement | block) 'else' (statement | block)
     | 'if' expression 'then' (statementNoIf | block)
@@ -478,14 +449,12 @@ case_item
 
 /*
  statement : non_if_statement | if_statement ;
-
  if_statement
     : 'if' parExpression 
-        ifBody= (
-            non_if_statement 'else' elseBody=statement
-                | if_statement )
+        ifBody= ( non_if_statement 'else' elseBody=statement | if_statement )
     ;   
 */
+
 /*
  stmt : matched_stmt ∣ open_stmt ;
 
@@ -502,123 +471,63 @@ case_item
 // /*
 // this does work but it is slooow
 if_statement
-	: IF NL* expr NL* (
-		THEN NL* non_if_expr NL* ELSE NL* expr
-		| (THEN | DO) NL* expr
+	: IF  expr  (
+		THEN  non_if_expr  ELSE  expr
+		| (THEN | DO)  expr
 		| if_statement
 	)
 	;
 
-/*
- : IF NL* expr NL* DO NL* expr 
- | IF NL* expr NL* 
-    ( THEN NL* non_if_expr NL* ELSE NL* expr
-        | THEN NL* expr
-        | if_statement )
-// */
-
 /* // this fails for whatever reason with SLL
  if_statement
- : IF NL* ifClause = expr NL* THEN NL*
-    ifBody = expr NL*
-        (ELSE NL* elseBody = expr | {this.itsNot(mxsLexer.ELSE)}? )
-    | IF NL* ifClause = expr NL* DO NL* ifBody = expr
+ : IF  expr  THEN expr (ELSE  elseBody = expr | {this.itsNot(mxsLexer.ELSE)}? )
+    | IF  ifClause = expr  DO  ifBody = expr
     ;
 */
 
 //---------------------------------------- DECLARATIONS
 var_decl
-	: scope = decl_scope NL*
+	: scope = decl_scope 
         decl += declaration ( comma decl += declaration )*
 	;
 
 declaration: assignment_expr | var_name
 	;
 
-decl_scope: ( LOCAL | GLOBAL | PERSISTENT NL* GLOBAL)
+decl_scope: ( LOCAL | GLOBAL | PERSISTENT  GLOBAL)
 	;
 
 //---------------------------------------- ASSIGNMENT EXPRESSION
-assignment_expr: left = destination EQ NL* right = expr
+assignment_expr: left = destination EQ  right = expr
 	;
 
-assignmentOp_expr: left = destination ASSIGN NL* right = expr
+assignmentOp_expr: left = destination ASSIGN  right = expr
 	;
 
 destination: accessor | de_ref | var_name | PATH
 	;
 
 //---------------------------------------- SIMPLE_EXPR
-/*
- simple_expr
- : logic
- ;
- 
- logic
- : right = logic (OR | AND) NL* left = comparison
- |
- <assoc=right>
- NOT NL* right = logic
- | comparison
- ;
- comparison
- : right = comparison COMPARE
- NL*
- left = sum
- |
- sum
- ;
- sum
- : left = sum (PLUS | MINUS | UNARY_MINUS) NL* right = prod
- |
- prod
- ;
- prod
- : left =
- prod (PROD | DIV) NL* right = pow
- | pow
- ;
- pow
- : <assoc=right> left =
- pow POW
- NL* right = as
- |
- as
- ;
- as
- : left = as AS NL* classname
- | unary
- ;
- 
- unary
- : (MINUS
- |
- UNARY_MINUS) expr_operand
- | expr_operand
- ;
- //
- */
-expr_operand
-	: fn_call	# FnCallExpr
-	| de_ref	# deRef
-	| operand	# OperandExpr
-	;
 
 // /*
 simple_expr
-	: left = expr_operand AS NL* classname	# TypecastExpr
-	| expr_operand							# ExprOperand
-	// : (fn_call | de_ref | operand) AS NL* classname #TypecastExpr | fn_call #FnCallExpr | de_ref
+	// : (fn_call | de_ref | operand) AS  classname #TypecastExpr | fn_call #FnCallExpr | de_ref
 	// #DeRef | operand #OperandExpr
-	| (MINUS | UNARY_MINUS) right = simple_expr									# UnaryExpr
-	| <assoc = right> left = simple_expr POW NL* right = simple_expr			# ExponentExpr
-	| left = simple_expr (PROD | DIV) NL* right = simple_expr					# ProductExpr
-	| left = simple_expr (PLUS | MINUS | UNARY_MINUS) NL* right = simple_expr	# AdditionExpr
-	| left = simple_expr COMPARE NL* right = simple_expr						# ComparisonExpr
-	| <assoc = right> NOT NL* right = simple_expr								# LogicNOTExpr
-	| left = simple_expr (OR | AND) NL* right = simple_expr						# LogicExpr
+
+	: left = simple_expr {this.noNewLines()}? AS classname	                                    # TypecastExpr								
+	| (MINUS | UNARY_MINUS) right = simple_expr								                    # UnaryExpr
+	| <assoc = right> left = simple_expr {this.noNewLines()}? POW  right = simple_expr			# ExponentExpr
+	| left = simple_expr {this.noNewLines()}? (PROD | DIV)  right = simple_expr					# ProductExpr
+	| left = simple_expr {this.noNewLines()}? (PLUS | MINUS | UNARY_MINUS)  right = simple_expr	# AdditionExpr
+	| left = simple_expr {this.noNewLines()}? COMPARE  right = simple_expr						# ComparisonExpr
+	| <assoc = right> NOT  right = simple_expr								                    # LogicNOTExpr
+	| left = simple_expr {this.noNewLines()}? (OR | AND)  right = simple_expr				    # LogicExpr
+	| fn_call #fnCall
+	| operand #ExprOperand
+	| de_ref  #derefOperand
 	;
 // */
+
 classname: var_name | expr_seq
 	;
 
@@ -634,18 +543,14 @@ classname: var_name | expr_seq
  */
 
 fn_call
-	// : caller = fn_caller ( args += operand)+ ( params += param)*
-	: caller = fn_caller (
-		// PAREN_PAIR //nullary call operator
-		paren_pair //nullary call operator
-		| (args += operand_arg)+ (params += param)*
-		// | (args += operand_arg)+
-		| (params += param)+
-	)
-	// | operand
+	: caller = operand (args += operand_arg)+ (params += operand_param)+
+	| caller = operand (args += operand_arg)+
+	| caller = operand (params += operand_param)+
+	| caller = operand paren_pair
+	// | caller = operand //# OperandExpr
 	;
 
-paren_pair: {this.closedParens()}? LPAREN RPAREN
+paren_pair: {this.closedParens() && this.noNewLines()}? LPAREN RPAREN
 	;
 
 fn_caller
@@ -659,18 +564,18 @@ fn_caller
 	;
 
 //---------------------------------------- PARAMETER
-param: param_name NL* operand_arg
+operand_param: {this.noNewLines()}? param
+	;
+
+operand_arg
+	: {this.noNewLines()}? ( UNARY_MINUS operand | operand)
+	;
+
+param: param_name  operand_arg
 	;
 
 param_name: {this.colonBeNext()}? (var_name | kw_override) COLON
 	;
-
-operand_arg
-	: UNARY_MINUS operand
-	| operand
-	;
-
-// unary_op : UNARY_MINUS operand ;
 // ------------------------------------------------------------------------//
 operand
 	// : (MINUS | UNARY_MINUS) unaryMinus = operand
@@ -686,7 +591,7 @@ accessor
 
 //------------------------------------------------------------------------//
 // Property accessor
-property: DOT NL* (var_name | kw_override)
+property: DOT  (var_name | kw_override)
 	;
 
 //Index accessor
@@ -712,12 +617,12 @@ factor
 	| expr_seq //EXPRESSION SEQUENCE
 	;
 
-//---------------------------------------- UNARY_MINUS unary_minus : (MINUS NL*| UNARY_MINUS) expr ;
+//---------------------------------------- UNARY_MINUS unary_minus : (MINUS | UNARY_MINUS) expr ;
 
 //---------------------------------------- EXPR_SEQ <expr_seq> ::= ( <expr> { ( ; | <eol>) <expr> }
 // )
 expr_seq
-	: lp (expr (NL+ expr)*)? rp //| LPAREN NL* RPAREN
+	: lp (expr ({this.lineTerminatorAhead()}? expr)*)? rp //| LPAREN  RPAREN
 	;
 
 //---------------------------------------- TYPES
@@ -740,18 +645,18 @@ point2:
 	;
 
 // BitArray
-bitArray: SHARP NL* lc bitList? rc
+bitArray: SHARP  lc bitList? rc
 	;
 
 bitList: bitexpr ( comma bitexpr)*
 	;
 
 // */
-bitexpr: expr NL* DOTDOT NL* expr | expr
+bitexpr: expr  DOTDOT  expr | expr
 	;
 
 // Array
-array: SHARP NL* lp arrayList? rp
+array: SHARP  lp arrayList? rp
 	;
 
 arrayList: expr ( comma expr)*
@@ -807,23 +712,23 @@ kw_override
 	;
 
 //---------------------------------------- NEWLINE RESOLVING
-lp: LPAREN NL*
+lp: LPAREN 
 	;
 
-rp: NL* RPAREN
+rp:  RPAREN
 	;
 
-lb: LBRACK NL*
+lb: LBRACK 
 	;
 
 rb: RBRACK
 	;
 
-lc: LBRACE NL*
+lc: LBRACE 
 	;
 
-rc: NL* RBRACE
+rc:  RBRACE
 	;
 
-comma: NL* COMMA NL*
+comma:  COMMA 
 	;
