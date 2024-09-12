@@ -81,134 +81,133 @@ enum blockTypes
 }
 
 const tokenToCodeType = new Map<number, codeTypes>([
-    [mxsLexer.BLOCK_COMMENT, codeTypes.BLOCK_COMMENT],
-    [mxsLexer.LINE_COMMENT, codeTypes.LINE_COMMENT],
-    [mxsLexer.STRING, codeTypes.VALUE],
-    [mxsLexer.NUMBER, codeTypes.NUMBER],
-    [mxsLexer.TIMEVAL, codeTypes.NUMBER],
-    [mxsLexer.TRUE, codeTypes.VALUE],
-    [mxsLexer.FALSE, codeTypes.VALUE],
+    [mxsLexer.ABOUT, codeTypes.KEYWORD],
+    [mxsLexer.AMP, codeTypes.SYMBOL],
     [mxsLexer.AND, codeTypes.KEYWORD],
+    [mxsLexer.Angle, codeTypes.ID],
+    [mxsLexer.ANIMATE, codeTypes.KEYWORD],
     [mxsLexer.AS, codeTypes.KEYWORD],
+    [mxsLexer.ASSIGN, codeTypes.ASSIGN],
     [mxsLexer.AT, codeTypes.KEYWORD],
+    [mxsLexer.Attributes, codeTypes.KEYWORD],
+    [mxsLexer.Bitmap, codeTypes.ID],
+    [mxsLexer.BLOCK_COMMENT, codeTypes.BLOCK_COMMENT],
+    [mxsLexer.Button, codeTypes.ID],
     [mxsLexer.BY, codeTypes.KEYWORD],
     [mxsLexer.CASE, codeTypes.KEYWORD],
     [mxsLexer.CATCH, codeTypes.KEYWORD],
+    [mxsLexer.CHANGE, codeTypes.KEYWORD],
+    [mxsLexer.CheckBox, codeTypes.ID],
+    [mxsLexer.CheckButton, codeTypes.ID],
     [mxsLexer.COLLECT, codeTypes.KEYWORD],
+    [mxsLexer.COLON, codeTypes.COLON],
+    [mxsLexer.ColorPicker, codeTypes.ID],
+    [mxsLexer.ComboBox, codeTypes.ID],
+    [mxsLexer.COMMA, codeTypes.COMMA],
+    [mxsLexer.COMPARE, codeTypes.OPERATOR],
+    [mxsLexer.COORDSYS, codeTypes.KEYWORD],
+    [mxsLexer.CurveControl, codeTypes.ID],
+    [mxsLexer.DefaultAction, codeTypes.KEYWORD],
+    [mxsLexer.DELETED, codeTypes.KEYWORD],
+    [mxsLexer.DIV, codeTypes.OPERATOR],
     [mxsLexer.DO, codeTypes.KEYWORD],
+    [mxsLexer.DontRepeatMessages, codeTypes.KEYWORD],
+    [mxsLexer.DOT, codeTypes.DOT],
+    [mxsLexer.DOTDOT, codeTypes.OPERATOR],
+    [mxsLexer.DotnetControl, codeTypes.ID],
+    [mxsLexer.DropdownList, codeTypes.ID],
+    [mxsLexer.EditText, codeTypes.ID],
     [mxsLexer.ELSE, codeTypes.KEYWORD],
+    [mxsLexer.EQ, codeTypes.ASSIGN],
     [mxsLexer.EXIT, codeTypes.KEYWORD],
+    [mxsLexer.FALSE, codeTypes.VALUE],
+    [mxsLexer.FN, codeTypes.KEYWORD],
     [mxsLexer.FOR, codeTypes.KEYWORD],
     [mxsLexer.FROM, codeTypes.KEYWORD],
+    [mxsLexer.GLOB, codeTypes.KEYWORD],
+    [mxsLexer.GLOBAL, codeTypes.KEYWORD],
+    [mxsLexer.Group, codeTypes.KEYWORD],
+    [mxsLexer.GroupBox, codeTypes.ID],
+    [mxsLexer.Hyperlink, codeTypes.ID],
+    [mxsLexer.ID, codeTypes.ID],
     [mxsLexer.IF, codeTypes.KEYWORD],
+    [mxsLexer.ImgTag, codeTypes.ID],
     [mxsLexer.IN, codeTypes.KEYWORD],
+    [mxsLexer.Label, codeTypes.ID],
+    [mxsLexer.LBRACE, codeTypes.LBRACE],
+    [mxsLexer.LBRACK, codeTypes.SYMBOL],
+    [mxsLexer.LEVEL, codeTypes.KEYWORD],
+    [mxsLexer.LINE_COMMENT, codeTypes.LINE_COMMENT],
+    [mxsLexer.ListBox, codeTypes.ID],
+    [mxsLexer.LOCAL, codeTypes.KEYWORD],
+    [mxsLexer.LPAREN, codeTypes.LPAREN],
+    [mxsLexer.MacroRecorderEmitterEnabled, codeTypes.KEYWORD],
+    [mxsLexer.MacroScript, codeTypes.KEYWORD],
+    [mxsLexer.MapButton, codeTypes.ID],
+    [mxsLexer.MAPPED, codeTypes.MODIF],
+    [mxsLexer.MaterialButton, codeTypes.ID],
+    [mxsLexer.MenuItem, codeTypes.ID],
+    [mxsLexer.MINUS, codeTypes.OPERATOR],
+    [mxsLexer.MultilistBox, codeTypes.ID],
+    [mxsLexer.MXScallstackCaptureEnabled, codeTypes.KEYWORD],
+    [mxsLexer.NAME, codeTypes.VALUE],
+    [mxsLexer.NL, codeTypes.LINE_BREAK],
+    [mxsLexer.NOT, codeTypes.KEYWORD],
+    [mxsLexer.NUMBER, codeTypes.NUMBER],
     [mxsLexer.OF, codeTypes.KEYWORD],
-    [mxsLexer.ON, codeTypes.KEYWORD],
     [mxsLexer.OFF, codeTypes.KEYWORD],
+    [mxsLexer.ON, codeTypes.KEYWORD],
     [mxsLexer.OR, codeTypes.KEYWORD],
+    [mxsLexer.Parameters, codeTypes.KEYWORD],
+    [mxsLexer.PATH, codeTypes.VALUE],
+    [mxsLexer.PERSISTENT, codeTypes.MODIF],
+    [mxsLexer.PickButton, codeTypes.ID],
+    [mxsLexer.Plugin, codeTypes.KEYWORD],
+    [mxsLexer.PLUS, codeTypes.OPERATOR],
+    [mxsLexer.PopupBenu, codeTypes.ID],
+    [mxsLexer.POW, codeTypes.OPERATOR],
+    [mxsLexer.PrintAllElements, codeTypes.KEYWORD],
+    [mxsLexer.PRIVATE, codeTypes.MODIF],
+    [mxsLexer.PROD, codeTypes.OPERATOR],
+    [mxsLexer.Progressbar, codeTypes.ID],
+    [mxsLexer.PUBLIC, codeTypes.MODIF],
+    [mxsLexer.QUESTION, codeTypes.SYMBOL],
+    [mxsLexer.QUIET, codeTypes.KEYWORD],
+    [mxsLexer.QUOTED_ID, codeTypes.ID],
+    [mxsLexer.RadioButtons, codeTypes.ID],
+    [mxsLexer.RBRACE, codeTypes.RBRACE],
+    [mxsLexer.RBRACK, codeTypes.SYMBOL],
+    [mxsLexer.RCmenu, codeTypes.KEYWORD],
+    [mxsLexer.REDRAW, codeTypes.KEYWORD],
+    [mxsLexer.RESOURCE, codeTypes.VALUE],
     [mxsLexer.RETURN, codeTypes.KEYWORD],
+    [mxsLexer.Rollout, codeTypes.KEYWORD],
+    [mxsLexer.RPAREN, codeTypes.RPAREN],
+    [mxsLexer.Separator, codeTypes.ID],
     [mxsLexer.SET, codeTypes.KEYWORD],
+    [mxsLexer.SHARP, codeTypes.SHARP],
+    [mxsLexer.Slider, codeTypes.ID],
+    [mxsLexer.Spinner, codeTypes.ID],
+    [mxsLexer.STRING, codeTypes.VALUE],
+    [mxsLexer.STRUCT, codeTypes.KEYWORD],
+    [mxsLexer.SubMenu, codeTypes.ID],
+    [mxsLexer.Subrollout, codeTypes.ID],
     [mxsLexer.THEN, codeTypes.KEYWORD],
+    [mxsLexer.TIME, codeTypes.KEYWORD],
+    [mxsLexer.Timer, codeTypes.ID],
+    [mxsLexer.TIMEVAL, codeTypes.NUMBER],
     [mxsLexer.TO, codeTypes.KEYWORD],
+    [mxsLexer.Tool, codeTypes.KEYWORD],
+    [mxsLexer.TRUE, codeTypes.VALUE],
     [mxsLexer.TRY, codeTypes.KEYWORD],
+    [mxsLexer.UNARY_MINUS, codeTypes.OPERATOR],
+    [mxsLexer.UNDO, codeTypes.KEYWORD],
+    [mxsLexer.Utility, codeTypes.KEYWORD],
     [mxsLexer.WHEN, codeTypes.KEYWORD],
     [mxsLexer.WHERE, codeTypes.KEYWORD],
     [mxsLexer.WHILE, codeTypes.KEYWORD],
     [mxsLexer.WITH, codeTypes.KEYWORD],
-    [mxsLexer.NOT, codeTypes.KEYWORD],
-    [mxsLexer.PUBLIC, codeTypes.KEYWORD],
-    [mxsLexer.PRIVATE, codeTypes.KEYWORD],
-    [mxsLexer.ABOUT, codeTypes.KEYWORD],
-    [mxsLexer.COORDSYS, codeTypes.KEYWORD],
-    [mxsLexer.LEVEL, codeTypes.KEYWORD],
-    [mxsLexer.TIME, codeTypes.KEYWORD],
-    [mxsLexer.UNDO, codeTypes.KEYWORD],
-    [mxsLexer.CHANGE, codeTypes.KEYWORD],
-    [mxsLexer.DELETED, codeTypes.KEYWORD],
-    [mxsLexer.DefaultAction, codeTypes.KEYWORD],
-    [mxsLexer.ANIMATE, codeTypes.KEYWORD],
-    [mxsLexer.DontRepeatMessages, codeTypes.KEYWORD],
-    [mxsLexer.MacroRecorderEmitterEnabled, codeTypes.KEYWORD],
-    [mxsLexer.MXScallstackCaptureEnabled, codeTypes.KEYWORD],
-    [mxsLexer.PrintAllElements, codeTypes.KEYWORD],
-    [mxsLexer.QUIET, codeTypes.KEYWORD],
-    [mxsLexer.REDRAW, codeTypes.KEYWORD],
-    [mxsLexer.Group, codeTypes.KEYWORD],
-    [mxsLexer.MacroScript, codeTypes.KEYWORD],
-    [mxsLexer.Rollout, codeTypes.KEYWORD],
-    [mxsLexer.Tool, codeTypes.KEYWORD],
-    [mxsLexer.Utility, codeTypes.KEYWORD],
-    [mxsLexer.RCmenu, codeTypes.KEYWORD],
-    [mxsLexer.Parameters, codeTypes.KEYWORD],
-    [mxsLexer.Plugin, codeTypes.KEYWORD],
-    [mxsLexer.Attributes, codeTypes.KEYWORD],
-    [mxsLexer.Angle, codeTypes.ID],
-    [mxsLexer.Bitmap, codeTypes.ID],
-    [mxsLexer.Button, codeTypes.ID],
-    [mxsLexer.CheckBox, codeTypes.ID],
-    [mxsLexer.CheckButton, codeTypes.ID],
-    [mxsLexer.ColorPicker, codeTypes.ID],
-    [mxsLexer.ComboBox, codeTypes.ID],
-    [mxsLexer.CurveControl, codeTypes.ID],
-    [mxsLexer.DotnetControl, codeTypes.ID],
-    [mxsLexer.DropdownList, codeTypes.ID],
-    [mxsLexer.EditText, codeTypes.ID],
-    [mxsLexer.GroupBox, codeTypes.ID],
-    [mxsLexer.Hyperlink, codeTypes.ID],
-    [mxsLexer.ImgTag, codeTypes.ID],
-    [mxsLexer.Label, codeTypes.ID],
-    [mxsLexer.ListBox, codeTypes.ID],
-    [mxsLexer.MapButton, codeTypes.ID],
-    [mxsLexer.MaterialButton, codeTypes.ID],
-    [mxsLexer.MultilistBox, codeTypes.ID],
-    [mxsLexer.PickButton, codeTypes.ID],
-    [mxsLexer.PopupBenu, codeTypes.ID],
-    [mxsLexer.Progressbar, codeTypes.ID],
-    [mxsLexer.RadioButtons, codeTypes.ID],
-    [mxsLexer.Slider, codeTypes.ID],
-    [mxsLexer.Spinner, codeTypes.ID],
-    [mxsLexer.Subrollout, codeTypes.ID],
-    [mxsLexer.Timer, codeTypes.ID],
-    [mxsLexer.Separator, codeTypes.ID],
-    [mxsLexer.MenuItem, codeTypes.ID],
-    [mxsLexer.SubMenu, codeTypes.ID],
-    [mxsLexer.MAPPED, codeTypes.KEYWORD],
-    [mxsLexer.FN, codeTypes.KEYWORD],
-    [mxsLexer.STRUCT, codeTypes.KEYWORD],
-    [mxsLexer.LOCAL, codeTypes.KEYWORD],
-    [mxsLexer.GLOBAL, codeTypes.KEYWORD],
-    [mxsLexer.PERSISTENT, codeTypes.KEYWORD],
-    [mxsLexer.NAME, codeTypes.VALUE],
-    [mxsLexer.PATH, codeTypes.VALUE],
-    [mxsLexer.ID, codeTypes.ID],
-    [mxsLexer.QUOTED_ID, codeTypes.ID],
-    [mxsLexer.RESOURCE, codeTypes.VALUE],
-    [mxsLexer.EQ, codeTypes.ASSIGN],
-    [mxsLexer.COMPARE, codeTypes.OPERATOR],
-    [mxsLexer.ASSIGN, codeTypes.ASSIGN],
-    [mxsLexer.UNARY_MINUS, codeTypes.OPERATOR],
-    [mxsLexer.MINUS, codeTypes.OPERATOR],
-    [mxsLexer.PLUS, codeTypes.OPERATOR],
-    [mxsLexer.PROD, codeTypes.OPERATOR],
-    [mxsLexer.DIV, codeTypes.OPERATOR],
-    [mxsLexer.POW, codeTypes.OPERATOR],
-    [mxsLexer.SHARP, codeTypes.SHARP],
-    [mxsLexer.COMMA, codeTypes.COMMA],
-    [mxsLexer.GLOB, codeTypes.KEYWORD],
-    [mxsLexer.COLON, codeTypes.COLON],
-    [mxsLexer.DOTDOT, codeTypes.OPERATOR],
-    [mxsLexer.DOT, codeTypes.DOT],
-    [mxsLexer.AMP, codeTypes.SYMBOL],
-    [mxsLexer.QUESTION, codeTypes.SYMBOL],
-    [mxsLexer.LPAREN, codeTypes.LPAREN],
-    [mxsLexer.RPAREN, codeTypes.RPAREN],
-    [mxsLexer.LBRACE, codeTypes.LBRACE],
-    [mxsLexer.RBRACE, codeTypes.RBRACE],
-    [mxsLexer.LBRACK, codeTypes.SYMBOL],
-    [mxsLexer.RBRACK, codeTypes.SYMBOL],
     [mxsLexer.WS, codeTypes.WHITESPACE],
-    [mxsLexer.NL, codeTypes.LINE_BREAK],
-
 ])
 
 export class codeToken
@@ -292,13 +291,7 @@ export class codeBlock
     }
     public canBeMultiline(): boolean
     {
-        return this.vals.length > 1
-    }
-    // /*
-    }
-    // */
-}
-
+//---------------------------------------------------------------------------
 export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
 {
     private indentLevel = 0;
@@ -314,144 +307,185 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     */
     //-------------------------------------------------------
     visitProgram = (ctx: ProgramContext): codeBlock =>
-        new codeBlock(this.visitChildren(ctx))
-    // /*
-    visitExpr = (ctx: ExprContext): R[] =>
     {
-        return this.visitChildren(ctx)!
+        return new codeBlock(this.collectWithLineBreak(ctx.expr()))
+        // return new codeBlock(this.visitChildren(ctx))
+
     }
-    // */
+    // visitExpr = (ctx: ExprContext): R[] => { return this.visitChildren(ctx)! }
     //-------------------------------------------------------
+    //#region High-level Definitions
     visitPluginDefinition = (ctx: PluginDefinitionContext): codeBlock =>
     {
+        const vals = [this.visit(ctx.plugin_predicate())!].flat()
+        //--------------------------------------------
         this.indentLevel++;
         //--------------------------------------------
-        const vals = [this.visit(ctx.plugin_predicate())!].flat()
         const clause = new codeBlock(
-            ctx.plugin_clause()
-                .flatMap(clause => this.visit(clause)!),
-            // .filter(i => i !== null),
+            this.collectWithLineBreak(ctx.plugin_clause()),
             this.indentLevel,
-            <codeToken>this.visit(ctx.lp()),
-            <codeToken>this.visit(ctx.rp()),
-            blockTypes.DECL
+            [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
+            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            blockTypes.SEQUENCE
         )
         //--------------------------------------------
         this.indentLevel--;
-        return new codeBlock([...vals, clause])
+        //--------------------------------------------
+        return new codeBlock(
+            [...vals, this.emmitLineBreak(), clause],
+            this.indentLevel,
+            undefined, undefined,
+            blockTypes.DECL
+        )
     }
     visitPlugin_predicate = (ctx: Plugin_predicateContext): R[] => this.visitChildren(ctx)
     //-------------------------------------------------------
     visitParamsDefinition = (ctx: ParamsDefinitionContext): codeBlock =>
     {
+        const vals = [this.visit(ctx.params_predicate())!].flat()
+        //--------------------------------------------
         this.indentLevel++;
         //--------------------------------------------
-        const vals = [this.visit(ctx.params_predicate())!].flat()
         const clause = new codeBlock(
-            ctx.params_clause()
-                .flatMap(clause => this.visit(clause)!),
-            // .filter(i => i !== null),
+            this.collectWithLineBreak(ctx.params_clause()),
             this.indentLevel,
-            <codeToken>this.visit(ctx.lp()),
-            <codeToken>this.visit(ctx.rp()),
-            blockTypes.DECL
+            [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
+            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            blockTypes.SEQUENCE
         )
         //--------------------------------------------
         this.indentLevel--
-        return new codeBlock([...vals, clause])
+        //--------------------------------------------
+        return new codeBlock(
+            [...vals, this.emmitLineBreak(), clause],
+            this.indentLevel,
+            undefined, undefined,
+            blockTypes.DECL
+        )
     }
     visitParams_predicate = (ctx: Params_predicateContext): R[] => this.visitChildren(ctx)
     //-------------------------------------------------------
     visitToolDefinition = (ctx: ToolDefinitionContext): codeBlock =>
     {
-        this.indentLevel++;
-        //--------------------------------------------
         const vals = [this.visit(ctx.tool_predicate())!].flat()
+        //------------------
+        this.indentLevel++;
+        //------------------
         const clause = new codeBlock(
-            ctx.tool_clause()
-                .flatMap(clause => this.visit(clause)!),
+            this.collectWithLineBreak(ctx.tool_clause()),
             this.indentLevel,
-            <codeToken>this.visit(ctx.lp()),
-            <codeToken>this.visit(ctx.rp()),
+            [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
+            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            blockTypes.SEQUENCE
+        )
+        //------------------
+        this.indentLevel--;
+        //------------------
+        return new codeBlock(
+            [...vals, this.emmitLineBreak(), clause],
+            this.indentLevel,
+            undefined, undefined,
             blockTypes.DECL
         )
-        //--------------------------------------------
-        this.indentLevel--;
-        return new codeBlock([...vals, clause])
     }
     visitTool_predicate = (ctx: Tool_predicateContext): R[] => this.visitChildren(ctx)
     //-------------------------------------------------------
     visitMacroscriptDefinition = (ctx: MacroscriptDefinitionContext): codeBlock =>
     {
-        this.indentLevel++;
-        //--------------------------------------------
         const vals = [this.visit(ctx.macroscript_predicate())!].flat()
+        //------------------
+        this.indentLevel++;
+        //------------------
         const clause = new codeBlock(
-            ctx.macroscript_clause()
-                .flatMap(clause => this.visit(clause)!),
+            this.collectWithLineBreak(ctx.macroscript_clause()),
             this.indentLevel,
-            <codeToken>this.visit(ctx.lp()),
-            <codeToken>this.visit(ctx.rp()),
+            [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
+            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            blockTypes.SEQUENCE
+        )
+        //------------------
+        this.indentLevel--;
+        //------------------
+        return new codeBlock(
+            [...vals, this.emmitLineBreak(), clause],
+            this.indentLevel,
+            undefined, undefined,
             blockTypes.DECL
         )
-        //--------------------------------------------
-        this.indentLevel--;
-        return new codeBlock([...vals, clause])
     }
     visitMacroscript_predicate = (ctx: Macroscript_predicateContext): R[] => this.visitChildren(ctx)
     //-------------------------------------------------------
     visitUtilityDefinition = (ctx: UtilityDefinitionContext): codeBlock =>
     {
-        this.indentLevel++;
-        //--------------------------------------------
         const vals = [this.visit(ctx.utility_predicate())!].flat()
+        //------------------
+        this.indentLevel++;
+        //------------------
         const clause = new codeBlock(
-            ctx.rollout_clause()
-                .flatMap(clause => this.visit(clause)!),
+            this.collectWithLineBreak(ctx.rollout_clause()),
             this.indentLevel,
-            <codeToken>this.visit(ctx.lp()),
-            <codeToken>this.visit(ctx.rp()),
+            [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
+            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            blockTypes.SEQUENCE
+        )
+        //------------------
+        this.indentLevel--;
+        //------------------
+        return new codeBlock(
+            [...vals, this.emmitLineBreak(), clause],
+            this.indentLevel,
+            undefined, undefined,
             blockTypes.DECL
         )
-        //--------------------------------------------
-        this.indentLevel--;
-        return new codeBlock([...vals, clause])
     }
     visitUtility_predicate = (ctx: Utility_predicateContext): R[] => this.visitChildren(ctx)
     visitRolloutDefinition = (ctx: RolloutDefinitionContext): codeBlock =>
     {
-        this.indentLevel++;
-        //--------------------------------------------
         const vals = [this.visit(ctx.rollout_predicate())!].flat()
+        //------------------
+        this.indentLevel++;
+        //------------------
         const clause = new codeBlock(
-            ctx.rollout_clause()
-                .flatMap(clause => this.visit(clause)!),
+            this.collectWithLineBreak(ctx.rollout_clause()),
             this.indentLevel,
-            <codeToken>this.visit(ctx.lp()),
-            <codeToken>this.visit(ctx.rp()),
+            [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
+            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            blockTypes.SEQUENCE
+        )
+        //------------------
+        this.indentLevel--;
+        //------------------
+        return new codeBlock(
+            [...vals, this.emmitLineBreak(), clause],
+            this.indentLevel,
+            undefined, undefined,
             blockTypes.DECL
         )
-        //--------------------------------------------
-        this.indentLevel--;
-        return new codeBlock([...vals, clause])
     }
     visitRollout_predicate = (ctx: Rollout_predicateContext): R[] => this.visitChildren(ctx)
     visitRolloutGroup = (ctx: RolloutGroupContext): codeBlock =>
     {
-        this.indentLevel++;
-        //--------------------------------------------
         const vals = [this.visit(ctx.group_predicate())!].flat()
+        //------------------
+        this.indentLevel++;
+        //------------------
         const clause = new codeBlock(
-            ctx.rolloutControl()
-                .flatMap(clause => this.visit(clause)!),
+            this.collectWithLineBreak(ctx.rolloutControl()),
             this.indentLevel,
-            <codeToken>this.visit(ctx.lp()),
-            <codeToken>this.visit(ctx.rp()),
+            [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
+            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            blockTypes.SEQUENCE
+        )
+        console.log(clause)
+        //------------------
+        this.indentLevel--;
+        //------------------
+        return new codeBlock(
+            [...vals, this.emmitLineBreak(), clause],
+            this.indentLevel,
+            undefined, undefined,
             blockTypes.DECL
         )
-        //--------------------------------------------
-        this.indentLevel--;
-        return new codeBlock([...vals, clause])
     }
     visitGroup_predicate = (ctx: Group_predicateContext): R[] => this.visitChildren(ctx)
     visitRolloutControl = (ctx: RolloutControlContext): codeBlock =>
@@ -467,20 +501,26 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     //-------------------------------------------------------
     visitRcmenuDefinition = (ctx: RcmenuDefinitionContext): codeBlock =>
     {
-        this.indentLevel++;
-        //--------------------------------------------
         const vals = [this.visit(ctx.rcmenu_predicate())!].flat()
+        //------------------
+        this.indentLevel++;
+        //------------------
         const clause = new codeBlock(
-            ctx.rc_clause()
-                .flatMap(clause => this.visit(clause)!),
+            this.collectWithLineBreak(ctx.rc_clause()),
             this.indentLevel,
-            <codeToken>this.visit(ctx.lp()),
-            <codeToken>this.visit(ctx.rp()),
+            [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
+            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            blockTypes.SEQUENCE
+        )
+        //------------------
+        this.indentLevel--;
+        //------------------
+        return new codeBlock(
+            [...vals, this.emmitLineBreak(), clause],
+            this.indentLevel,
+            undefined, undefined,
             blockTypes.DECL
         )
-        //--------------------------------------------
-        this.indentLevel--;
-        return new codeBlock([...vals, clause])
     }
     visitRcmenu_predicate = (ctx: Rcmenu_predicateContext): R[] => this.visitChildren(ctx)
     visitRcmenuControl = (ctx: RcmenuControlContext): codeBlock =>
@@ -495,52 +535,69 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     }
     visitRc_submenu = (ctx: Rc_submenuContext): codeBlock =>
     {
-        this.indentLevel++;
-        //--------------------------------------------
         const vals = [this.visit(ctx.submenu_predicate())!].flat()
+        //------------------
+        this.indentLevel++;
+        //------------------
         const clause = new codeBlock(
-            ctx.rc_clause()
-                .flatMap(clause => this.visit(clause)!),
+            this.collectWithLineBreak(ctx.rc_clause()),
             this.indentLevel,
-            <codeToken>this.visit(ctx.lp()),
-            <codeToken>this.visit(ctx.rp()),
+            [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
+            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            blockTypes.SEQUENCE
+        )
+        //------------------
+        this.indentLevel--;
+        //------------------
+        return new codeBlock(
+            [...vals, this.emmitLineBreak(), clause],
+            this.indentLevel,
+            undefined, undefined,
             blockTypes.DECL
         )
-        //--------------------------------------------
-        this.indentLevel--;
-        return new codeBlock([...vals, clause])
     }
     visitSubmenu_predicate = (ctx: Submenu_predicateContext): R[] => this.visitChildren(ctx)
     //-------------------------------------------------------
     visitAttributesDefinition = (ctx: AttributesDefinitionContext): codeBlock =>
     {
-        this.indentLevel++;
-        //--------------------------------------------
         const vals = [this.visit(ctx.attributes_predicate())!].flat()
+        //------------------
+        this.indentLevel++;
+        //------------------
         const clause = new codeBlock(
-            ctx.attributes_clause()
-                .flatMap(clause => this.visit(clause)!),
+            this.collectWithLineBreak(ctx.attributes_clause()),
             this.indentLevel,
-            <codeToken>this.visit(ctx.lp()),
-            <codeToken>this.visit(ctx.rp()),
+            [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
+            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            blockTypes.SEQUENCE
+        )
+        //------------------
+        this.indentLevel--;
+        //------------------
+        return new codeBlock(
+            [...vals, this.emmitLineBreak(), clause],
+            this.indentLevel,
+            undefined, undefined,
             blockTypes.DECL
         )
-        //--------------------------------------------
-        this.indentLevel--;
-        return new codeBlock([...vals, clause])
     }
     visitAttributes_predicate = (ctx: Attributes_predicateContext): R[] => this.visitChildren(ctx)
+    //#endregion
     //-------------------------------------------------------
+    //#region Basic Definitions
     visitStructDefinition = (ctx: StructDefinitionContext): codeBlock =>
     {
         const body = <codeBlock>this.visit(ctx.struct_body())
-        body.start = <codeToken>this.visit(ctx.lp())
-        body.end = <codeToken>this.visit(ctx.rp())
+
+        body.start = [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()]
+        body.end = [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())]
+
         const vals = [
             this.visit(ctx.STRUCT())!,
             this.visit(ctx._str_name!)!,
             body
         ].flat()
+
         return new codeBlock(
             vals,
             this.indentLevel,
@@ -552,27 +609,27 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     visitStruct_body = (ctx: Struct_bodyContext): codeBlock =>
     {
         this.indentLevel++;
+        //------------------
+        const body: (R | R[])[] = []
+
+        for (let [i, member] of ctx.children.entries()) {
+            body.push(this.visit(member)!)
+            if (member instanceof CommaContext || member instanceof Struct_accessContext) {
+                body.push(this.emmitLineBreak())
+            }
+        }
 
         const block = new codeBlock(
-            this.visitChildren(ctx)!,
+            // this.visitChildren(ctx)!,
+            body.flat(),
             this.indentLevel,
             undefined,
             undefined,
-            blockTypes.SEQUENCE
+            blockTypes.FIELDS
         )
-
+        //------------------
         this.indentLevel--;
         return block
-    }
-    visitEventHandlerClause = (ctx: EventHandlerClauseContext): codeBlock =>
-    {
-        return new codeBlock(
-            this.visitChildren(ctx)!,
-            this.indentLevel,
-            undefined,
-            undefined,
-            blockTypes.EXPR
-        )
     }
     //-------------------------------------------------------
     visitFnDefinition = (ctx: FnDefinitionContext): codeBlock =>
@@ -596,7 +653,19 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             blockTypes.DECL
         )
     }
+    //#endregion
     //-------------------------------------------------------
+    //#region Basic Expressions
+    visitEventHandlerClause = (ctx: EventHandlerClauseContext): codeBlock =>
+    {
+        return new codeBlock(
+            this.visitChildren(ctx)!,
+            this.indentLevel,
+            undefined,
+            undefined,
+            blockTypes.EXPR
+        )
+    }
     visitFnReturnStatement = (ctx: FnReturnStatementContext): codeBlock =>
     {
         return new codeBlock(
@@ -618,44 +687,55 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
         )
     }
     // case item
-    // /*
     visitCaseExpression = (ctx: CaseExpressionContext): codeBlock =>
     {
+        const vals = [this.visit(ctx.case_predicate())!].flat()
+        //--------------------------------------------
         this.indentLevel++;
         //--------------------------------------------
-        const vals = [this.visit(ctx.case_predicate())!].flat()
         const clause = new codeBlock(
-            ctx.case_item()
-                .flatMap(clause => this.visit(clause)!),
+            this.collectWithLineBreak(ctx.case_item(), false),
             this.indentLevel,
-            <codeToken>this.visit(ctx.lp()),
-            <codeToken>this.visit(ctx.rp()),
-            blockTypes.EXPR
+            [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
+            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            blockTypes.SEQUENCE
         )
         //--------------------------------------------
         this.indentLevel--;
-        return new codeBlock([...vals, clause])
+        //--------------------------------------------
+        return new codeBlock(
+            [...vals, this.emmitLineBreak(), clause],
+            this.indentLevel,
+            undefined, undefined,
+            blockTypes.EXPR
+        )
     }
     visitCase_predicate = (ctx: Case_predicateContext): R[] => this.visitChildren(ctx)
     visitCase_item = (ctx: Case_itemContext): codeBlock =>
     {
+        // start val with the factor
+        const vals: (R | R[])[] = [this.visit(ctx.factor())!]
         // add spaces for numbers to avoid timeval problem
-        const right = /[0-9]$/.test(ctx.factor().getText()) ? this.whitespaceResult() : this.defaultResult()
-        const left = /^[-+0-9]/.test(ctx.expr().getText()) ? this.whitespaceResult() : this.defaultResult()
-
+        if (/[0-9]$/.test(ctx.factor().getText())) {
+            vals.push(this.emmitWhiteSpac())
+        }
+        // add colon
+        vals.push(this.visit(ctx.COLON())!)
+        // add spaces for numbers to avoid timeval problem
+        if (/^[-+0-9]/.test(ctx.expr().getText())) {
+            vals.push(this.emmitWhiteSpac())
+        }
+        // add expression
+        vals.push(this.visit(ctx.expr())!)
+        // return the block
         return new codeBlock(
-            [
-                this.visit(ctx.factor())!,
-                right, this.visit(ctx.COLON())!, left,
-                this.visit(ctx.expr())!
-            ].flat(),
+            vals.flat(),
             this.indentLevel,
             undefined,
             undefined,
             blockTypes.EXPR
         )
     }
-    // */
     visitIfExpression = (ctx: IfExpressionContext): codeBlock =>
     {
         return new codeBlock(
@@ -666,7 +746,6 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             blockTypes.EXPR
         )
     }
-    ///*
     visitDoLoopExpression = (ctx: DoLoopExpressionContext): codeBlock =>
     {
         return new codeBlock(
@@ -717,17 +796,23 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             blockTypes.EXPR
         )
     }
-    //*/
+    //#endregion
     //-------------------------------------------------------
     visitExpr_seq = (ctx: Expr_seqContext): codeBlock =>
     {
         this.indentLevel++;
         //--------------------------------------------
         const
-            res = this.visitChildren(ctx),
-            start = <codeToken>res.shift(),
-            end = <codeToken>res.pop(),
-            block = new codeBlock(res, this.indentLevel, start, end)
+            // res = this.visitChildren(ctx), start = [<codeToken>res.shift()], end = [<codeToken>res.pop()]
+            res = this.collectWithLineBreak(ctx.expr(), false),
+            start = [<codeToken>this.visit(ctx.lp())],
+            end = [<codeToken>this.visit(ctx.rp())]
+        // add linebreaks
+        if (res.length > 1) {
+            start.push(this.emmitLineBreak())
+            end.unshift(this.emmitLineBreak())
+        }
+        const block = new codeBlock(res, this.indentLevel, start, end, blockTypes.SEQUENCE)
         //--------------------------------------------
         this.indentLevel--;
         return block
@@ -736,6 +821,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     // /*
     visitSimpleExpression = (ctx: SimpleExpressionContext): R =>
     {
+        /*
         const operand = ctx.expr_operand()
         if (operand) {
             return this.visitChildren(operand)?.[0]
@@ -748,41 +834,32 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
                 blockTypes.EXPR
             )
         }
+        // */
+        // /*
+        return new codeBlock(
+            this.visitChildren(ctx)!,
+            this.indentLevel,
+            undefined,
+            undefined,
+            blockTypes.EXPR
+        )
+        // */
     }
+    // visitExpr_operand = (ctx: Expr_operandContext): string => this.visitChildren(ctx)!
     // */
-    /*
-    visitExpr_operand = (ctx: Expr_operandContext): string =>
-    {
-        return this.visitChildren(ctx, this.aggregateResult)!
-    }
-    */
     //-------------------------------------------------------    
     /*
-    visitAssignment = (ctx: AssignmentContext): string =>
-    {
-        // return ctx.EQ().symbol.text + this.visit(ctx.expr())!
-        return this.visitChildren(ctx, this.aggregateResult)!
-    }
-    visitOperand = (ctx: OperandContext): string =>
-    {
-        return this.visitChildren(ctx, this.aggregateResult)!
-    }
-    //accessor
-    visitAccessor = (ctx: AccessorContext): string =>
-    {
-        return this.visitChildren(ctx, this.aggregateResult)!
-    }
-    visitProperty = (ctx: PropertyContext): string =>
-    {
-        return this.visitChildren(ctx, this.aggregateResult)!
-    }
-    visitIndex = (ctx: IndexContext): string =>
-    {
-        return this.visitChildren(ctx, this.aggregateResult)!
-    }
-    // */
+    visitAssignment = (ctx: AssignmentContext): string => this.visitChildren(ctx)!
+    visitOperand = (ctx: OperandContext): string => this.visitChildren(ctx)!
+    visitAccessor = (ctx: AccessorContext): string => this.visitChildren(ctx)!
+
+    visitProperty = (ctx: PropertyContext): string => this.visitChildren(ctx)!
+    visitIndex = (ctx: IndexContext): string => this.visitChildren(ctx)!
+    
     // visitFactor = (ctx: FactorContext): R => this.visitChildren(ctx)?.[0]
+    // */
     //-------------------------------------------------------
+    /*
     visitFunctionCall = (ctx: FunctionCallContext): codeBlock =>
     {
         return new codeBlock(
@@ -793,76 +870,79 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             blockTypes.EXPR
         )
     }
-
-    /*    visitParam = (ctx: ParamContext): string =>
-       {
-           return this.visitChildren(ctx, this.aggregateResult)
-       } */
+    // */
+    // visitParam = (ctx: ParamContext): string => { return this.visitChildren(ctx) }
     // visitOperand_arg = (ctx: Operand_argContext): ParseTree => { return ctx.children[0] }
-    /* visitParam_name = (ctx: Param_nameContext): string => { return ctx.getText() } */
+    // visitParam_name = (ctx: Param_nameContext): string => { return ctx.getText() }
     //-------------------------------------------------------
+    //#region Values
     visitIdentifier = (ctx: IdentifierContext): codeToken =>
         new codeToken(ctx.getText(), codeTypes.ID)
-    // visitString?: ((ctx: StringContext) => string) | undefined;
-    // visitNumber?: ((ctx: NumberContext) => string) | undefined;
-    // visitTimeval?: ((ctx: TimevalContext) => string) | undefined;
-    // visitBool?: ((ctx: BoolContext) => string) | undefined;
-    // visitPath?: ((ctx: PathContext) => string) | undefined;
-    // visitName?: ((ctx: NameContext) => string) | undefined;
     //-------------------------------------------------------
     visitArray = (ctx: ArrayContext): codeBlock =>
     {
         this.indentLevel++;
-
+        //-----------------------
         const list = ctx.arrayList()
-        const start = <codeToken>this.visit(ctx.lp())
-        start.prepend(ctx.SHARP().getText())
-        const end = <codeToken>this.visit(ctx.rp())
 
         const block = new codeBlock(
             list ? <R[]>this.visit(list)! : [],
             this.indentLevel,
-            start,
-            end,
+            [
+                this.visitTerminal(ctx.SHARP()),
+                <codeToken>this.visit(ctx.lp()),
+                this.emmitLineBreak()
+            ],
+            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
             blockTypes.LIST
         )
-
+        //-----------------------
         this.indentLevel--;
+        //-----------------------
         return block
     }
     visitArrayList = (ctx: ArrayListContext): R[] => this.visitChildren(ctx)
-
     visitBitArray = (ctx: BitArrayContext): codeBlock =>
     {
         this.indentLevel++;
-
+        //-----------------------
         const list = ctx.bitList()
-        const start = <codeToken>this.visit(ctx.lc())
-        start.prepend(ctx.SHARP().getText())
-        const end = <codeToken>this.visit(ctx.rc())
 
         const block = new codeBlock(
             list ? <R[]>this.visit(list)! : [],
             this.indentLevel,
-            start,
-            end,
+            [
+                this.visitTerminal(ctx.SHARP()),
+                <codeToken>this.visit(ctx.lc()),
+                this.emmitLineBreak()
+            ],
+            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rc())],
             blockTypes.LIST
         )
-
+        //-----------------------
         this.indentLevel--;
+        //-----------------------
         return block
     }
     visitBitList = (ctx: BitListContext): R[] => this.visitChildren(ctx)
-    //..
     //-------------------------------------------------------
-    visitParen_pair = (ctx: Paren_pairContext): codeBlock =>
+    // visitString = (ctx: StringContext): codeToken => {}
+    // visitNumber = (ctx: NumberContext): codeToken => {}
+    // visitTimeval = (ctx: TimevalContext): codeToken => {}
+    // visitBool = (ctx: BoolContext): codeToken => {}
+    // visitPath = (ctx: PathContext): codeToken => {}
+    // visitName = (ctx: NameContext): codeToken => {}
+    //-------------------------------------------------------
+    //#endregion
+    //-------------------------------------------------------
+    //#region Terminals
+    visitParen_pair = (ctx: Paren_pairContext): codeToken =>
     {
-        const block = new codeBlock()
-        block.start = <codeToken>this.visit(ctx.LPAREN())
-        block.end = <codeToken>this.visit(ctx.RPAREN())
-        return block
+        return new codeToken(
+            ctx.LPAREN().getText() + ctx.RPAREN().getText(),
+            codeTypes.EMPTY
+        )
     }
-
     visitLp = (ctx: LpContext): codeToken => new codeToken('(', codeTypes.LPAREN)
     visitRp = (ctx: RpContext): codeToken => new codeToken(')', codeTypes.RPAREN)
     visitLc = (ctx: LcContext): codeToken => new codeToken('{', codeTypes.LBRACE)
@@ -872,27 +952,25 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     visitComma = (ctx: CommaContext): codeToken => new codeToken(',', codeTypes.COMMA)
     //-------------------------------------------------------
     // this will emmit a line break token for mandatory linebreaks
-    visitLbk = (ctx: LbkContext): codeToken => this.lineBreakResult()
+    // visitLbk = (ctx: LbkContext): codeToken => this.breakResult()
+    visitLbk = (ctx: LbkContext): codeToken => this.defaultResult()
+    //-------------------------------------------------------
     visitTerminal = (node: TerminalNode): codeToken =>
     {
         switch (node.symbol.type) {
             case mxsLexer.UNARY_MINUS:
                 return new codeToken(options.whitespaceChar + node.getText(), codeTypes.UNARY)
-            /*
-            return [
-                new codeToken(options.whitespaceChar, codeTypes.WHITESPACE),
-                new codeToken(node.getText(), codeTypes.OPERATOR)
-            ]*/
             case mxsLexer.NL:
                 return this.defaultResult()
             case mxsLexer.EOF:
                 return this.defaultResult()
             default:
-                return new codeToken(node.getText(), tokenToCodeType.get(node.symbol.type)!)
+                return new codeToken(node.getText(), tokenToCodeType.get(node.symbol.type) ?? codeTypes.VALUE)
         }
     }
+    //#endregion
     //-------------------------------------------------------
-    protected aggregateResult(aggregate: R[], nextResult: codeToken | codeBlock | R[]): R[]
+    protected aggregateResultNL(aggregate: R[], nextResult: codeToken | codeBlock | R[]): R[]
     {
         /*
         if (aggregate) {

@@ -101,11 +101,11 @@ rolloutGroup
 group_predicate: Group NL* group_name = STRING?
 	;
 
-rolloutControl: rolloutControlType NL* controlName = identifier (NL* operand)* (NL* param)*
+rolloutControl: rolloutControlType NL* controlName = identifier (NL* operand)? (NL* param)*
 	;
 
 rolloutControlType
-	: Angle
+	: ( Angle
 	| Bitmap
 	| Button
 	| CheckBox
@@ -131,7 +131,7 @@ rolloutControlType
 	| Slider
 	| Spinner
 	| Subrollout
-	| Timer
+	| Timer )
 	;
 
 //-------------------------------------- TOOL_DEF
@@ -294,16 +294,16 @@ structDefinition
     rp
 	;
 
-struct_body: (struct_access NL*)? struct_members ( comma (struct_access NL*)? struct_members )*
+struct_body: (struct_access NL*)? struct_member ( comma (struct_access NL*)? struct_member )*
 	;
-struct_members
-	: struct_member
+	
+struct_member
+	: identifier assignment?
 	| fnDefinition
 	| eventHandlerClause	
 	;
 
-struct_member: identifier assignment? // | ids
-	;
+// struct_member: identifier assignment? ;
 
 struct_access: PUBLIC | PRIVATE
 	;
@@ -628,7 +628,6 @@ factor
 	| point3
 	| point2
 	| box2
-	// | unary_minus //UNARY MINUS
 	| expr_seq //EXPRESSION SEQUENCE
 	;
 
