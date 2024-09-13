@@ -1,27 +1,22 @@
-import { ParserRuleContext, TerminalNode, Token } from "antlr4ng"
-import { mxsLexer } from "./mxsLexer"
+import { ParserRuleContext, TerminalNode } from "antlr4ng";
+import { mxsLexer } from "./mxsLexer";
 import
     {
-        AccessorContext, ArrayContext, ArrayListContext, AssignmentContext, Attributes_predicateContext, AttributesDefinitionContext, BitArrayContext, BitListContext, Case_itemContext,
-        Case_predicateContext,
-        CaseExpressionContext,
-        CommaContext, ContextExpressionContext, DeclarationExpressionContext, DoLoopExpressionContext, EventHandlerClauseContext, Expr_operandContext, Expr_seqContext,
-        ExprContext, FactorContext, FnDefinitionContext, FnReturnStatementContext, ForLoopExpressionContext, FunctionCallContext,
-        Group_predicateContext,
-        IdentifierContext, IfExpressionContext, IndexContext, LbContext, LbkContext, LcContext, LpContext,
-        Macroscript_predicateContext,
-        MacroscriptDefinitionContext, mxsParser, Operand_argContext, OperandContext, Param_nameContext,
-        ParamContext, Params_predicateContext, ParamsDefinitionContext, Paren_pairContext, PathContext, Plugin_predicateContext, PluginDefinitionContext, ProgramContext,
-        PropertyContext, RbContext, Rc_submenuContext, RcContext, Rcmenu_predicateContext, RcmenuControlContext, RcmenuDefinitionContext,
-        Rollout_predicateContext,
-        RolloutControlContext, RolloutDefinitionContext, RolloutGroupContext, RpContext, SimpleExpressionContext,
-        Struct_bodyContext, StructDefinitionContext, Submenu_predicateContext, Tool_predicateContext, ToolDefinitionContext, TryExpressionContext, Utility_predicateContext, UtilityDefinitionContext,
+        ArrayContext, ArrayListContext, Attributes_predicateContext, AttributesDefinitionContext, BitArrayContext,
+        BitListContext, Case_itemContext, Case_predicateContext, CaseExpressionContext, CommaContext,
+        ContextExpressionContext, DeclarationExpressionContext, DoLoopExpressionContext, EventHandlerClauseContext, Expr_seqContext,
+        FnDefinitionContext, FnReturnStatementContext, ForLoopExpressionContext, Group_predicateContext,
+        IdentifierContext, IfExpressionContext, LbContext, LbkContext, LcContext, LpContext,
+        Macroscript_predicateContext, MacroscriptDefinitionContext, Params_predicateContext, ParamsDefinitionContext,
+        Paren_pairContext, Plugin_predicateContext, PluginDefinitionContext, ProgramContext,
+        RbContext, Rc_submenuContext, RcContext, Rcmenu_predicateContext, RcmenuControlContext, RcmenuDefinitionContext,
+        Rollout_predicateContext, RolloutControlContext, RolloutDefinitionContext, RolloutGroupContext, RpContext,
+        SimpleExpressionContext, Struct_accessContext, Struct_bodyContext, StructDefinitionContext, Submenu_predicateContext,
+        Tool_predicateContext, ToolDefinitionContext, TryExpressionContext, Utility_predicateContext, UtilityDefinitionContext,
         WhenStatementContext, WhileLoopExpressionContext
-    } from "./mxsParser"
-import { mxsParserVisitor } from "./mxsParserVisitor"
-
-type R = codeToken | codeBlock
-
+    } from "./mxsParser";
+import { mxsParserVisitor } from "./mxsParserVisitor";
+// import * as util from "util";
 
 const options = {
 
@@ -46,38 +41,44 @@ const options = {
     condenseWhitespace: true,
 }
 
+type R = codeToken | codeBlock
+
 enum codeTypes
 {
     ASSIGN,
+    BLOCK_COMMENT,
+    COLON,
     COMMA,
     DOT,
-    COLON,
+    EMPTY,
     ID,
     KEYWORD,
+    LBRACE,
     LINE_BREAK,
+    BREAK,
+    LINE_COMMENT,
+    LINE_CONTINUATION,
+    LPAREN,
+    MODIF,
     NUMBER,
     OPERATOR,
+    RBRACE,
+    RPAREN,
     SHARP,
     SYMBOL,
     UNARY,
     VALUE,
+    VOID,
     WHITESPACE,
-    LPAREN,
-    RPAREN,
-    LBRACE,
-    RBRACE,
-    LINE_COMMENT,
-    BLOCK_COMMENT,
-    LINE_CONTINUATION,
-    VOID
 }
 
 enum blockTypes
 {
+    DECL,
     EXPR,
-    SEQUENCE,
+    FIELDS,
     LIST,
-    DECL
+    SEQUENCE,
 }
 
 const tokenToCodeType = new Map<number, codeTypes>([
@@ -223,28 +224,17 @@ export class codeToken
         this.type = type
         // this.pos = pos
     }
-    public check(type: codeTypes): boolean
-    {
-        return this.type === type
-    }
-    public prepend(val: string)
-    {
-        this.val = val + this.val
-    }
-    public append(val: string)
-    {
-        this.val += val
-    }
+    public check = (type: codeTypes): boolean => this.type === type
 }
 
 export class codeBlock
 {
     vals: R[]
     indent: number
-    start?: codeToken
-    end?: codeToken
+    start?: codeToken | codeToken[]
+    end?: codeToken | codeToken[]
     type: blockTypes
-    constructor(vals?: R[], indent?: number, start?: codeToken, end?: codeToken, type?: blockTypes)
+    constructor(vals?: R[], indent?: number, start?: codeToken | codeToken[], end?: codeToken | codeToken[], type?: blockTypes)
     {
         this.vals = vals ?? []
         this.indent = indent ?? 0
@@ -284,13 +274,7 @@ export class codeBlock
     {
         return (this.last instanceof codeToken && this.last.check(codeTypes.LINE_BREAK))
     }
-
-    public isEmpty(): boolean
-    {
-        return this.vals.length === 0
-    }
-    public canBeMultiline(): boolean
-    {
+    public isEmpty(): boolean { return this.vals.length === 0 }
 //---------------------------------------------------------------------------
 export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
 {
@@ -325,7 +309,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             this.collectWithLineBreak(ctx.plugin_clause()),
             this.indentLevel,
             [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
-            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            [this.emmitLineBreak(false, this.indentLevel > 0 ? this.indentLevel - 1 : 0), <codeToken>this.visit(ctx.rp())],
             blockTypes.SEQUENCE
         )
         //--------------------------------------------
@@ -350,7 +334,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             this.collectWithLineBreak(ctx.params_clause()),
             this.indentLevel,
             [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
-            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            [this.emmitLineBreak(false, this.indentLevel > 0 ? this.indentLevel - 1 : 0), <codeToken>this.visit(ctx.rp())],
             blockTypes.SEQUENCE
         )
         //--------------------------------------------
@@ -375,7 +359,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             this.collectWithLineBreak(ctx.tool_clause()),
             this.indentLevel,
             [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
-            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            [this.emmitLineBreak(false, this.indentLevel > 0 ? this.indentLevel - 1 : 0), <codeToken>this.visit(ctx.rp())],
             blockTypes.SEQUENCE
         )
         //------------------
@@ -400,7 +384,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             this.collectWithLineBreak(ctx.macroscript_clause()),
             this.indentLevel,
             [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
-            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            [this.emmitLineBreak(false, this.indentLevel > 0 ? this.indentLevel - 1 : 0), <codeToken>this.visit(ctx.rp())],
             blockTypes.SEQUENCE
         )
         //------------------
@@ -425,7 +409,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             this.collectWithLineBreak(ctx.rollout_clause()),
             this.indentLevel,
             [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
-            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            [this.emmitLineBreak(false, this.indentLevel > 0 ? this.indentLevel - 1 : 0), <codeToken>this.visit(ctx.rp())],
             blockTypes.SEQUENCE
         )
         //------------------
@@ -449,7 +433,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             this.collectWithLineBreak(ctx.rollout_clause()),
             this.indentLevel,
             [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
-            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            [this.emmitLineBreak(false, this.indentLevel > 0 ? this.indentLevel - 1 : 0), <codeToken>this.visit(ctx.rp())],
             blockTypes.SEQUENCE
         )
         //------------------
@@ -473,10 +457,10 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             this.collectWithLineBreak(ctx.rolloutControl()),
             this.indentLevel,
             [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
-            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            [this.emmitLineBreak(false, this.indentLevel > 0 ? this.indentLevel - 1 : 0), <codeToken>this.visit(ctx.rp())],
             blockTypes.SEQUENCE
         )
-        console.log(clause)
+        // console.log(clause)
         //------------------
         this.indentLevel--;
         //------------------
@@ -509,7 +493,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             this.collectWithLineBreak(ctx.rc_clause()),
             this.indentLevel,
             [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
-            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            [this.emmitLineBreak(false, this.indentLevel > 0 ? this.indentLevel - 1 : 0), <codeToken>this.visit(ctx.rp())],
             blockTypes.SEQUENCE
         )
         //------------------
@@ -543,7 +527,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             this.collectWithLineBreak(ctx.rc_clause()),
             this.indentLevel,
             [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
-            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            [this.emmitLineBreak(false, this.indentLevel > 0 ? this.indentLevel - 1 : 0), <codeToken>this.visit(ctx.rp())],
             blockTypes.SEQUENCE
         )
         //------------------
@@ -568,7 +552,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             this.collectWithLineBreak(ctx.attributes_clause()),
             this.indentLevel,
             [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
-            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            [this.emmitLineBreak(false, this.indentLevel > 0 ? this.indentLevel - 1 : 0), <codeToken>this.visit(ctx.rp())],
             blockTypes.SEQUENCE
         )
         //------------------
@@ -589,12 +573,13 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     {
         const body = <codeBlock>this.visit(ctx.struct_body())
 
-        body.start = [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()]
-        body.end = [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())]
+        body.start = [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak(false, this.indentLevel + 1)]
+        body.end = [this.emmitLineBreak(false, this.indentLevel > 0 ? this.indentLevel - 1 : 0), <codeToken>this.visit(ctx.rp())]
 
         const vals = [
             this.visit(ctx.STRUCT())!,
             this.visit(ctx._str_name!)!,
+            this.emmitLineBreak(),
             body
         ].flat()
 
@@ -697,7 +682,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             this.collectWithLineBreak(ctx.case_item(), false),
             this.indentLevel,
             [<codeToken>this.visit(ctx.lp()), this.emmitLineBreak()],
-            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            [this.emmitLineBreak(false, this.indentLevel > 0 ? this.indentLevel - 1 : 0), <codeToken>this.visit(ctx.rp())],
             blockTypes.SEQUENCE
         )
         //--------------------------------------------
@@ -810,7 +795,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
         // add linebreaks
         if (res.length > 1) {
             start.push(this.emmitLineBreak())
-            end.unshift(this.emmitLineBreak())
+            end.unshift(this.emmitLineBreak(false, this.indentLevel > 0 ? this.indentLevel - 1 : 0))
         }
         const block = new codeBlock(res, this.indentLevel, start, end, blockTypes.SEQUENCE)
         //--------------------------------------------
@@ -893,7 +878,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
                 <codeToken>this.visit(ctx.lp()),
                 this.emmitLineBreak()
             ],
-            [this.emmitLineBreak(), <codeToken>this.visit(ctx.rp())],
+            [this.emmitLineBreak(false, this.indentLevel > 0 ? this.indentLevel - 1 : 0), <codeToken>this.visit(ctx.rp())],
             blockTypes.LIST
         )
         //-----------------------
@@ -970,69 +955,62 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     }
     //#endregion
     //-------------------------------------------------------
-    protected aggregateResultNL(aggregate: R[], nextResult: codeToken | codeBlock | R[]): R[]
+    protected emmitLineBreak(mandatory: boolean = false, indent: number = this.indentLevel): codeToken
     {
-        /*
-        if (aggregate) {
-            if (nextResult) {
-                if (options.condenseWhitespace) {
-                    const end = /[$0-9_\p{L}]$/u.test(aggregate)
-                    const start = /^[0-9_\p{L}]/u.test(nextResult)
-
-                    const minusEnd = aggregate.endsWith('-')
-                    const minusStart = nextResult.startsWith('-')
-
-                    if (start && end || (minusStart && minusEnd)) {
-                        aggregate += options.whitespaceChar
-                    }
-                } else {
-                    aggregate += options.whitespaceChar
-                }
-                return aggregate + nextResult
+        const token: codeToken =
+            mandatory
+                ? new codeToken(options.exprEndChar, codeTypes.BREAK)
+                : new codeToken(options.newLineChar, codeTypes.LINE_BREAK);
+        token.indent = indent
+        return token
+    }
+    protected emmitWhiteSpac(): codeToken
+    {
+        return new codeToken(options.whitespaceChar, codeTypes.WHITESPACE)
+    }
+    protected collectWithLineBreak(ctx: ParserRuleContext[], isOptional: boolean = true): R[]
+    {
+        const result: R[] = [];
+        for (let [i, ex] of ctx.entries()) {
+            const curr = this.visit(ex)!
+            if (Array.isArray(curr)) {
+                result.push(...curr)
+            } else {
+                result.push(curr)
             }
-            return aggregate
+            if (i < ctx.length - 1) {
+                result.push(this.emmitLineBreak(!isOptional))
+            }
         }
-        return nextResult
-        */
+        return result
+    }
+    //-------------------------------------------------------
+    protected defaultResult(): codeToken { return new codeToken('', codeTypes.VOID) }
+    protected shouldVisitNextChild(_node: ParserRuleContext, _currentResult: codeToken | codeBlock): boolean { return true }
+    protected aggregateResult(aggregate: R[], nextResult: codeToken | codeBlock | R[]): R[]
+    {
         return Array.isArray(nextResult) ? nextResult : [nextResult];
     }
-
-    protected defaultResult(): codeToken { return new codeToken('', codeTypes.VOID) }
-    protected lineBreakResult(): codeToken { return new codeToken(options.newLineChar, codeTypes.LINE_BREAK) }
-    protected whitespaceResult(): codeToken { return new codeToken(options.whitespaceChar, codeTypes.WHITESPACE) }
-    protected shouldVisitNextChild(_node: ParserRuleContext, _currentResult: codeToken | codeBlock): boolean { return true }
-
-
-    visitChildren(node: ParserRuleContext, filterTerminal?: number): R[]
-    visitChildren(node: ParserRuleContext[], filterTerminal?: number): R[]
-
-    visitChildren(node: ParserRuleContext | ParserRuleContext[], filterTerminal: number = mxsLexer.NL): R[]
+    visitChildren(node: ParserRuleContext, filterTerminal: number = mxsLexer.NL): R[]
     {
         let result: R[] = []
-        if (!Array.isArray(node)) {
-            const n2 = node.getChildCount()
-            for (let i = 0; i < n2; i++) {
-
-                if (!this.shouldVisitNextChild(node, result[result.length - 1])) {
-                    break
+        const n2 = node.getChildCount()
+        for (let i = 0; i < n2; i++) {
+            if (!this.shouldVisitNextChild(node, result[result.length - 1])) {
+                break
+            }
+            const c = node.getChild(i)
+            if (c) {
+                if (filterTerminal && c instanceof TerminalNode &&
+                    c.symbol.type === filterTerminal) {
+                    continue
                 }
-                const c = node.getChild(i)
-
-                if (c) {
-                    if (filterTerminal && c instanceof TerminalNode &&
-                        c.symbol.type === filterTerminal) {
-                        continue
-                    }
-                    const childResult = c.accept(this)
-
-                    if (childResult) {
-                        result.push(...this.aggregateResult(result, childResult))
-                        // eval
-                    }
+                const childResult = c.accept(this)
+                if (childResult) {
+                    // result.push(...this.aggregateResult(result, childResult))
+                    result.push(...(Array.isArray(childResult) ? childResult : [childResult]))
                 }
             }
-        } else {
-            // node.
         }
         return result
     }
