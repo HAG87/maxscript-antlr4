@@ -19,26 +19,28 @@ import { mxsParserVisitor } from "./mxsParserVisitor";
 // import * as util from "util";
 
 const options = {
-
     whitespaceChar: ' ',
-    newLineChar: ';',
-    indentChar: '\t',
-    lineEndChar: ';',
+    newLineChar: '\n\r',
+    // newLineChar: ';',
+    // indentChar: '\t',
+    indentChar: '  ',
+    exprEndChar: '\n\r',
+    // exprEndChar: ';',
     lineContinuationChar: '\\',
     codeblock: {
-        parensInNewLine: false,
-        newlineAllways: false,
-        spaced: false,
+        newlineAllways: true, //ok
+        parensInNewLine: true, //ok
+        spaced: true, //ok
     },
     list: {
-        useLineBreaks: false
+        useLineBreaks: false //ok
     },
     statements: {
-        useLineBreaks: true,
+        useLineBreaks: false,
         optionalWhitespace: false
     },
     removeUnnecessaryScopes: false,
-    condenseWhitespace: true,
+    condenseWhitespace: false, //ok
 }
 
 type R = codeToken | codeBlock
@@ -225,7 +227,40 @@ export class codeToken
         // this.pos = pos
     }
     public check = (type: codeTypes): boolean => this.type === type
+    public prepend = (val: string): void => { this.val = val + this.val }
+    public append = (val: string): void => { this.val += val }
 }
+
+const mandatoryWS: Set<number> = new Set([
+    codeTypes.ID,
+    codeTypes.NUMBER,
+    codeTypes.KEYWORD,
+    codeTypes.UNARY
+])
+const shouldSkip: Set<number> = new Set([
+    codeTypes.WHITESPACE,
+    codeTypes.LINE_BREAK,
+    codeTypes.BREAK,
+    codeTypes.SHARP,
+    codeTypes.DOT,
+    //  codeTypes.COMMA,
+    //  codeTypes.COLON,
+])
+const shouldSkipNext: Set<number> = new Set([
+    codeTypes.EMPTY,
+    codeTypes.WHITESPACE,
+    codeTypes.LINE_BREAK,
+    codeTypes.BREAK,
+    codeTypes.COMMA,
+    codeTypes.COLON,
+    codeTypes.DOT,
+])
+const blockPairs: Set<number> = new Set([
+    codeTypes.LPAREN,
+    codeTypes.RPAREN,
+    codeTypes.LBRACE,
+    codeTypes.RBRACE,
+])
 
 export class codeBlock
 {
@@ -264,17 +299,316 @@ export class codeBlock
         }
         return res
     }
-
     public startsWithNL(): boolean
     {
         return (this.first instanceof codeToken && this.first.check(codeTypes.LINE_BREAK))
     }
-
     public endsWithNL(): boolean
     {
         return (this.last instanceof codeToken && this.last.check(codeTypes.LINE_BREAK))
     }
     public isEmpty(): boolean { return this.vals.length === 0 }
+    public canBeMultiline(): boolean { return this.vals.length > 1 }
+    // /*
+
+    protected emmitIndent(level: number): codeToken
+    {
+        return new codeToken(options.indentChar.repeat(level), codeTypes.WHITESPACE)
+    }
+    protected emmitWS(): codeToken
+    {
+        return new codeToken(options.whitespaceChar, codeTypes.WHITESPACE)
+    }
+    protected emmitNL(indent?: number): codeToken
+    {
+        const token = new codeToken(options.newLineChar, codeTypes.LINE_BREAK)
+        token.indent = indent
+        return token
+    }
+    protected itemsHasLineBreaks(items: codeToken[]): boolean
+    {
+        return items.some(item => item.type === codeTypes.LINE_BREAK)
+    }
+    protected blockWrap(block: codeBlock, items: codeToken[], linebreaks: boolean = true): void
+    {
+        if (block.start && block.end) {
+            const start: codeToken[] = Array.isArray(block.start) ? block.start : [block.start]
+            const end: codeToken[] = Array.isArray(block.end) ? block.end : [block.end]
+
+            items.unshift(...start.filter(item => linebreaks ? true : item.type !== codeTypes.LINE_BREAK))
+            items.push(...end.filter(item => linebreaks ? true : item.type !== codeTypes.LINE_BREAK))
+            // items.unshift(...start)
+            // items.push(...end)
+        }
+    }
+    protected insertAt(items: codeToken[], insert: codeToken, markers?: codeTypes[])
+    {
+        let i = 0
+        if (markers) {
+            while (i < items.length) {
+                // /*
+                if (markers.includes(items[i].type)) {
+                    items.splice(i + 1, 0, insert);
+                    i += 2;
+                } else i++;
+            }
+        } else {
+            i = 1
+            while (i <= items.length - 1) {
+                items.splice(i, 0, insert);
+                i += 2;
+            }
+        }
+    }
+    protected breakAtKeyword(items: codeToken[], indent: number)
+    {
+        const kwPatterAfter = /(then|do|collect|on|when|where|while|try|of|else|catch)/i
+        const kwPatternBoth = /(else|catch)/i
+        let i = 0
+        while (i < items.length) {
+            if ((items[i].type === codeTypes.KEYWORD && kwPatterAfter.test(items[i].val))) {
+                const next = items[i + 1]
+                const replacement = [items[i]]
+                // insert after
+                if (next.type !== codeTypes.LINE_BREAK &&
+                    next.type !== codeTypes.WHITESPACE) {
+                    replacement.push(this.emmitNL(indent + 1))
+                }
+                // insert before
+                if (kwPatternBoth.test(items[i].val)) {
+                    const prev = items[i - 1]
+                    if (prev && prev.type !== codeTypes.LINE_BREAK &&
+                        prev.type !== codeTypes.WHITESPACE
+                    ) {
+                        replacement.unshift(this.emmitNL(indent))
+                    }
+                }
+                items.splice(i, 1, ...replacement)
+                i += replacement.length
+            } else {
+                i++;
+            }
+        }
+    }
+    protected flatten(/* options: ICodeFormatSettings = defaultFormatSettings */parent?: codeBlock): codeToken[]
+    {
+        // const insertAfter = [codeTypes.RBRACE, codeTypes.RPAREN, codeTypes.ASSIGN]
+        // function dfs(node: codeBlock, parent?: codeBlock): codeToken[]
+        // {
+        let result: codeToken[] = [];
+        //-----------------------------------------------------
+        // main loop to visit children
+        for (let i = 0; i <= this.vals.length - 1; i++) {
+            //----------------------------
+            const item = this.vals[i];
+            // const next = i < this.vals.length ? this.vals[i + 1] : null;
+            // const prev = i > 0 ? this.vals[i - 1] : null;
+            //----------------------------
+            if (item instanceof codeToken) {
+                // filter null tokens
+                if (item.type !== codeTypes.VOID) {
+                    if (options.codeblock.newlineAllways) {
+                        result.push(item)
+                    } else if (item.type !== codeTypes.LINE_BREAK) {
+                        result.push(item)
+                    }
+                }
+            } else {
+                // blockNode
+                //----------------------------------
+                /*
+                if (item.isEmpty()) {                    
+                    const empty: codeToken[] = []
+                    this.blockWrap(item, empty)
+                    result.push(...empty);                    
+                    continue;
+                }
+                // */
+                //----------------------------------
+                // const hasLinebreaks = item.hasLineBreaks();
+                const inner = item.flatten(/* options */this);
+                //----------------------------------
+                // /*
+                switch (item.type) {
+                    case blockTypes.DECL:
+                        //TODO: ad linebreak here??
+                        break;
+                    case blockTypes.EXPR:
+                        if (options.statements.useLineBreaks) {
+                            // I can do this in the visitor but I need check for expr_seq
+                            this.breakAtKeyword(inner, item.indent)
+                        }
+                        break;
+                    case blockTypes.LIST:
+                        if (options.list.useLineBreaks && inner.length > 1) {
+                            this.insertAt(inner, this.emmitNL(item.indent), [codeTypes.COMMA])
+                        }
+                        // wrap the block
+                        this.blockWrap(item, inner, options.list.useLineBreaks);
+                        break;
+                    case blockTypes.SEQUENCE:
+                        // mandatory linebreaks here should come from the tree, because here whe dont have a context to determine them
+                        this.blockWrap(item, inner, true);
+                        break;
+                    case blockTypes.FIELDS:
+                        // this.insertAt(inner, this.emmitNL(item.indent), [codeTypes.COMMA, codeTypes.MODIF])
+                        this.blockWrap(item, inner, true);
+                        break;
+                }
+
+                // /*
+                const last: codeToken | undefined = result[result.length - 1];
+                const start: codeToken | undefined = inner[0];
+                if (last) {
+                    if (!options.codeblock.parensInNewLine) {
+                        if ((last.type === codeTypes.LINE_BREAK || last.type === codeTypes.BREAK) && blockPairs.has(start.type)) {
+                            result.pop()
+                            // console.log(result[result.length - 1])
+                        }
+                    }
+                    // console.log(last)
+                    // console.log('==')
+                    // console.log(start)
+                    // console.log('---------------------')
+
+                }
+                // */
+                //------------------------------
+                result.push(...inner)
+                //------------------------------
+            }
+        }
+        //-----------------------------------------------------
+        return result;
+        // }
+        // return dfs(this);
+    }
+    // */
+    // toString(options: ICodeFormatSettings): string
+    // toString(options: ICodeFormatSettings, start: number, stop: number): string
+    // toString(options: ICodeFormatSettings = defaultFormatSettings, start?: number, stop?: number): string
+    // /*
+    toString(): string
+    {
+        let result = this.flatten(/* options */)
+        console.log('===================================')
+        // console.log(result)
+
+        let acc = ''
+        // mandatory whitespace
+
+        // insert whitespaces and apply indentation
+        for (let i = 0; i < result.length; i++) {
+            const prev = result[i - 1]
+            const current = result[i]
+            const next = result[i + 1]
+            //-----------------------
+            switch (current.type) {
+                // mandatory linebreak
+                case codeTypes.BREAK:
+                    acc += current.val
+                    // indent
+                    if (!options.condenseWhitespace) {
+                        acc += options.indentChar.repeat(current.indent ?? 0)
+                    }
+                    break;
+
+                case codeTypes.LINE_BREAK:
+                    {
+                        if (options.codeblock.newlineAllways) {
+                            let emmit = true
+                            if (!options.codeblock.parensInNewLine) {
+                                if (next && (next.type === codeTypes.LPAREN || next.type === codeTypes.LBRACE)) {
+                                    emmit = false
+                                }
+                            }
+                            if (emmit) {
+                                // if (!options.condenseWhitespace options.codeblock.newlineAllways options.codeblock.parensInNewLine)
+                                acc += current.val
+                                if (!options.condenseWhitespace) {
+                                    acc += options.indentChar.repeat(current.indent ?? 0)
+                                }
+                            }
+                        }
+                    }
+                    break;
+                default:
+                    acc += current.val
+                    break;
+            }
+            //-----------------------
+            if (next) {
+                /*
+                switch (next.type) {
+                    case codeTypes.ID:
+                    case codeTypes.NUMBER:
+                    case codeTypes.KEYWORD:
+                    case codeTypes.UNARY:
+                        {
+                            // mandatory whitespace
+                            acc += options.whitespaceChar
+                        }
+                        break;
+                    // case codeTypes.
+                    default:
+                        break;
+                }
+                */
+
+                // add whitespace
+                if (options.condenseWhitespace) {
+                    //mandatory whitespace
+                    if (
+                        mandatoryWS.has(current.type) &&
+                        mandatoryWS.has(next.type)
+                    ) {
+                        acc += options.whitespaceChar
+                    }
+                } else {
+                    // all whitespace
+                    const invalidWs = shouldSkip.has(current.type) || shouldSkipNext.has(next.type)
+
+                    if (!invalidWs) {
+                        if (options.codeblock.spaced) {
+                            acc += options.whitespaceChar
+                        } else if (
+                            (current.type !== codeTypes.LPAREN &&
+                                current.type !== codeTypes.LBRACE) &&
+                            (next.type !== codeTypes.RPAREN &&
+                                next.type !== codeTypes.RBRACE)
+                        ) {
+                            acc += options.whitespaceChar
+                        }
+
+
+                    }
+                }
+                /*
+                // indent after newline
+                if (current.type === codeTypes.BREAK) {
+                    // console.log(current.indent)
+                    acc += options.indentChar.repeat(current.indent ?? 0)
+                }
+                if (current.type === codeTypes.LINE_BREAK) {
+
+                    // console.log(current.indent)
+                    acc += options.indentChar.repeat(current.indent ?? 0)
+                }
+                    */
+                // console.log(`${current.val} <--> ${next.val} :: ${mandatoryWS.includes(current.type) && mandatoryWS.includes(next.type)}`)
+                // console.log(`|${acc}|`)
+            }
+        }
+
+        console.log('===================================')
+        console.log(acc)
+        // console.log(JSON.stringify(acc))
+        // return result.reduce((acc: string, curr: codeToken) => { return acc += curr.val; }, '');
+        return acc;
+    }
+    // */
+}
+
 //---------------------------------------------------------------------------
 export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
 {
