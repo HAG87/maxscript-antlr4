@@ -184,7 +184,7 @@ pluginDefinition
         plugin_clause (lbk? plugin_clause)*
     rp
 	;
-plugin_predicate: Plugin NL* plugin_name = identifier NL* identifier (NL* param)*
+plugin_predicate: Plugin NL* plugin_kind = identifier NL* plugin_name = identifier (NL* param)*
 	;
 plugin_clause
 	: declarationExpression
@@ -296,7 +296,7 @@ structDefinition
 
 struct_body: (struct_access NL*)? struct_member ( comma (struct_access NL*)? struct_member )*
 	;
-	
+
 struct_member
 	: identifier assignment?
 	| fnDefinition
@@ -313,11 +313,11 @@ fnDefinition
 	: fn_mod = MAPPED? NL* fn_decl = FN NL* fn_name = identifier NL*
 		( NL* fn_args )*
 		(NL* fn_params)*
-		NL* assignment
+		NL* fn_body
 	;
 
 fn_body
-	: expr
+	: EQ NL* expr
 	;
 fn_args
 	: identifier

@@ -213,24 +213,6 @@ const tokenToCodeType = new Map<number, codeTypes>([
     [mxsLexer.WS, codeTypes.WHITESPACE],
 ])
 
-export class codeToken
-{
-    val: string
-    type: codeTypes
-    // pos?: number
-    indent?: number
-
-    constructor(val: string, type: codeTypes, /* pos?: number */)
-    {
-        this.val = val
-        this.type = type
-        // this.pos = pos
-    }
-    public check = (type: codeTypes): boolean => this.type === type
-    public prepend = (val: string): void => { this.val = val + this.val }
-    public append = (val: string): void => { this.val += val }
-}
-
 const mandatoryWS: Set<number> = new Set([
     codeTypes.ID,
     codeTypes.NUMBER,
@@ -261,6 +243,29 @@ const blockPairs: Set<number> = new Set([
     codeTypes.LBRACE,
     codeTypes.RBRACE,
 ])
+
+export class codeToken
+{
+    val: string
+    type: codeTypes
+    // pos?: number
+    indent?: number
+    public isPrefix = false
+    constructor(val: string, type: codeTypes, /* pos?: number */)
+    {
+        this.val = val
+        this.type = type
+        // this.pos = pos
+    }
+    public check = (type: codeTypes): boolean => this.type === type
+    public prepend = (val: string): void => { this.val = val + this.val }
+    public append = (val: string): void => { this.val += val }
+
+    public hasLineBreaks(): boolean
+    {
+        return this.type === codeTypes.LINE_BREAK || this.type === codeTypes.BREAK
+    }
+}
 
 export class codeBlock
 {
@@ -310,7 +315,6 @@ export class codeBlock
     public isEmpty(): boolean { return this.vals.length === 0 }
     public canBeMultiline(): boolean { return this.vals.length > 1 }
     // /*
-
     protected emmitIndent(level: number): codeToken
     {
         return new codeToken(options.indentChar.repeat(level), codeTypes.WHITESPACE)
@@ -325,10 +329,7 @@ export class codeBlock
         token.indent = indent
         return token
     }
-    protected itemsHasLineBreaks(items: codeToken[]): boolean
-    {
-        return items.some(item => item.type === codeTypes.LINE_BREAK)
-    }
+
     protected blockWrap(block: codeBlock, items: codeToken[], linebreaks: boolean = true): void
     {
         if (block.start && block.end) {
@@ -568,7 +569,7 @@ export class codeBlock
                     // all whitespace
                     const invalidWs = shouldSkip.has(current.type) || shouldSkipNext.has(next.type)
 
-                    if (!invalidWs) {
+                    if (!invalidWs && !current.isPrefix) {
                         if (options.codeblock.spaced) {
                             acc += options.whitespaceChar
                         } else if (
@@ -626,7 +627,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     //-------------------------------------------------------
     visitProgram = (ctx: ProgramContext): codeBlock =>
     {
-        return new codeBlock(this.collectWithLineBreak(ctx.expr()))
+        return new codeBlock(this.collectWithLineBreak(ctx.expr(), false))
         // return new codeBlock(this.visitChildren(ctx))
 
     }
@@ -656,7 +657,28 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             blockTypes.DECL
         )
     }
-    visitPlugin_predicate = (ctx: Plugin_predicateContext): R[] => this.visitChildren(ctx)
+    visitPlugin_predicate = (ctx: Plugin_predicateContext): codeBlock => //   this.visitChildren(ctx)
+    {
+        const vals = [
+            this.visit(ctx.Plugin())!,
+            this.visit(ctx._plugin_kind!)!,
+            this.visit(ctx._plugin_name!)!,
+            ...ctx.param().map(param =>
+                [
+                    this.emmitLineBreak(false, this.indentLevel + 1),
+                    this.visit(param)!
+                ].flat())
+        ].flat()
+
+        return new codeBlock(
+            vals,
+            // this.visitChildren(ctx)!,
+            this.indentLevel,
+            undefined,
+            undefined,
+            blockTypes.DECL
+        )
+    }
     //-------------------------------------------------------
     visitParamsDefinition = (ctx: ParamsDefinitionContext): codeBlock =>
     {
@@ -731,7 +753,29 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             blockTypes.DECL
         )
     }
-    visitMacroscript_predicate = (ctx: Macroscript_predicateContext): R[] => this.visitChildren(ctx)
+
+    visitMacroscript_predicate = (ctx: Macroscript_predicateContext): codeBlock => // this.visitChildren(ctx)
+    {
+        const vals = [
+            this.visit(ctx.MacroScript())!,
+            this.visit(ctx.identifier())!,
+            // this.emmitLineBreak(false, this.indentLevel)!,
+            ...ctx.param().map(param =>
+                [
+                    this.emmitLineBreak(false, this.indentLevel + 1),
+                    this.visit(param)!
+                ].flat())
+        ].flat()
+
+        return new codeBlock(
+            vals,
+            // this.visitChildren(ctx)!,
+            this.indentLevel,
+            undefined,
+            undefined,
+            blockTypes.DECL
+        )
+    }
     //-------------------------------------------------------
     visitUtilityDefinition = (ctx: UtilityDefinitionContext): codeBlock =>
     {
@@ -961,6 +1005,22 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             blockTypes.DECL
         )
     }
+    visitFn_body = (ctx: Fn_bodyContext): codeBlock =>
+    {
+        const vals = [
+            this.visit(ctx.EQ())!,
+            this.emmitLineBreak(false, this.indentLevel)!,
+            this.visit(ctx.expr())!
+        ].flat()
+        return new codeBlock(
+            vals,
+            // this.visitChildren(ctx)!,
+            this.indentLevel,
+            undefined,
+            undefined,
+            blockTypes.DECL
+        )
+    }
     //-------------------------------------------------------
     visitDeclarationExpression = (ctx: DeclarationExpressionContext): codeBlock =>
     {
@@ -977,8 +1037,33 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     //#region Basic Expressions
     visitEventHandlerClause = (ctx: EventHandlerClauseContext): codeBlock =>
     {
+        let vals: (R | R[])[] = []
+        let last: ParseTree | undefined;
+
+        for (let [i, child] of ctx.children.entries()) {
+            if (last && last instanceof TerminalNode) {
+
+                let indent: number = this.indentLevel
+                let ref = i
+                while (ctx.children[ref] instanceof TerminalNode && (<TerminalNode>ctx.children[ref]).symbol.type === mxsLexer.NL) {
+                    ref++;
+                }
+                if (!ctx.children[ref].getText().startsWith('(')) {
+                    indent++;
+                }
+                switch (last.symbol.type) {
+                    case mxsLexer.DO:
+                    case mxsLexer.RETURN:
+                        vals.push(this.emmitLineBreak(false, indent))
+                        break;
+                }
+            }
+            vals.push(this.visit(child)!)
+            last = child
+        }
         return new codeBlock(
-            this.visitChildren(ctx)!,
+            // this.visitChildren(ctx)!,
+            vals.flat(),
             this.indentLevel,
             undefined,
             undefined,
@@ -987,8 +1072,30 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     }
     visitFnReturnStatement = (ctx: FnReturnStatementContext): codeBlock =>
     {
+        let vals: (R | R[])[] = []
+        let last: ParseTree | undefined;
+
+        for (let [i, child] of ctx.children.entries()) {
+            if (last && last instanceof TerminalNode) {
+                let indent: number = this.indentLevel
+                let ref = i
+                while (ctx.children[ref] instanceof TerminalNode && (<TerminalNode>ctx.children[ref]).symbol.type === mxsLexer.NL) {
+                    ref++;
+                }
+                if (!ctx.children[ref].getText().startsWith('(')) {
+                    indent++;
+                }
+
+                if (last.symbol.type === mxsLexer.RETURN) {
+                    vals.push(this.emmitLineBreak(false, indent))
+                }
+            }
+            vals.push(this.visit(child)!)
+            last = child
+        }
         return new codeBlock(
-            this.visitChildren(ctx)!,
+            // this.visitChildren(ctx)!,
+            vals.flat(),
             this.indentLevel,
             undefined,
             undefined,
@@ -997,8 +1104,31 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     }
     visitWhenStatement = (ctx: WhenStatementContext): codeBlock =>
     {
+        // break at keyword
+        let vals: (R | R[])[] = []
+        let last: ParseTree | undefined;
+
+        for (let [i, child] of ctx.children.entries()) {
+            if (last && last instanceof TerminalNode) {
+
+                let indent: number = this.indentLevel
+                let ref = i
+                while (ctx.children[ref] instanceof TerminalNode && (<TerminalNode>ctx.children[ref]).symbol.type === mxsLexer.NL) {
+                    ref++;
+                }
+                if (!ctx.children[ref].getText().startsWith('(')) {
+                    indent++;
+                }
+                if (last.symbol.type === mxsLexer.DO) {
+                    vals.push(this.emmitLineBreak(false, indent))
+                }
+            }
+            vals.push(this.visit(child)!)
+            last = child
+        }
         return new codeBlock(
-            this.visitChildren(ctx)!,
+            // this.visitChildren(ctx)!,
+            vals.flat(),
             this.indentLevel,
             undefined,
             undefined,
@@ -1057,8 +1187,39 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     }
     visitIfExpression = (ctx: IfExpressionContext): codeBlock =>
     {
+        // break at keywords
+        let vals: (R | R[])[] = []
+        let last: ParseTree | undefined;
+
+        for (let [i, child] of ctx.children.entries()) {
+            if (last && last instanceof TerminalNode) {
+                let indent: number = this.indentLevel
+                let ref = i
+                while (ctx.children[ref] instanceof TerminalNode && (<TerminalNode>ctx.children[ref]).symbol.type === mxsLexer.NL) {
+                    ref++;
+                }
+                if (!ctx.children[ref].getText().startsWith('(')) {
+                    indent++;
+                }
+
+                switch (last.symbol.type) {
+                    case mxsLexer.THEN:
+                    case mxsLexer.DO:
+                        vals.push(this.emmitLineBreak(false, indent))
+                        break;
+                    case mxsLexer.ELSE:
+                        vals.splice(vals.length - 1, 0,
+                            this.emmitLineBreak(false, this.indentLevel))
+                        vals.push(this.emmitLineBreak(false, indent))
+                        break;
+                }
+            }
+            vals.push(this.visit(child)!)
+            last = child
+        }
         return new codeBlock(
-            this.visitChildren(ctx)!,
+            // this.visitChildren(ctx)!,
+            vals.flat(),
             this.indentLevel,
             undefined,
             undefined,
@@ -1067,8 +1228,34 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     }
     visitDoLoopExpression = (ctx: DoLoopExpressionContext): codeBlock =>
     {
+        // break at keyword
+        let vals: (R | R[])[] = []
+        let last: ParseTree | undefined;
+
+        for (let [i, child] of ctx.children.entries()) {
+            if (last && last instanceof TerminalNode) {
+
+                let indent: number = this.indentLevel
+                let ref = i
+                while (ctx.children[ref] instanceof TerminalNode && (<TerminalNode>ctx.children[ref]).symbol.type === mxsLexer.NL) {
+                    ref++;
+                }
+                if (!ctx.children[ref].getText().startsWith('(')) {
+                    indent++;
+                }
+                switch (last.symbol.type) {
+                    case mxsLexer.DO:
+                    case mxsLexer.WHILE:
+                        vals.push(this.emmitLineBreak(false, indent))
+                        break;
+                }
+            }
+            vals.push(this.visit(child)!)
+            last = child
+        }
         return new codeBlock(
-            this.visitChildren(ctx)!,
+            // this.visitChildren(ctx)!,
+            vals.flat(),
             this.indentLevel,
             undefined,
             undefined,
@@ -1077,8 +1264,34 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     }
     visitWhileLoopExpression = (ctx: WhileLoopExpressionContext): codeBlock =>
     {
+        // break at keywords
+        let vals: (R | R[])[] = []
+        let last: ParseTree | undefined;
+
+        for (let [i, child] of ctx.children.entries()) {
+            if (last && last instanceof TerminalNode) {
+
+                let indent: number = this.indentLevel
+                let ref = i
+                while (ctx.children[ref] instanceof TerminalNode && (<TerminalNode>ctx.children[ref]).symbol.type === mxsLexer.NL) {
+                    ref++;
+                }
+                if (!ctx.children[ref].getText().startsWith('(')) {
+                    indent++;
+                }
+
+                switch (last.symbol.type) {
+                    case mxsLexer.DO:
+                        vals.push(this.emmitLineBreak(false, indent))
+                        break;
+                }
+            }
+            vals.push(this.visit(child)!)
+            last = child
+        }
         return new codeBlock(
-            this.visitChildren(ctx)!,
+            // this.visitChildren(ctx)!,
+            vals.flat(),
             this.indentLevel,
             undefined,
             undefined,
@@ -1087,8 +1300,143 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     }
     visitForLoopExpression = (ctx: ForLoopExpressionContext): codeBlock =>
     {
+        let vals: (R | R[])[] = []
+        let last: ParseTree | undefined;
+
+        for (let [i, child] of ctx.children.entries()) {
+            if (last && last instanceof TerminalNode) {
+
+                let indent: number = this.indentLevel
+                let ref = i
+                while (ctx.children[ref] instanceof TerminalNode && (<TerminalNode>ctx.children[ref]).symbol.type === mxsLexer.NL) {
+                    ref++;
+                }
+                if (!ctx.children[ref].getText().startsWith('(')) {
+                    indent++;
+                }
+                switch (last.symbol.type) {
+                    case mxsLexer.DO:
+                    case mxsLexer.COLLECT:
+                        vals.push(this.emmitLineBreak(false, indent))
+                        break;
+                }
+            }
+            vals.push(this.visit(child)!)
+            last = child
+        }
         return new codeBlock(
-            this.visitChildren(ctx)!,
+            // this.visitChildren(ctx)!,
+            vals.flat(),
+            this.indentLevel,
+            undefined,
+            undefined,
+            blockTypes.EXPR
+        )
+    }
+    visitFor_sequence = (ctx: For_sequenceContext): codeBlock =>
+    {
+        let vals: (R | R[])[] = []
+        let last: ParseTree | undefined;
+
+        for (let [i, child] of ctx.children.entries()) {
+            if (last && last instanceof TerminalNode) {
+                let indent: number = this.indentLevel
+                let ref = i
+                while (ctx.children[ref] instanceof TerminalNode && (<TerminalNode>ctx.children[ref]).symbol.type === mxsLexer.NL) {
+                    ref++;
+                }
+                if (!ctx.children[ref].getText().startsWith('(')) {
+                    indent++;
+                }
+                switch (last.symbol.type) {
+                    case mxsLexer.WHILE:
+                    case mxsLexer.WHERE:
+                        vals.splice(vals.length - 1, 0,
+                            this.emmitLineBreak(false, this.indentLevel))
+                        vals.push(this.emmitLineBreak(false, indent))
+                        break;
+                }
+            }
+            vals.push(this.visit(child)!)
+            last = child
+        }
+        return new codeBlock(
+            // this.visitChildren(ctx)!,
+            vals.flat(),
+            this.indentLevel,
+            undefined,
+            undefined,
+            blockTypes.EXPR
+        )
+    }
+    visitFor_where = (ctx: For_whereContext): codeBlock =>
+    {
+        let vals: (R | R[])[] = []
+        let last: ParseTree | undefined;
+
+        for (let [i, child] of ctx.children.entries()) {
+            if (last && last instanceof TerminalNode) {
+
+                let indent: number = this.indentLevel
+                let ref = i
+                while (ctx.children[ref] instanceof TerminalNode && (<TerminalNode>ctx.children[ref]).symbol.type === mxsLexer.NL) {
+                    ref++;
+                }
+                if (!ctx.children[ref].getText().startsWith('(')) {
+                    indent++;
+                }
+                switch (last.symbol.type) {
+                    case mxsLexer.WHILE:
+                    case mxsLexer.WHERE:
+                        vals.splice(vals.length - 1, 0,
+                            this.emmitLineBreak(false, this.indentLevel))
+                        vals.push(this.emmitLineBreak(false, indent))
+                        break;
+                }
+            }
+            vals.push(this.visit(child)!)
+            last = child
+        }
+        return new codeBlock(
+            // this.visitChildren(ctx)!,
+            vals.flat(),
+            this.indentLevel,
+            undefined,
+            undefined,
+            blockTypes.EXPR
+        )
+    }
+    visitFor_while = (ctx: For_whileContext): codeBlock =>
+    {
+        let vals: (R | R[])[] = []
+        let last: ParseTree | undefined;
+
+        for (let [i, child] of ctx.children.entries()) {
+            if (last && last instanceof TerminalNode) {
+
+                let indent: number = this.indentLevel
+                let ref = i
+                while (ctx.children[ref] instanceof TerminalNode && (<TerminalNode>ctx.children[ref]).symbol.type === mxsLexer.NL) {
+                    ref++;
+                }
+                if (!ctx.children[ref].getText().startsWith('(')) {
+                    indent++;
+                }
+                switch (last.symbol.type) {
+                    case mxsLexer.WHILE:
+                    case mxsLexer.WHERE:
+                        vals.splice(vals.length - 1, 0,
+                            this.emmitLineBreak(false, this.indentLevel))
+                        vals.push(this.emmitLineBreak(false, indent))
+                        break;
+                }
+            }
+            vals.push(this.visit(child)!)
+            last = child
+        }
+        return new codeBlock(
+            // this.visitChildren(ctx)!,
+            vals.flat(),
             this.indentLevel,
             undefined,
             undefined,
@@ -1097,8 +1445,37 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     }
     visitTryExpression = (ctx: TryExpressionContext): codeBlock =>
     {
+        let vals: (R | R[])[] = []
+        let last: ParseTree | undefined;
+
+        for (let [i, child] of ctx.children.entries()) {
+            if (last && last instanceof TerminalNode) {
+                let indent: number = this.indentLevel
+                let ref = i
+                while (ctx.children[ref] instanceof TerminalNode && (<TerminalNode>ctx.children[ref]).symbol.type === mxsLexer.NL) {
+                    ref++;
+                }
+                if (!ctx.children[ref].getText().startsWith('(')) {
+                    indent++;
+                }
+
+                switch (last.symbol.type) {
+                    case mxsLexer.TRY:
+                        vals.push(this.emmitLineBreak(false, indent))
+                        break;
+                    case mxsLexer.CATCH:
+                        vals.splice(vals.length - 1, 0,
+                            this.emmitLineBreak(false, this.indentLevel))
+                        vals.push(this.emmitLineBreak(false, indent))
+                        break;
+                }
+            }
+            vals.push(this.visit(child)!)
+            last = child
+        }
         return new codeBlock(
-            this.visitChildren(ctx)!,
+            // this.visitChildren(ctx)!,
+            vals.flat(),
             this.indentLevel,
             undefined,
             undefined,
@@ -1127,7 +1504,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             start = [<codeToken>this.visit(ctx.lp())],
             end = [<codeToken>this.visit(ctx.rp())]
         // add linebreaks
-        if (res.length > 1) {
+        if (res.some(item => item.hasLineBreaks()) || res.length > 1) {
             start.push(this.emmitLineBreak())
             end.unshift(this.emmitLineBreak(false, this.indentLevel > 0 ? this.indentLevel - 1 : 0))
         }
@@ -1195,6 +1572,14 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     // visitParam_name = (ctx: Param_nameContext): string => { return ctx.getText() }
     //-------------------------------------------------------
     //#region Values
+    visitDe_ref = (ctx: De_refContext): R[] =>
+    {
+        const vals = this.visitChildren(ctx)!;
+        // change prefix state
+        Object.assign(<codeToken>vals[0], { isPrefix: true });
+        // (vals[0] as codeToken).isPrefix = true
+        return vals
+    }
     visitIdentifier = (ctx: IdentifierContext): codeToken =>
         new codeToken(ctx.getText(), codeTypes.ID)
     //-------------------------------------------------------
