@@ -30,52 +30,6 @@ import
     } from './mxsParser';
 import { mxsParserVisitor } from './mxsParserVisitor';
 
-// import * as util from "util";
-export const minOptions: ICodeFormatSettings & IMinifierSettings = {
-    whitespaceChar: ' ',
-    newLineChar: ';',
-    indentChar: '',
-    exprEndChar: ';',
-    lineContinuationChar: '\\',
-    codeblock: {
-        newlineAllways: false, //ok
-        parensInNewLine: false, //ok
-        spaced: false, //ok
-    },
-    list: {
-        useLineBreaks: false //ok
-    },
-    statements: {
-        useLineBreaks: false,
-        optionalWhitespace: false
-    },
-    removeUnnecessaryScopes: false,
-    condenseWhitespace: true, //ok
-}
-
-export const prettyOptions: ICodeFormatSettings & IMinifierSettings & IPrettifierSettings = {
-    whitespaceChar: ' ',
-    newLineChar: '\n\r',
-    indentChar: '  ',
-    exprEndChar: '\n\r',
-    lineContinuationChar: '\\',
-    codeblock: {
-        newlineAllways: true, //ok
-        parensInNewLine: true, //ok
-        spaced: true, //ok
-    },
-    list: {
-        useLineBreaks: false //ok
-    },
-    statements: {
-        useLineBreaks: false,
-        optionalWhitespace: false
-    },
-    removeUnnecessaryScopes: false,
-    condenseWhitespace: false, //ok
-    expressionsToBlock: false,
-}
-
 type R = codeToken | codeBlock
 
 enum codeTypes
@@ -345,7 +299,7 @@ export class codeBlock
         return (this.last instanceof codeToken && this.last.check(codeTypes.LINE_BREAK))
     }
     public isEmpty(): boolean { return this.vals.length === 0 }
-    public canBeMultiline(): boolean { return this.vals.length > 1 }    
+    public canBeMultiline(): boolean { return this.vals.length > 1 }
     protected emmitIndent(options: ICodeFormatSettings, level: number): codeToken
     {
         return new codeToken(options.indentChar.repeat(level), codeTypes.WHITESPACE)

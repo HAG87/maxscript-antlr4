@@ -11,8 +11,9 @@ import { mxsParser } from './parser/mxsParser';
 import { mxsParserSymbolsListener } from './parser/mxsParserSymbolsListener';
 import
   {
-    codeBlock, mxsParserVisitorFormatter, prettyOptions,
+    codeBlock, mxsParserVisitorFormatter,
   } from './parser/mxsParserVisitorFormatter';
+import { minOptions } from './settings';
 import { IDiagnosticEntry } from './types';
 
 // import { mxsParserBase } from "./parser/mxsParserBase";
@@ -135,7 +136,8 @@ if (tree && tree.getChildCount() > 0) {
   // treeWalker.walk(listener, tree);
   //---------------------------------------------------------- formatter
   // /*
-  const activeOptions = prettyOptions
+  // const activeOptions = prettyOptions
+  const activeOptions = minOptions
   // minifier using visitor pattern
   const visitor = new mxsParserVisitorFormatter(activeOptions);
   const result = visitor.visit(tree);
