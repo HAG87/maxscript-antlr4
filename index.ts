@@ -1,36 +1,21 @@
-import * as fs from "fs";
-import * as path from "path";
-
 import
   {
-    CharStream,
-    CommonTokenStream,
-    DefaultErrorStrategy,
-    BailErrorStrategy,
-    PredictionMode,
-    ParseCancellationException,
-    RecognitionException,
-    DiagnosticErrorListener,
-    // Lexer,
-    // Parser,
-    // ParserRuleContext,
-    ParseTree,
-    ParseTreeListener,
-    ParseTreeWalker,
-    // RuleTagToken
-  } from "antlr4ng";
+    BailErrorStrategy, CharStream, CommonTokenStream, DefaultErrorStrategy,
+    ParseCancellationException, ParseTree, PredictionMode,
+  } from 'antlr4ng';
+import * as fs from 'fs';
 
 // import { mxsParserBase } from "./parser/mxsParserBase";
-import { mxsParser } from "./parser/mxsParser";
-import { mxsLexer } from "./parser/mxsLexer";
-import { ContextErrorListener } from "./parser/contextErrorListener";
+import { ContextErrorListener } from './parser/contextErrorListener';
+import { mxsLexer } from './parser/mxsLexer';
+import { mxsParser } from './parser/mxsParser';
+import { mxsParserSymbolsListener } from './parser/mxsParserSymbolsListener';
+import
+  {
+    codeBlock, mxsParserVisitorFormatter, prettyOptions,
+  } from './parser/mxsParserVisitorFormatter';
+import { IDiagnosticEntry } from './types';
 
-import MultiChannelTokenStream from "./parser/multiChannelTokenStream";
-
-import { mxsParserVisitor } from "./parser/mxsParserVisitor";
-import { mxsParserVisitorAdapter } from "./parser/mxsParserVisitorAdapter";
-import { mxsParserSymbolsListener } from "./parser/mxsParserSymbolsListener";
-import { IDiagnosticEntry } from "./types";
 // import { mxsParserListener } from "./parser/mxsParserListener";
 
 const test_files = [
@@ -44,31 +29,31 @@ const test_files = [
   './test/samples/structure-def.ms', //ok
   './test/samples/tool-def.ms', //ok
   './test/samples/fn-def.ms', //ok
-];
+]
 
-let str: string = fs.readFileSync('./test/input.ms', 'utf-8');
+let str: string = fs.readFileSync('./test/input.ms', 'utf-8')
 // let str:string = fs.readFileSync(test_files[9], 'utf-8');
 
 // imput stream
 // const inputStream = CharStream.fromString('for t in 0f to 100f by 5f do sliderTime=t');
-const inputStream = CharStream.fromString(str);
+const inputStream = CharStream.fromString(str)
 
 // Create the lexer and parser
-const lexer = new mxsLexer(CharStream.fromString(''));
+const lexer = new mxsLexer(CharStream.fromString(''))
 // const lexer       = new mxsLexerBase(inputStream);
-const tokenStream = new CommonTokenStream(lexer);
+const tokenStream = new CommonTokenStream(lexer)
 // const tokenStream = new MultiChannelTokenStream(lexer);
-const parser = new mxsParser(tokenStream);
+const parser = new mxsParser(tokenStream)
 
-let diagnostics: IDiagnosticEntry[] = [];
-let errorListener: ContextErrorListener = new ContextErrorListener(diagnostics);
-parser.removeErrorListeners();
-parser.addErrorListener(errorListener);
+let diagnostics: IDiagnosticEntry[] = []
+let errorListener: ContextErrorListener = new ContextErrorListener(diagnostics)
+parser.removeErrorListeners()
+parser.addErrorListener(errorListener)
 
-lexer.inputStream = inputStream;
-lexer.reset();
-tokenStream.setTokenSource(lexer);
-parser.reset();
+lexer.inputStream = inputStream
+lexer.reset()
+tokenStream.setTokenSource(lexer)
+parser.reset()
 
 // tokenStream.fill();
 // /*
@@ -78,85 +63,92 @@ parser.reset();
 // parser.setTrace(true);
 
 // error handling strategy
-parser.errorHandler = new BailErrorStrategy();
+parser.errorHandler = new BailErrorStrategy()
 // parser.addErrorListener(new DiagnosticErrorListener());
 // parser.interpreter.predictionMode = PredictionMode.LL_EXACT_AMBIG_DETECTION;
-parser.interpreter.predictionMode = PredictionMode.SLL;
+parser.interpreter.predictionMode = PredictionMode.SLL
 // parser.interpreter.predictionMode = PredictionMode.LL;
 
 
-// let listener = new mxsParserSymbolsListener();
-// const visitor = new mxsParserVisitorAdapter();
+const listener = new mxsParserSymbolsListener();
 
 // parser.addParseListener(listener); // ----> some method like listener.get()
 
 // AST tree
-let tree: ParseTree;
+let tree: ParseTree
 
 // Two stages parsing strategy
 try {
-  tree = parser.program();
+  tree = parser.program()
   // tree = parser.program().enterRule(listener);    
 } catch (e: any) {
   // console.log(`ERROR: ${e.message}`);
-  console.log(`ERROR: use LL -----`);
+  console.log(`ERROR: use LL -----`)
 
   if (e instanceof ParseCancellationException) {
-    lexer.reset();
-    tokenStream.setTokenSource(lexer);
-    parser.reset();
-    parser.errorHandler = new DefaultErrorStrategy();
-    parser.interpreter.predictionMode = PredictionMode.LL;
-    tree = parser.program();
+    lexer.reset()
+    tokenStream.setTokenSource(lexer)
+    parser.reset()
+    parser.errorHandler = new DefaultErrorStrategy()
+    parser.interpreter.predictionMode = PredictionMode.LL
+    tree = parser.program()
   } else {
-    throw e;
+    throw e
   }
 }
 // console.log(diagnostics);
 
 if (tree && tree.getChildCount() > 0) {
+  /*
+  let vocab: string[] = parser.vocabulary.getSymbolicNames().filter(n => n !== null)
 
-  let vocab: string[] = parser.vocabulary.getSymbolicNames().filter(n => n !== null);
-
-   
-  let treestring = tree.toStringTree(vocab, parser);
+  let treestring = tree.toStringTree(vocab, parser)
   // console.log(treestring);
 
-  let resultString = '';
-  let indent = 0;
-  const indentChars = '  ';
+  let resultString = ''
+  let indent = 0
+  const indentChars = '  '
 
   for (let i = 0; i < treestring.length; i++) {
     let curr = treestring[i]
-    // console.log(curr);
-    // /*
+
     if (curr !== '(' && curr !== ')') {
-      resultString = resultString + curr;
+      resultString = resultString + curr
     }
-    
-    
-     if (curr === '(') {
-      indent++;
-      resultString = resultString + '\n\r' + indentChars.repeat(indent);
+
+    if (curr === '(') {
+      indent++
+      resultString = resultString + '\n\r' + indentChars.repeat(indent)
 
     } else if (curr === ')') {
-      indent--;
+      indent--
       // resultString = resultString + '\n\r' + indentChars.repeat(indent);
     }
-
     // resultString = resultString + indentChars.repeat(indent);
-    // */
-
   }
+  // */
 
-  // console.log(treestring);
-
+  // ParseTreeWalker.DEFAULT.walk(listener, tree);
   // let treeWalker = new ParseTreeWalker();
   // treeWalker.walk(listener, tree);
 
-  // ParseTreeWalker.DEFAULT.walk(listener, tree);    
-  // const result = visitor.visit(tree);
+  // /*
+  const activeOptions = prettyOptions
+  // minifier using visitor pattern
+  const visitor = new mxsParserVisitorFormatter(activeOptions);
+  const result = visitor.visit(tree);
+  // console.log('--------------------------------');
+  // console.log(util.inspect(result, false, null, true /* enable colors */))
+  console.log('--------------------------------');
+  if (!Array.isArray(result) && result instanceof codeBlock) {
+    result.toString(activeOptions)
+    // console.log(result.toString())
+  }
 
+  // console.log(result);
+  // console.log(JSON.stringify(result));
+  // console.log(JSON.stringify(result, null, 1));
+  // */
 }
 
 /*

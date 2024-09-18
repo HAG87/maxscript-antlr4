@@ -1,31 +1,63 @@
-import { ParserRuleContext, TerminalNode } from "antlr4ng";
-import { mxsLexer } from "./mxsLexer";
+import ParseTree from 'antlr4/tree/ParseTree';
+import { ParserRuleContext, TerminalNode } from 'antlr4ng';
+
 import
     {
-        ArrayContext, ArrayListContext, Attributes_predicateContext, AttributesDefinitionContext, BitArrayContext,
-        BitListContext, Case_itemContext, Case_predicateContext, CaseExpressionContext, CommaContext,
-        ContextExpressionContext, DeclarationExpressionContext, DoLoopExpressionContext, EventHandlerClauseContext, Expr_seqContext,
-        FnDefinitionContext, FnReturnStatementContext, ForLoopExpressionContext, Group_predicateContext,
-        IdentifierContext, IfExpressionContext, LbContext, LbkContext, LcContext, LpContext,
-        Macroscript_predicateContext, MacroscriptDefinitionContext, Params_predicateContext, ParamsDefinitionContext,
-        Paren_pairContext, Plugin_predicateContext, PluginDefinitionContext, ProgramContext,
-        RbContext, Rc_submenuContext, RcContext, Rcmenu_predicateContext, RcmenuControlContext, RcmenuDefinitionContext,
-        Rollout_predicateContext, RolloutControlContext, RolloutDefinitionContext, RolloutGroupContext, RpContext,
-        SimpleExpressionContext, Struct_accessContext, Struct_bodyContext, StructDefinitionContext, Submenu_predicateContext,
-        Tool_predicateContext, ToolDefinitionContext, TryExpressionContext, Utility_predicateContext, UtilityDefinitionContext,
-        WhenStatementContext, WhileLoopExpressionContext
-    } from "./mxsParser";
-import { mxsParserVisitor } from "./mxsParserVisitor";
-// import * as util from "util";
+        ICodeFormatSettings, IMinifierSettings, IPrettifierSettings,
+    } from '../types';
+import { mxsLexer } from './mxsLexer';
+import
+    {
+        ArrayContext, ArrayListContext, Attributes_predicateContext,
+        AttributesDefinitionContext, BitArrayContext, BitListContext,
+        Case_itemContext, Case_predicateContext, CaseExpressionContext, CommaContext,
+        ContextExpressionContext, De_refContext, DeclarationExpressionContext,
+        DoLoopExpressionContext, EventHandlerClauseContext, Expr_seqContext,
+        Fn_bodyContext, FnDefinitionContext, FnReturnStatementContext,
+        For_sequenceContext, For_whereContext, For_whileContext,
+        ForLoopExpressionContext, Group_predicateContext, IdentifierContext,
+        IfExpressionContext, LbContext, LbkContext, LcContext,
+        LpContext, Macroscript_predicateContext, MacroscriptDefinitionContext,
+        Params_predicateContext, ParamsDefinitionContext, Paren_pairContext,
+        Plugin_predicateContext, PluginDefinitionContext, ProgramContext, RbContext,
+        Rc_submenuContext, RcContext, Rcmenu_predicateContext, RcmenuControlContext,
+        RcmenuDefinitionContext, Rollout_predicateContext, RolloutControlContext,
+        RolloutDefinitionContext, RolloutGroupContext, RpContext,
+        SimpleExpressionContext, Struct_accessContext, Struct_bodyContext,
+        StructDefinitionContext, Submenu_predicateContext, Tool_predicateContext,
+        ToolDefinitionContext, TryExpressionContext, Utility_predicateContext,
+        UtilityDefinitionContext, WhenStatementContext, WhileLoopExpressionContext,
+    } from './mxsParser';
+import { mxsParserVisitor } from './mxsParserVisitor';
 
-const options = {
+// import * as util from "util";
+export const minOptions: ICodeFormatSettings & IMinifierSettings =  {
+    whitespaceChar: ' ',
+    newLineChar: ';',
+    indentChar: '',
+    exprEndChar: ';',
+    lineContinuationChar: '\\',
+    codeblock: {
+        newlineAllways: false, //ok
+        parensInNewLine: false, //ok
+        spaced: false, //ok
+    },
+    list: {
+        useLineBreaks: false //ok
+    },
+    statements: {
+        useLineBreaks: false,
+        optionalWhitespace: false
+    },
+    removeUnnecessaryScopes: false,
+    condenseWhitespace: true, //ok
+}
+
+export const prettyOptions: ICodeFormatSettings & IMinifierSettings & IPrettifierSettings=  {
     whitespaceChar: ' ',
     newLineChar: '\n\r',
-    // newLineChar: ';',
-    // indentChar: '\t',
     indentChar: '  ',
     exprEndChar: '\n\r',
-    // exprEndChar: ';',
     lineContinuationChar: '\\',
     codeblock: {
         newlineAllways: true, //ok
@@ -41,6 +73,7 @@ const options = {
     },
     removeUnnecessaryScopes: false,
     condenseWhitespace: false, //ok
+    expressionsToBlock: false,
 }
 
 type R = codeToken | codeBlock
@@ -73,7 +106,6 @@ enum codeTypes
     VOID,
     WHITESPACE,
 }
-
 enum blockTypes
 {
     DECL,
@@ -162,7 +194,7 @@ const tokenToCodeType = new Map<number, codeTypes>([
     [mxsLexer.ON, codeTypes.KEYWORD],
     [mxsLexer.OR, codeTypes.KEYWORD],
     [mxsLexer.Parameters, codeTypes.KEYWORD],
-    [mxsLexer.PATH, codeTypes.VALUE],
+    [mxsLexer.PATH, codeTypes.ID],
     [mxsLexer.PERSISTENT, codeTypes.MODIF],
     [mxsLexer.PickButton, codeTypes.ID],
     [mxsLexer.Plugin, codeTypes.KEYWORD],
@@ -315,15 +347,15 @@ export class codeBlock
     public isEmpty(): boolean { return this.vals.length === 0 }
     public canBeMultiline(): boolean { return this.vals.length > 1 }
     // /*
-    protected emmitIndent(level: number): codeToken
+    protected emmitIndent(options: ICodeFormatSettings, level: number): codeToken
     {
         return new codeToken(options.indentChar.repeat(level), codeTypes.WHITESPACE)
     }
-    protected emmitWS(): codeToken
+    protected emmitWS(options: ICodeFormatSettings): codeToken
     {
         return new codeToken(options.whitespaceChar, codeTypes.WHITESPACE)
     }
-    protected emmitNL(indent?: number): codeToken
+    protected emmitNL(options: ICodeFormatSettings, indent?: number): codeToken
     {
         const token = new codeToken(options.newLineChar, codeTypes.LINE_BREAK)
         token.indent = indent
@@ -361,7 +393,7 @@ export class codeBlock
             }
         }
     }
-    protected breakAtKeyword(items: codeToken[], indent: number)
+    protected breakAtKeyword(options: ICodeFormatSettings, items: codeToken[], indent: number)
     {
         const kwPatterAfter = /(then|do|collect|on|when|where|while|try|of|else|catch)/i
         const kwPatternBoth = /(else|catch)/i
@@ -373,7 +405,7 @@ export class codeBlock
                 // insert after
                 if (next.type !== codeTypes.LINE_BREAK &&
                     next.type !== codeTypes.WHITESPACE) {
-                    replacement.push(this.emmitNL(indent + 1))
+                    replacement.push(this.emmitNL(options, indent + 1))
                 }
                 // insert before
                 if (kwPatternBoth.test(items[i].val)) {
@@ -381,7 +413,7 @@ export class codeBlock
                     if (prev && prev.type !== codeTypes.LINE_BREAK &&
                         prev.type !== codeTypes.WHITESPACE
                     ) {
-                        replacement.unshift(this.emmitNL(indent))
+                        replacement.unshift(this.emmitNL(options, indent))
                     }
                 }
                 items.splice(i, 1, ...replacement)
@@ -391,11 +423,8 @@ export class codeBlock
             }
         }
     }
-    protected flatten(/* options: ICodeFormatSettings = defaultFormatSettings */parent?: codeBlock): codeToken[]
+    protected flatten(options: ICodeFormatSettings, parent?: codeBlock): codeToken[]
     {
-        // const insertAfter = [codeTypes.RBRACE, codeTypes.RPAREN, codeTypes.ASSIGN]
-        // function dfs(node: codeBlock, parent?: codeBlock): codeToken[]
-        // {
         let result: codeToken[] = [];
         //-----------------------------------------------------
         // main loop to visit children
@@ -427,7 +456,7 @@ export class codeBlock
                 // */
                 //----------------------------------
                 // const hasLinebreaks = item.hasLineBreaks();
-                const inner = item.flatten(/* options */this);
+                const inner = item.flatten(options, this);
                 //----------------------------------
                 // /*
                 switch (item.type) {
@@ -435,14 +464,12 @@ export class codeBlock
                         //TODO: ad linebreak here??
                         break;
                     case blockTypes.EXPR:
-                        if (options.statements.useLineBreaks) {
-                            // I can do this in the visitor but I need check for expr_seq
-                            this.breakAtKeyword(inner, item.indent)
-                        }
+                        // I can do this in the visitor but I need check for expr_seq
+                        // if (options.statements.useLineBreaks) { this.breakAtKeyword(inner, item.indent) }
                         break;
                     case blockTypes.LIST:
                         if (options.list.useLineBreaks && inner.length > 1) {
-                            this.insertAt(inner, this.emmitNL(item.indent), [codeTypes.COMMA])
+                            this.insertAt(inner, this.emmitNL(options, item.indent), [codeTypes.COMMA])
                         }
                         // wrap the block
                         this.blockWrap(item, inner, options.list.useLineBreaks);
@@ -489,9 +516,9 @@ export class codeBlock
     // toString(options: ICodeFormatSettings, start: number, stop: number): string
     // toString(options: ICodeFormatSettings = defaultFormatSettings, start?: number, stop?: number): string
     // /*
-    toString(): string
+    toString(options: ICodeFormatSettings & IMinifierSettings & IPrettifierSettings): string
     {
-        let result = this.flatten(/* options */)
+        let result = this.flatten(options)
         console.log('===================================')
         // console.log(result)
 
@@ -555,7 +582,6 @@ export class codeBlock
                         break;
                 }
                 */
-
                 // add whitespace
                 if (options.condenseWhitespace) {
                     //mandatory whitespace
@@ -580,8 +606,6 @@ export class codeBlock
                         ) {
                             acc += options.whitespaceChar
                         }
-
-
                     }
                 }
                 /*
@@ -615,7 +639,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
 {
     private indentLevel = 0;
 
-    constructor()
+    constructor(private options: ICodeFormatSettings & IMinifierSettings)
     {
         super()
     }
@@ -1663,7 +1687,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     {
         switch (node.symbol.type) {
             case mxsLexer.UNARY_MINUS:
-                return new codeToken(options.whitespaceChar + node.getText(), codeTypes.UNARY)
+                return new codeToken(this.options.whitespaceChar + node.getText(), codeTypes.UNARY)
             case mxsLexer.NL:
                 return this.defaultResult()
             case mxsLexer.EOF:
@@ -1678,14 +1702,14 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     {
         const token: codeToken =
             mandatory
-                ? new codeToken(options.exprEndChar, codeTypes.BREAK)
-                : new codeToken(options.newLineChar, codeTypes.LINE_BREAK);
+                ? new codeToken(this.options.exprEndChar, codeTypes.BREAK)
+                : new codeToken(this.options.newLineChar, codeTypes.LINE_BREAK);
         token.indent = indent
         return token
     }
     protected emmitWhiteSpac(): codeToken
     {
-        return new codeToken(options.whitespaceChar, codeTypes.WHITESPACE)
+        return new codeToken(this.options.whitespaceChar, codeTypes.WHITESPACE)
     }
     protected collectWithLineBreak(ctx: ParserRuleContext[], isOptional: boolean = true): R[]
     {
