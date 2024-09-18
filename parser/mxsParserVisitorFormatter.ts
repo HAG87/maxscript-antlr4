@@ -31,7 +31,7 @@ import
 import { mxsParserVisitor } from './mxsParserVisitor';
 
 // import * as util from "util";
-export const minOptions: ICodeFormatSettings & IMinifierSettings =  {
+export const minOptions: ICodeFormatSettings & IMinifierSettings = {
     whitespaceChar: ' ',
     newLineChar: ';',
     indentChar: '',
@@ -53,7 +53,7 @@ export const minOptions: ICodeFormatSettings & IMinifierSettings =  {
     condenseWhitespace: true, //ok
 }
 
-export const prettyOptions: ICodeFormatSettings & IMinifierSettings & IPrettifierSettings=  {
+export const prettyOptions: ICodeFormatSettings & IMinifierSettings & IPrettifierSettings = {
     whitespaceChar: ' ',
     newLineChar: '\n\r',
     indentChar: '  ',
@@ -345,8 +345,7 @@ export class codeBlock
         return (this.last instanceof codeToken && this.last.check(codeTypes.LINE_BREAK))
     }
     public isEmpty(): boolean { return this.vals.length === 0 }
-    public canBeMultiline(): boolean { return this.vals.length > 1 }
-    // /*
+    public canBeMultiline(): boolean { return this.vals.length > 1 }    
     protected emmitIndent(options: ICodeFormatSettings, level: number): codeToken
     {
         return new codeToken(options.indentChar.repeat(level), codeTypes.WHITESPACE)
@@ -361,7 +360,6 @@ export class codeBlock
         token.indent = indent
         return token
     }
-
     protected blockWrap(block: codeBlock, items: codeToken[], linebreaks: boolean = true): void
     {
         if (block.start && block.end) {
@@ -370,8 +368,7 @@ export class codeBlock
 
             items.unshift(...start.filter(item => linebreaks ? true : item.type !== codeTypes.LINE_BREAK))
             items.push(...end.filter(item => linebreaks ? true : item.type !== codeTypes.LINE_BREAK))
-            // items.unshift(...start)
-            // items.push(...end)
+            // items.unshift(...start); items.push(...end)
         }
     }
     protected insertAt(items: codeToken[], insert: codeToken, markers?: codeTypes[])
@@ -393,6 +390,7 @@ export class codeBlock
             }
         }
     }
+    /*
     protected breakAtKeyword(options: ICodeFormatSettings, items: codeToken[], indent: number)
     {
         const kwPatterAfter = /(then|do|collect|on|when|where|while|try|of|else|catch)/i
@@ -423,6 +421,7 @@ export class codeBlock
             }
         }
     }
+    */
     protected flatten(options: ICodeFormatSettings, parent?: codeBlock): codeToken[]
     {
         let result: codeToken[] = [];
@@ -455,10 +454,10 @@ export class codeBlock
                 }
                 // */
                 //----------------------------------
-                // const hasLinebreaks = item.hasLineBreaks();
                 const inner = item.flatten(options, this);
                 //----------------------------------
-                // /*
+                // const hasLinebreaks = item.hasLineBreaks();
+                //----------------------------------
                 switch (item.type) {
                     case blockTypes.DECL:
                         //TODO: ad linebreak here??
@@ -483,24 +482,19 @@ export class codeBlock
                         this.blockWrap(item, inner, true);
                         break;
                 }
-
-                // /*
-                const last: codeToken | undefined = result[result.length - 1];
-                const start: codeToken | undefined = inner[0];
-                if (last) {
-                    if (!options.codeblock.parensInNewLine) {
-                        if ((last.type === codeTypes.LINE_BREAK || last.type === codeTypes.BREAK) && blockPairs.has(start.type)) {
+                //----------------------------------
+                if (!options.codeblock.parensInNewLine) {
+                    const last: codeToken | undefined = result[result.length - 1];
+                    if (last) {
+                        const start: codeToken | undefined = inner[0];
+                        if (
+                            (last.type === codeTypes.LINE_BREAK || last.type === codeTypes.BREAK) &&
+                            blockPairs.has(start.type)
+                        ) {
                             result.pop()
-                            // console.log(result[result.length - 1])
                         }
                     }
-                    // console.log(last)
-                    // console.log('==')
-                    // console.log(start)
-                    // console.log('---------------------')
-
                 }
-                // */
                 //------------------------------
                 result.push(...inner)
                 //------------------------------
@@ -508,26 +502,19 @@ export class codeBlock
         }
         //-----------------------------------------------------
         return result;
-        // }
-        // return dfs(this);
     }
-    // */
     // toString(options: ICodeFormatSettings): string
     // toString(options: ICodeFormatSettings, start: number, stop: number): string
     // toString(options: ICodeFormatSettings = defaultFormatSettings, start?: number, stop?: number): string
-    // /*
     toString(options: ICodeFormatSettings & IMinifierSettings & IPrettifierSettings): string
     {
         let result = this.flatten(options)
-        console.log('===================================')
-        // console.log(result)
-
         let acc = ''
         // mandatory whitespace
 
         // insert whitespaces and apply indentation
         for (let i = 0; i < result.length; i++) {
-            const prev = result[i - 1]
+            // const prev = result[i - 1]
             const current = result[i]
             const next = result[i + 1]
             //-----------------------
@@ -566,22 +553,6 @@ export class codeBlock
             }
             //-----------------------
             if (next) {
-                /*
-                switch (next.type) {
-                    case codeTypes.ID:
-                    case codeTypes.NUMBER:
-                    case codeTypes.KEYWORD:
-                    case codeTypes.UNARY:
-                        {
-                            // mandatory whitespace
-                            acc += options.whitespaceChar
-                        }
-                        break;
-                    // case codeTypes.
-                    default:
-                        break;
-                }
-                */
                 // add whitespace
                 if (options.condenseWhitespace) {
                     //mandatory whitespace
@@ -608,30 +579,11 @@ export class codeBlock
                         }
                     }
                 }
-                /*
-                // indent after newline
-                if (current.type === codeTypes.BREAK) {
-                    // console.log(current.indent)
-                    acc += options.indentChar.repeat(current.indent ?? 0)
-                }
-                if (current.type === codeTypes.LINE_BREAK) {
-
-                    // console.log(current.indent)
-                    acc += options.indentChar.repeat(current.indent ?? 0)
-                }
-                    */
-                // console.log(`${current.val} <--> ${next.val} :: ${mandatoryWS.includes(current.type) && mandatoryWS.includes(next.type)}`)
-                // console.log(`|${acc}|`)
             }
         }
-
-        console.log('===================================')
-        console.log(acc)
-        // console.log(JSON.stringify(acc))
         // return result.reduce((acc: string, curr: codeToken) => { return acc += curr.val; }, '');
         return acc;
     }
-    // */
 }
 
 //---------------------------------------------------------------------------
@@ -681,7 +633,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             blockTypes.DECL
         )
     }
-    visitPlugin_predicate = (ctx: Plugin_predicateContext): codeBlock => //   this.visitChildren(ctx)
+    visitPlugin_predicate = (ctx: Plugin_predicateContext): codeBlock => // this.visitChildren(ctx)
     {
         const vals = [
             this.visit(ctx.Plugin())!,
@@ -778,7 +730,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
         )
     }
 
-    visitMacroscript_predicate = (ctx: Macroscript_predicateContext): codeBlock => // this.visitChildren(ctx)
+    visitMacroscript_predicate = (ctx: Macroscript_predicateContext): codeBlock =>
     {
         const vals = [
             this.visit(ctx.MacroScript())!,
@@ -1538,10 +1490,10 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
         return block
     }
     //-------------------------------------------------------
-    // /*
     visitSimpleExpression = (ctx: SimpleExpressionContext): R =>
     {
         /*
+        // enable this if fn_call is enabled
         const operand = ctx.expr_operand()
         if (operand) {
             return this.visitChildren(operand)?.[0]
@@ -1553,8 +1505,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
                 undefined,
                 blockTypes.EXPR
             )
-        }
-        // */
+        } // */
         // /*
         return new codeBlock(
             this.visitChildren(ctx)!,
@@ -1562,22 +1513,18 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             undefined,
             undefined,
             blockTypes.EXPR
-        )
-        // */
+        ) // */
     }
     // visitExpr_operand = (ctx: Expr_operandContext): string => this.visitChildren(ctx)!
-    // */
     //-------------------------------------------------------    
-    /*
-    visitAssignment = (ctx: AssignmentContext): string => this.visitChildren(ctx)!
-    visitOperand = (ctx: OperandContext): string => this.visitChildren(ctx)!
-    visitAccessor = (ctx: AccessorContext): string => this.visitChildren(ctx)!
+    // visitAssignment = (ctx: AssignmentContext): string => this.visitChildren(ctx)!
+    // visitOperand = (ctx: OperandContext): string => this.visitChildren(ctx)!
+    // visitAccessor = (ctx: AccessorContext): string => this.visitChildren(ctx)!
 
-    visitProperty = (ctx: PropertyContext): string => this.visitChildren(ctx)!
-    visitIndex = (ctx: IndexContext): string => this.visitChildren(ctx)!
-    
+    // visitProperty = (ctx: PropertyContext): string => this.visitChildren(ctx)!
+    // visitIndex = (ctx: IndexContext): string => this.visitChildren(ctx)!
+
     // visitFactor = (ctx: FactorContext): R => this.visitChildren(ctx)?.[0]
-    // */
     //-------------------------------------------------------
     /*
     visitFunctionCall = (ctx: FunctionCallContext): codeBlock =>
