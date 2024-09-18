@@ -280,14 +280,14 @@ export class codeToken
 {
     val: string
     type: codeTypes
-    // pos?: number
+    pos?: number
     indent?: number
     public isPrefix = false
-    constructor(val: string, type: codeTypes, /* pos?: number */)
+    constructor(val: string, type: codeTypes, pos?: number)
     {
         this.val = val
         this.type = type
-        // this.pos = pos
+        this.pos = pos
     }
     public check = (type: codeTypes): boolean => this.type === type
     public prepend = (val: string): void => { this.val = val + this.val }
@@ -1552,7 +1552,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
         return vals
     }
     visitIdentifier = (ctx: IdentifierContext): codeToken =>
-        new codeToken(ctx.getText(), codeTypes.ID)
+        new codeToken(ctx.getText(), codeTypes.ID, ctx.start?.start)
     //-------------------------------------------------------
     visitArray = (ctx: ArrayContext): codeBlock =>
     {
@@ -1615,32 +1615,33 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     {
         return new codeToken(
             ctx.LPAREN().getText() + ctx.RPAREN().getText(),
-            codeTypes.EMPTY
+            codeTypes.EMPTY,
+            ctx.start?.start
         )
     }
-    visitLp = (ctx: LpContext): codeToken => new codeToken('(', codeTypes.LPAREN)
-    visitRp = (ctx: RpContext): codeToken => new codeToken(')', codeTypes.RPAREN)
-    visitLc = (ctx: LcContext): codeToken => new codeToken('{', codeTypes.LBRACE)
-    visitRc = (ctx: RcContext): codeToken => new codeToken('}', codeTypes.RBRACE)
-    visitLb = (ctx: LbContext): codeToken => new codeToken('[', codeTypes.SYMBOL)
-    visitRb = (ctx: RbContext): codeToken => new codeToken(']', codeTypes.SYMBOL)
-    visitComma = (ctx: CommaContext): codeToken => new codeToken(',', codeTypes.COMMA)
+    visitLp = (ctx: LpContext): codeToken => new codeToken('(', codeTypes.LPAREN, ctx.start?.start)
+    visitRp = (ctx: RpContext): codeToken => new codeToken(')', codeTypes.RPAREN, ctx.start?.start)
+    visitLc = (ctx: LcContext): codeToken => new codeToken('{', codeTypes.LBRACE, ctx.start?.start)
+    visitRc = (ctx: RcContext): codeToken => new codeToken('}', codeTypes.RBRACE, ctx.start?.start)
+    visitLb = (ctx: LbContext): codeToken => new codeToken('[', codeTypes.SYMBOL, ctx.start?.start)
+    visitRb = (ctx: RbContext): codeToken => new codeToken(']', codeTypes.SYMBOL, ctx.start?.start)
+    visitComma = (ctx: CommaContext): codeToken => new codeToken(',', codeTypes.COMMA, ctx.start?.start)
     //-------------------------------------------------------
     // this will emmit a line break token for mandatory linebreaks
     // visitLbk = (ctx: LbkContext): codeToken => this.breakResult()
-    visitLbk = (ctx: LbkContext): codeToken => this.defaultResult()
+    visitLbk = (ctx: LbkContext): codeToken => this.defaultResult(ctx.start?.start)
     //-------------------------------------------------------
     visitTerminal = (node: TerminalNode): codeToken =>
     {
         switch (node.symbol.type) {
             case mxsLexer.UNARY_MINUS:
-                return new codeToken(this.options.whitespaceChar + node.getText(), codeTypes.UNARY)
+                return new codeToken(this.options.whitespaceChar + node.getText(), codeTypes.UNARY, node.symbol.start)
             case mxsLexer.NL:
-                return this.defaultResult()
+                return this.defaultResult(node.symbol.start)
             case mxsLexer.EOF:
-                return this.defaultResult()
+                return this.defaultResult(node.symbol.start)
             default:
-                return new codeToken(node.getText(), tokenToCodeType.get(node.symbol.type) ?? codeTypes.VALUE)
+                return new codeToken(node.getText(), tokenToCodeType.get(node.symbol.type) ?? codeTypes.VALUE, node.symbol.start)
         }
     }
     //#endregion
@@ -1675,7 +1676,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
         return result
     }
     //-------------------------------------------------------
-    protected defaultResult(): codeToken { return new codeToken('', codeTypes.VOID) }
+    protected defaultResult(pos?: number): codeToken { return new codeToken('', codeTypes.VOID, pos) }
     protected shouldVisitNextChild(_node: ParserRuleContext, _currentResult: codeToken | codeBlock): boolean { return true }
     protected aggregateResult(aggregate: R[], nextResult: codeToken | codeBlock | R[]): R[]
     {
