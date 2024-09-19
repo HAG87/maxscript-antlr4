@@ -294,16 +294,16 @@ structDefinition
     rp
 	;
 
-struct_body: (struct_access NL*)? struct_member ( comma (struct_access NL*)? struct_member )*
+struct_body: (struct_access NL*)? struct_members ( comma (struct_access NL*)? struct_members )*
 	;
 
-struct_member
-	: identifier assignment?
+struct_members
+	: struct_member
 	| fnDefinition
 	| eventHandlerClause	
 	;
 
-// struct_member: identifier assignment? ;
+struct_member: identifier assignment? ;
 
 struct_access: PUBLIC | PRIVATE
 	;

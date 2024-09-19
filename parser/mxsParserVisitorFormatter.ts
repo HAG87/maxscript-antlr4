@@ -43,6 +43,7 @@ enum codeTypes
     ID,
     KEYWORD,
     LBRACE,
+    LBRACK,
     LINE_BREAK,
     BREAK,
     LINE_COMMENT,
@@ -52,6 +53,7 @@ enum codeTypes
     NUMBER,
     OPERATOR,
     RBRACE,
+    RBRACK,
     RPAREN,
     SHARP,
     SYMBOL,
@@ -203,7 +205,7 @@ const mandatoryWS: Set<number> = new Set([
     codeTypes.ID,
     codeTypes.NUMBER,
     codeTypes.KEYWORD,
-    codeTypes.UNARY
+    // codeTypes.UNARY
 ])
 const shouldSkip: Set<number> = new Set([
     codeTypes.WHITESPACE,
@@ -211,6 +213,8 @@ const shouldSkip: Set<number> = new Set([
     codeTypes.BREAK,
     codeTypes.SHARP,
     codeTypes.DOT,
+    codeTypes.UNARY,
+    codeTypes.LBRACK,
     //  codeTypes.COMMA,
     //  codeTypes.COLON,
 ])
@@ -222,6 +226,8 @@ const shouldSkipNext: Set<number> = new Set([
     codeTypes.COMMA,
     codeTypes.COLON,
     codeTypes.DOT,
+    codeTypes.LBRACK,
+    codeTypes.RBRACK,
 ])
 const blockPairs: Set<number> = new Set([
     codeTypes.LPAREN,
@@ -512,8 +518,9 @@ export class codeBlock
                 if (options.condenseWhitespace) {
                     //mandatory whitespace
                     if (
-                        mandatoryWS.has(current.type) &&
-                        mandatoryWS.has(next.type)
+                        (mandatoryWS.has(current.type) &&
+                        mandatoryWS.has(next.type)) ||
+                        next.type === codeTypes.UNARY || next.isPrefix                        
                     ) {
                         acc += options.whitespaceChar
                     }
@@ -1600,8 +1607,8 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     visitRp = (ctx: RpContext): codeToken => new codeToken(')', codeTypes.RPAREN, ctx.start?.start)
     visitLc = (ctx: LcContext): codeToken => new codeToken('{', codeTypes.LBRACE, ctx.start?.start)
     visitRc = (ctx: RcContext): codeToken => new codeToken('}', codeTypes.RBRACE, ctx.start?.start)
-    visitLb = (ctx: LbContext): codeToken => new codeToken('[', codeTypes.SYMBOL, ctx.start?.start)
-    visitRb = (ctx: RbContext): codeToken => new codeToken(']', codeTypes.SYMBOL, ctx.start?.start)
+    visitLb = (ctx: LbContext): codeToken => new codeToken('[', codeTypes.LBRACK, ctx.start?.start)
+    visitRb = (ctx: RbContext): codeToken => new codeToken(']', codeTypes.RBRACK, ctx.start?.start)
     visitComma = (ctx: CommaContext): codeToken => new codeToken(',', codeTypes.COMMA, ctx.start?.start)
     //-------------------------------------------------------
     // this will emmit a line break token for mandatory linebreaks
@@ -1612,7 +1619,9 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
     {
         switch (node.symbol.type) {
             case mxsLexer.UNARY_MINUS:
-                return new codeToken(this.options.whitespaceChar + node.getText(), codeTypes.UNARY, node.symbol.start)
+                let token = new codeToken(node.getText(), codeTypes.UNARY, node.symbol.start)
+                token.isPrefix = true
+                return token
             case mxsLexer.NL:
                 return this.defaultResult(node.symbol.start)
             case mxsLexer.EOF:
