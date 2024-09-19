@@ -8,6 +8,10 @@ new_obj = case copy_type of
 default: reference b
 )
 
+a= random 1 20
+b = random 1 20
+c = random 1 20
+d = random 1 20 
 case of
 (
     (a > b): print "a is big"
