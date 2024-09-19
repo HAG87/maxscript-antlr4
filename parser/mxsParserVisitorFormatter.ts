@@ -139,7 +139,7 @@ const tokenToCodeType = new Map<number, codeTypes>([
     [mxsLexer.MINUS, codeTypes.OPERATOR],
     [mxsLexer.MultilistBox, codeTypes.ID],
     [mxsLexer.MXScallstackCaptureEnabled, codeTypes.KEYWORD],
-    [mxsLexer.NAME, codeTypes.VALUE],
+    [mxsLexer.NAME, codeTypes.ID],
     [mxsLexer.NL, codeTypes.LINE_BREAK],
     [mxsLexer.NOT, codeTypes.KEYWORD],
     [mxsLexer.NUMBER, codeTypes.NUMBER],
@@ -442,7 +442,8 @@ export class codeBlock
                     if (last) {
                         const start: codeToken | undefined = inner[0];
                         if (
-                            (last.type === codeTypes.LINE_BREAK || last.type === codeTypes.BREAK) &&
+                            // (last.type === codeTypes.LINE_BREAK || last.type === codeTypes.BREAK) &&
+                            last.type === codeTypes.LINE_BREAK &&
                             blockPairs.has(start.type)
                         ) {
                             result.pop()
@@ -873,7 +874,28 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
             blockTypes.DECL
         )
     }
-    visitAttributes_predicate = (ctx: Attributes_predicateContext): R[] => this.visitChildren(ctx)
+    visitAttributes_predicate = (ctx: Attributes_predicateContext): codeBlock => // this.visitChildren(ctx)
+    {
+        const vals = [
+            this.visit(ctx.Attributes())!,
+            this.visit(ctx.identifier())!,
+            // this.emmitLineBreak(false, this.indentLevel)!,
+            ...ctx.param().map(param =>
+                [
+                    this.emmitLineBreak(true, this.indentLevel + 1),
+                    this.visit(param)!
+                ].flat())
+        ].flat()
+
+        return new codeBlock(
+            vals,
+            // this.visitChildren(ctx)!,
+            this.indentLevel,
+            undefined,
+            undefined,
+            blockTypes.DECL
+        )
+    }
     //#endregion
     //-------------------------------------------------------
     //#region Basic Definitions
@@ -1072,6 +1094,7 @@ export class mxsParserVisitorFormatter extends mxsParserVisitor<R | R[]>
         //--------------------------------------------
         this.indentLevel++;
         //--------------------------------------------
+        // console.log(this.collectWithLineBreak(ctx.case_item(), false))
         const clause = new codeBlock(
             this.collectWithLineBreak(ctx.case_item(), false),
             this.indentLevel,
